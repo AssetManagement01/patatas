@@ -839,6 +839,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
         <div class="stats" id="val-stats"></div>
         <div class="toolbar">
           <div class="search"><input type="text" id="val-search" placeholder="Cari SKU, nama barang, atau lokasi..." oninput="filterValuation()"/></div>
+          <select id="val-filter-category" onchange="filterValuation()" title="Kategori"><option value="">Semua Kategori</option></select>
           <select id="val-filter-location" onchange="filterValuation()" title="Lokasi"><option value="">Semua Lokasi</option></select>
           <select id="val-filter-uom" onchange="filterValuation()" title="UOM"><option value="">Semua UOM</option></select>
           <button type="button" class="btn btn-outline" onclick="resetValuationFilter()">Reset</button>
@@ -1699,26 +1700,46 @@ function filterValuation() {
   renderValuation();
 }
 
+function enrichValuationCategory(rows) {
+  var map = {};
+  try {
+    var src = window.uniqueData || window.allData || window.inventoryData || [];
+    (src || []).forEach(function(it){
+      var sku = String(it.sku || it.SKU || "").trim();
+      if (!sku) return;
+      map[sku] = it.category || it.Category || it.kategori || "";
+    });
+  } catch(e) {}
+  return (rows || []).map(function(r){
+    var sku = String(r.sku || "").trim();
+    var cat = r.category || r.Category || map[sku] || "";
+    r.category = cat;
+    return r;
+  });
+}
+
 function populateValuationFilters() {
   try {
     loadValuationFromStorage();
-    var locs = {}, uoms = {};
+    enrichValuationCategory(valuationData);
+    var cats = {}, locs = {}, uoms = {};
     (valuationData || []).forEach(function(r){
+      if (r.category) cats[r.category] = 1;
       if (r.loc) locs[r.loc] = 1;
       if (r.uom) uoms[r.uom] = 1;
     });
-    var locSel = document.getElementById("val-filter-location");
-    var uomSel = document.getElementById("val-filter-uom");
-    if (locSel) {
-      var cur = locSel.value;
-      locSel.innerHTML = '<option value="">Semua Lokasi</option>' + Object.keys(locs).sort().map(function(l){ return '<option value="'+l.replace(/"/g,'&quot;')+'">'+l+'</option>'; }).join("");
-      locSel.value = cur;
+    function fill(selId, allLabel, obj) {
+      var sel = document.getElementById(selId);
+      if (!sel) return;
+      var cur = sel.value;
+      sel.innerHTML = '<option value="">'+allLabel+'</option>' + Object.keys(obj).sort().map(function(k){
+        return '<option value="'+k.replace(/"/g,'&quot;')+'">'+k+'</option>';
+      }).join("");
+      sel.value = cur;
     }
-    if (uomSel) {
-      var cur2 = uomSel.value;
-      uomSel.innerHTML = '<option value="">Semua UOM</option>' + Object.keys(uoms).sort().map(function(u){ return '<option value="'+u.replace(/"/g,'&quot;')+'">'+u+'</option>'; }).join("");
-      uomSel.value = cur2;
-    }
+    fill("val-filter-category", "Semua Kategori", cats);
+    fill("val-filter-location", "Semua Lokasi", locs);
+    fill("val-filter-uom", "Semua UOM", uoms);
   } catch(e) {}
 }
 
@@ -1726,10 +1747,12 @@ function renderValuation() {
   loadValuationFromStorage();
   populateValuationFilters();
   const q = ((document.getElementById("val-search") || {}).value || "").toLowerCase().trim();
+  const catF = ((document.getElementById("val-filter-category") || {}).value || "");
   const locF = ((document.getElementById("val-filter-location") || {}).value || "");
   const uomF = ((document.getElementById("val-filter-uom") || {}).value || "");
-  let rows = valuationData.slice();
-  if (q) rows = rows.filter(r => ((r.sku||"")+" "+(r.name||"")+" "+(r.loc||"")).toLowerCase().includes(q));
+  let rows = enrichValuationCategory(valuationData.slice());
+  if (q) rows = rows.filter(r => ((r.sku||"")+" "+(r.name||"")+" "+(r.loc||"")+" "+(r.category||"")).toLowerCase().includes(q));
+  if (catF) rows = rows.filter(r => (r.category||"") === catF);
   if (locF) rows = rows.filter(r => (r.loc||"") === locF);
   if (uomF) rows = rows.filter(r => (r.uom||"") === uomF);
 
@@ -1758,6 +1781,7 @@ function renderValuation() {
       <td>${i+1}</td>
       <td class="sku">${r.sku||""}</td>
       <td>${r.name||""}</td>
+      <td><span class="badge badge-cat">${r.category||"—"}</span></td>
       <td>${r.uom||""}</td>
       <td>${r.loc||""}</td>
       <td style="text-align:right">${Number(r.price||0).toLocaleString("id-ID")}</td>
@@ -1976,6 +2000,7 @@ async function saveValuation(e) {
     action: "saveValuation",
     sku: document.getElementById("val-sku").value.trim(),
     name: document.getElementById("val-name").value.trim(),
+    category: (currentItem && (currentItem.category || currentItem.Category)) || "",
     uom: (currentItem && (currentItem.uom || currentItem.Uom)) || "PCS",
     loc: (currentItem && (currentItem.location || currentItem.loc)) || "",
     price: parseFloat(document.getElementById("val-price").value) || 0,
