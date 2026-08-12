@@ -9,14 +9,14 @@
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <style>
 :root{
-  --navy:#0b1f33;--navy2:#122b45;--teal:#0d9488;--teal2:#14b8a6;
+  --navy:#0b1f33;--navy2:#122b45;--teal:#1e3a5f;--teal2:#14b8a6;
   --accent:#c9a227;--bg:#f0f4f8;--card:#fff;--text:#0f172a;--muted:#64748b;
   --border:#e2e8f0;--success:#16a34a;--danger:#dc2626;--sidebar-w:260px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
 /* LOGIN */
-#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0b1f33 0%,#0d4f3c 50%,#0d9488 100%);display:flex;align-items:center;justify-content:center;z-index:1000}
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#0b1f3a 0%,#0f2744 50%,#1e3a5f 100%);display:flex;align-items:center;justify-content:center;z-index:1000}
 .login-card{background:#fff;border-radius:20px;padding:2.5rem 2rem;width:100%;max-width:400px;box-shadow:0 25px 60px rgba(0,0,0,.35)}
 .login-card .brand{text-align:center;margin-bottom:1.5rem}
 .login-card .brand h1{font-size:1.35rem;color:var(--navy);letter-spacing:.04em}
@@ -24,13 +24,13 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .login-card label{display:block;font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:.3rem;margin-top:.85rem}
 .login-card input,.login-card select{width:100%;padding:.65rem .85rem;border:1px solid var(--border);border-radius:10px;font-size:.9rem;outline:none}
 .login-card input:focus,.login-card select:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15)}
-.login-card button{width:100%;margin-top:1.25rem;padding:.75rem;background:var(--navy);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer}
+.login-card button{width:100%;margin-top:1.25rem;padding:.75rem;background:#0b1f3a;color:#fff;border:none;border-radius:10px;font-weight:700;font-size:.95rem;cursor:pointer}
 .login-card button:hover{background:#163a5f}
 .login-hint{margin-top:1rem;font-size:.72rem;color:var(--muted);text-align:center;line-height:1.45}
 /* APP SHELL */
 #app{display:none;min-height:100vh}
 #app.show{display:flex!important}#app{display:none!important}
-.sidebar{width:var(--sidebar-w);background:var(--navy);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .25s}
+.sidebar{width:var(--sidebar-w);background:#0b1f3a;color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;transition:transform .25s}
 .sidebar .logo{padding:1.25rem 1.2rem;border-bottom:1px solid rgba(255,255,255,.08)}
 .sidebar .logo h2{font-size:1rem;letter-spacing:.06em;font-weight:700}
 .sidebar .logo span{font-size:.7rem;opacity:.65}
@@ -61,7 +61,7 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
 .search::before{content:"🔍";position:absolute;left:.7rem;top:50%;transform:translateY(-50%);font-size:.85rem}
 select, .btn{padding:.5rem .75rem;border-radius:9px;font-size:.82rem;border:1px solid var(--border);background:#fff;cursor:pointer}
 .btn{font-weight:600;display:inline-flex;align-items:center;gap:.35rem;white-space:nowrap}
-.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-primary{background:#0b1f3a;color:#fff;border-color:var(--navy)}
 .btn-primary:hover{background:#163a5f}
 .btn-teal{background:var(--teal);color:#fff;border-color:var(--teal)}
 .btn-success{background:var(--success);color:#fff;border:none}
@@ -578,6 +578,146 @@ body.present-mode .table-wrap {
 }
 
 </style>
+
+<style id="esb-rail-safe">
+body.sidebar-hidden { --sidebar-w: 56px !important; }
+body.sidebar-hidden .sidebar {
+  width: 56px !important; min-width: 56px !important; max-width: 56px !important;
+  transform: none !important; opacity: 1 !important; visibility: visible !important;
+  pointer-events: auto !important; padding: 0.35rem 0 !important; overflow-x: hidden !important;
+}
+body.sidebar-hidden .sidebar .logo,
+body.sidebar-hidden .sidebar .user-box,
+body.sidebar-hidden .sidebar #user-info,
+body.sidebar-hidden .sidebar .badge,
+body.sidebar-hidden .sidebar .role,
+body.sidebar-hidden .sidebar #logout-btn,
+body.sidebar-hidden .sidebar .sub,
+body.sidebar-hidden .sidebar .arrow { display: none !important; }
+body.sidebar-hidden .sidebar a,
+body.sidebar-hidden .sidebar [data-page] {
+  display: flex !important; justify-content: center !important; align-items: center !important;
+  width: 42px !important; height: 42px !important; margin: 0.15rem auto !important;
+  padding: 0 !important; border-radius: 10px !important; border-left: none !important;
+  font-size: 0 !important; color: transparent !important; overflow: hidden !important;
+}
+body.sidebar-hidden .sidebar a svg,
+body.sidebar-hidden .sidebar [data-page] svg {
+  display: block !important; width: 18px !important; height: 18px !important; stroke: #fff !important;
+}
+body.sidebar-hidden .sidebar a.active { background: rgba(255,255,255,0.22) !important; }
+body.sidebar-hidden .main {
+  margin-left: 56px !important;
+  width: calc(100% - 56px) !important;
+  max-width: calc(100% - 56px) !important;
+  box-sizing: border-box !important;
+}
+body.sidebar-hidden #page-transfer > div,
+body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !important; }
+/* btn-toggle moved to btn-toggle-fix */
+</style>
+
+
+<style id="esb-login-css">
+#login-screen {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex !important;
+  align-items: stretch !important;
+  justify-content: stretch !important;
+  background: #f3f4f6 !important;
+  z-index: 1000 !important;
+  padding: 0 !important;
+}
+#login-screen.hidden,
+#login-screen[style*="display: none"],
+#login-screen[style*="display:none"] {
+  display: none !important;
+}
+#login-screen .login-brand-panel {
+  flex: 1 1 55%;
+  background: linear-gradient(145deg, #0d9488 0%, #0f766e 45%, #115e59 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 3rem 3.5rem;
+  position: relative;
+  overflow: hidden;
+}
+#login-screen .login-brand-panel::before {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,0.12) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,0.08) 0%, transparent 45%);
+  pointer-events: none;
+}
+#login-screen .login-brand-panel h1 {
+  font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+  font-weight: 800;
+  line-height: 1.15;
+  margin: 0 0 1rem 0;
+  position: relative;
+  z-index: 1;
+}
+#login-screen .login-brand-panel p {
+  font-size: 1.05rem;
+  opacity: 0.92;
+  line-height: 1.5;
+  max-width: 420px;
+  position: relative;
+  z-index: 1;
+}
+#login-screen .login-brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(255,255,255,0.2);
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+}
+#login-screen .login-card {
+  flex: 0 0 42%;
+  max-width: 480px;
+  width: 100%;
+  margin: 0 auto;
+  align-self: center;
+  background: transparent !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  padding: 2rem 2.5rem !important;
+}
+#login-screen .login-card button {
+  background: #0d9488 !important;
+  color: #fff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  width: 100%;
+  padding: 0.8rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+}
+#login-screen .login-card button:hover { background: #0f766e !important; }
+#login-screen .login-card input {
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+}
+@media (max-width: 860px) {
+  #login-screen { flex-direction: column !important; }
+  #login-screen .login-brand-panel { flex: 0 0 auto !important; padding: 1.5rem 1.25rem !important; }
+  #login-screen .login-card { flex: 1 1 auto !important; max-width: 100% !important; }
+}
+</style>
+
 </head>
 <body>
 <!-- LOGIN -->
@@ -734,7 +874,7 @@ body.present-mode .table-wrap {
       <!-- REPORT -->
       
       <div class="page" id="page-transfer">
-        <div style="max-width:720px">
+        <div style="max-width:100%;width:100%">
           <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
             <h3 style="margin:0 0 0.35rem;color:var(--navy)">Form Transfer Antar Outlet</h3>
             <p style="font-size:0.8rem;color:var(--muted);margin:0 0 1rem">Admin & Outlet bisa input. Hapus hanya Admin.</p>
@@ -810,7 +950,7 @@ body.present-mode .table-wrap {
         <h2>Berita Acara</h2>
         <div id="ba-api-status" class="text-xs opacity-80">—</div>
       </div>
-      <div style="padding:1rem 1.25rem;max-width:960px">
+      <div style="padding:1rem 1.25rem;max-width:100%;width:100%">
         <div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1rem">
           <h3 style="margin:0 0 0.25rem;font-size:1.05rem">Form Berita Acara</h3>
           <p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b">Catat pengurangan aset (rusak / hilang / write-off). Data masuk sheet <b>BA</b>.</p>
@@ -6598,4 +6738,222 @@ window.togglePresentMode = function () {
   });
 })();
 </script>
+
+<button type="button" id="btn-toggle-sidebar" title="Toggle menu">☰</button>
+<script>
+(function(){
+  var KEY="patatas_sidebar_hidden";
+  function apply(h){ document.body.classList.toggle("sidebar-hidden",!!h); try{localStorage.setItem(KEY,h?"1":"0");}catch(e){} }
+  function boot(){
+    var h=false; try{h=localStorage.getItem(KEY)==="1";}catch(e){}
+    apply(h);
+    var b=document.getElementById("btn-toggle-sidebar");
+    if(b&&!b._b){ b._b=1; b.onclick=function(){ apply(!document.body.classList.contains("sidebar-hidden")); }; }
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",boot); else boot();
+  setTimeout(boot,300);
+})();
+</script>
+
+
+<script>
+(function(){
+  function buildLoginESB(){
+    var screen = document.getElementById("login-screen");
+    if (!screen || screen.querySelector(".login-brand-panel")) return;
+    var card = screen.querySelector(".login-card");
+    if (!card) return;
+    var panel = document.createElement("div");
+    panel.className = "login-brand-panel";
+    panel.innerHTML =
+      '<div class="login-brand-badge">✓ Asset Management System</div>'+
+      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
+      '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
+    screen.insertBefore(panel, card);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildLoginESB);
+  else buildLoginESB();
+  setTimeout(buildLoginESB, 200);
+})();
+</script>
+
+
+
+
+
+
+
+
+
+<script>
+(function(){
+  function ensureToggle(){
+    var b = document.getElementById("btn-toggle-sidebar");
+    if (!b) {
+      b = document.createElement("button");
+      b.type = "button";
+      b.id = "btn-toggle-sidebar";
+      b.title = "Toggle menu";
+      b.textContent = "☰";
+      document.body.appendChild(b);
+    }
+    b.style.display = "inline-flex";
+    b.style.visibility = "visible";
+    b.style.opacity = "1";
+    b.style.zIndex = "2147483647";
+    /* position by placeToggle */
+    if (!b._bound) {
+      b._bound = 1;
+      b.onclick = function(){
+        document.body.classList.toggle("sidebar-hidden");
+        try {
+          localStorage.setItem("patatas_sidebar_hidden",
+            document.body.classList.contains("sidebar-hidden") ? "1" : "0");
+        } catch(e){}
+      };
+    }
+    // hide only while login visible
+    var login = document.getElementById("login-screen");
+    if (login) {
+      var st = window.getComputedStyle(login);
+      var hidden = st.display === "none" || login.classList.contains("hidden");
+      b.style.display = hidden ? "inline-flex" : "none";
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", ensureToggle);
+  else ensureToggle();
+  setInterval(ensureToggle, 1000);
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<style id="toggle-inside-rail">
+/* ☰ di DALAM strip/sidebar kiri — tidak di topbar, tidak nutup judul */
+#btn-toggle-sidebar {
+  position: fixed !important;
+  z-index: 2147483647 !important;
+  left: 10px !important;
+  top: 10px !important;
+  width: 36px !important;
+  height: 36px !important;
+  border: none !important;
+  border-radius: 10px !important;
+  background: #0d9488 !important;
+  color: #fff !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+/* Mode full & hide: tetap di dalam area sidebar kiri */
+body:not(.sidebar-hidden) #btn-toggle-sidebar,
+body.sidebar-hidden #btn-toggle-sidebar {
+  left: 10px !important;
+  top: 10px !important;
+}
+/* Judul topbar penuh, tanpa padding ekstra dari toggle */
+.topbar h1, .topbar h2, #top-title, .page-title {
+  padding-left: 1rem !important;
+}
+/* Logo sidebar digeser sedikit ke bawah agar tidak bentrok ☰ */
+body:not(.sidebar-hidden) .sidebar .logo {
+  padding-top: 3rem !important;
+}
+body.sidebar-hidden .sidebar nav,
+body.sidebar-hidden .sidebar .nav {
+  padding-top: 3.2rem !important;
+}
+</style>
+
+
+
+
+
+<style id="green-teal-theme">
+:root {
+  --navy: #0b4f37 !important;
+  --teal: #0d9488 !important;
+  --teal-dark: #0f766e !important;
+  --bg: #f4f6f8 !important;
+  --text: #0f172a !important;
+}
+/* Sidebar hijau tua → teal */
+.sidebar {
+  background: linear-gradient(180deg, #0b4f37 0%, #0d9488 55%, #0f766e 100%) !important;
+  color: #fff !important;
+}
+.sidebar a.active,
+.sidebar [data-page].active,
+.sidebar .nav-item.active {
+  background: rgba(255,255,255,0.2) !important;
+  border-left: 3px solid #fff !important;
+  color: #fff !important;
+}
+.sidebar a:hover,
+.sidebar [data-page]:hover {
+  background: rgba(255,255,255,0.12) !important;
+}
+/* Topbar teal */
+.topbar, .header-bar, .header-bg {
+  background: #0d9488 !important;
+  color: #fff !important;
+  border-bottom: none !important;
+}
+.topbar *, .header-bar * { color: #fff !important; }
+
+/* Login */
+#login-screen { background: #eef7f5 !important; }
+#login-screen .login-brand-panel {
+  background: linear-gradient(145deg, #0b4f37 0%, #0d9488 50%, #14b8a6 100%) !important;
+}
+#login-screen .login-card button,
+#btn-login {
+  background: #0d9488 !important;
+  color: #fff !important;
+}
+#login-screen .login-card button:hover,
+#btn-login:hover { background: #0f766e !important; }
+#login-screen .login-card input:focus {
+  border-color: #0d9488 !important;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.18) !important;
+}
+
+#btn-toggle-sidebar {
+  background: #0d9488 !important;
+}
+body.sidebar-hidden #btn-toggle-sidebar {
+  background: #0f766e !important;
+}
+
+table thead tr,
+table thead th {
+  background: #0b4f37 !important;
+  color: #fff !important;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: #0d9488 !important;
+}
+
+body { background: #f4f6f8 !important; }
+.main, .content { background: #f4f6f8 !important; }
+</style>
+
 </html>
