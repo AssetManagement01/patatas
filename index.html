@@ -836,11 +836,17 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
       
       <!-- VALUATION STOCK PAGE -->
       <div class="page" id="page-valuation">
-        <div class="toolbar" style="margin-bottom:1rem">
-          <div class="search"><input type="text" id="val-search" placeholder="Cari SKU / Nama di valuation..." oninput="filterValuation()"/></div>
-          <button class="btn btn-success" onclick="exportValuation()">📥 Export Valuation</button>
-        </div>
         <div class="stats" id="val-stats"></div>
+        <div class="toolbar">
+          <div class="search"><input type="text" id="val-search" placeholder="Cari SKU, nama barang, atau lokasi..." oninput="filterValuation()"/></div>
+          <select id="val-filter-location" onchange="filterValuation()" title="Lokasi"><option value="">Semua Lokasi</option></select>
+          <select id="val-filter-uom" onchange="filterValuation()" title="UOM"><option value="">Semua UOM</option></select>
+          <button type="button" class="btn btn-outline" onclick="resetValuationFilter()">Reset</button>
+          <div class="toolbar-actions">
+            <button type="button" class="btn btn-success" onclick="exportValuation()">📥 Export</button>
+            <button type="button" class="btn btn-primary" onclick="window.print()">🖨️ Cetak</button>
+          </div>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -1681,15 +1687,51 @@ function persistValuation() {
   localStorage.setItem("patatas_valuation", JSON.stringify(valuationData));
 }
 
+function resetValuationFilter() {
+  var s = document.getElementById("val-search"); if (s) s.value = "";
+  var loc = document.getElementById("val-filter-location"); if (loc) loc.value = "";
+  var uom = document.getElementById("val-filter-uom"); if (uom) uom.value = "";
+  filterValuation();
+}
+window.resetValuationFilter = resetValuationFilter;
+
 function filterValuation() {
   renderValuation();
 }
 
+function populateValuationFilters() {
+  try {
+    loadValuationFromStorage();
+    var locs = {}, uoms = {};
+    (valuationData || []).forEach(function(r){
+      if (r.loc) locs[r.loc] = 1;
+      if (r.uom) uoms[r.uom] = 1;
+    });
+    var locSel = document.getElementById("val-filter-location");
+    var uomSel = document.getElementById("val-filter-uom");
+    if (locSel) {
+      var cur = locSel.value;
+      locSel.innerHTML = '<option value="">Semua Lokasi</option>' + Object.keys(locs).sort().map(function(l){ return '<option value="'+l.replace(/"/g,'&quot;')+'">'+l+'</option>'; }).join("");
+      locSel.value = cur;
+    }
+    if (uomSel) {
+      var cur2 = uomSel.value;
+      uomSel.innerHTML = '<option value="">Semua UOM</option>' + Object.keys(uoms).sort().map(function(u){ return '<option value="'+u.replace(/"/g,'&quot;')+'">'+u+'</option>'; }).join("");
+      uomSel.value = cur2;
+    }
+  } catch(e) {}
+}
+
 function renderValuation() {
   loadValuationFromStorage();
+  populateValuationFilters();
   const q = ((document.getElementById("val-search") || {}).value || "").toLowerCase().trim();
+  const locF = ((document.getElementById("val-filter-location") || {}).value || "");
+  const uomF = ((document.getElementById("val-filter-uom") || {}).value || "");
   let rows = valuationData.slice();
-  if (q) rows = rows.filter(r => ((r.sku||"")+" "+(r.name||"")).toLowerCase().includes(q));
+  if (q) rows = rows.filter(r => ((r.sku||"")+" "+(r.name||"")+" "+(r.loc||"")).toLowerCase().includes(q));
+  if (locF) rows = rows.filter(r => (r.loc||"") === locF);
+  if (uomF) rows = rows.filter(r => (r.uom||"") === uomF);
 
   const totalVal = rows.reduce((s,r) => s + (Number(r.total)||0), 0);
   const totalQty = rows.reduce((s,r) => s + (Number(r.qty)||0), 0);
@@ -6886,74 +6928,287 @@ body.sidebar-hidden .sidebar .nav {
 
 
 
+
 <style id="green-teal-theme">
 :root {
   --navy: #0b4f37 !important;
   --teal: #0d9488 !important;
   --teal-dark: #0f766e !important;
-  --bg: #f4f6f8 !important;
+  --bg: #f0fdfa !important;
   --text: #0f172a !important;
 }
-/* Sidebar hijau tua → teal */
-.sidebar {
-  background: linear-gradient(180deg, #0b4f37 0%, #0d9488 55%, #0f766e 100%) !important;
+/* SIDEBAR: jelas hijau-teal, bukan navy gelap */
+.sidebar,
+aside.sidebar,
+#sidebar {
+  background: linear-gradient(180deg, #066b5c 0%, #0d9488 45%, #14b8a6 100%) !important;
+  color: #ffffff !important;
+  border-right: none !important;
+}
+.sidebar .logo,
+.sidebar .logo * {
   color: #fff !important;
+}
+.sidebar a,
+.sidebar [data-page],
+.sidebar .nav-item {
+  color: #ffffff !important;
 }
 .sidebar a.active,
 .sidebar [data-page].active,
 .sidebar .nav-item.active {
-  background: rgba(255,255,255,0.2) !important;
-  border-left: 3px solid #fff !important;
+  background: rgba(255,255,255,0.25) !important;
+  border-left: 3px solid #ffffff !important;
   color: #fff !important;
 }
 .sidebar a:hover,
 .sidebar [data-page]:hover {
-  background: rgba(255,255,255,0.12) !important;
+  background: rgba(255,255,255,0.15) !important;
 }
-/* Topbar teal */
-.topbar, .header-bar, .header-bg {
-  background: #0d9488 !important;
+.sidebar svg {
+  stroke: #fff !important;
   color: #fff !important;
+}
+
+/* TOPBAR jelas teal */
+.topbar,
+.header-bar,
+.header-bg,
+#topbar,
+.main > .topbar,
+#page-assets .topbar,
+#page-transfer .topbar,
+#page-ba .topbar {
+  background: #0d9488 !important;
+  color: #ffffff !important;
   border-bottom: none !important;
 }
-.topbar *, .header-bar * { color: #fff !important; }
+.topbar *,
+.header-bar *,
+.topbar h1,
+.topbar h2,
+#top-title {
+  color: #ffffff !important;
+}
 
 /* Login */
-#login-screen { background: #eef7f5 !important; }
+#login-screen { background: #ecfdf8 !important; }
 #login-screen .login-brand-panel {
-  background: linear-gradient(145deg, #0b4f37 0%, #0d9488 50%, #14b8a6 100%) !important;
+  background: linear-gradient(145deg, #066b5c 0%, #0d9488 55%, #2dd4bf 100%) !important;
 }
 #login-screen .login-card button,
 #btn-login {
   background: #0d9488 !important;
   color: #fff !important;
 }
-#login-screen .login-card button:hover,
-#btn-login:hover { background: #0f766e !important; }
-#login-screen .login-card input:focus {
-  border-color: #0d9488 !important;
-  box-shadow: 0 0 0 3px rgba(13,148,136,0.18) !important;
-}
-
 #btn-toggle-sidebar {
   background: #0d9488 !important;
-}
-body.sidebar-hidden #btn-toggle-sidebar {
-  background: #0f766e !important;
+  color: #fff !important;
 }
 
+/* Table header hijau tua */
 table thead tr,
-table thead th {
+table thead th,
+.table thead th {
   background: #0b4f37 !important;
   color: #fff !important;
 }
 
+body, .main, .content {
+  background: #f0fdfa !important;
+}
 input:focus, select:focus, textarea:focus {
   border-color: #0d9488 !important;
+  box-shadow: 0 0 0 3px rgba(13,148,136,0.2) !important;
+}
+</style>
+
+
+
+<style id="mobile-fix">
+/* ===== MOBILE / HP ===== */
+@media (max-width: 900px) {
+  /* Satu tombol menu saja di topbar */
+  #btn-toggle-sidebar {
+    position: fixed !important;
+    left: 10px !important;
+    top: 10px !important;
+    z-index: 100050 !important;
+    width: 40px !important;
+    height: 40px !important;
+  }
+  /* Sembunyikan menu-btn native di topbar supaya tidak dobel */
+  .topbar .menu-btn,
+  button.menu-btn,
+  .menu-toggle {
+    display: none !important;
+  }
+  .topbar h1, .topbar h2, #top-title, .page-title {
+    padding-left: 3.25rem !important;
+    font-size: 1.05rem !important;
+  }
+
+  /* Sidebar default: off-canvas */
+  .sidebar,
+  #sidebar {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 260px !important;
+    max-width: 80vw !important;
+    z-index: 100040 !important;
+    transform: translateX(-100%) !important;
+    transition: transform .25s ease !important;
+    box-shadow: none !important;
+  }
+  /* Buka sidebar di HP: body.sidebar-open (bukan sidebar-hidden) */
+  body.sidebar-open .sidebar,
+  body.sidebar-open #sidebar {
+    transform: translateX(0) !important;
+    box-shadow: 8px 0 24px rgba(0,0,0,.25) !important;
+  }
+  /* Overlay */
+  body.sidebar-open::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 100030;
+  }
+
+  /* Main full width di HP */
+  .main, #main, .content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  body.sidebar-hidden .main,
+  body.sidebar-hidden #main {
+    margin-left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  /* Jangan pakai icon-rail di HP */
+  body.sidebar-hidden .sidebar {
+    width: 260px !important;
+    min-width: 260px !important;
+    max-width: 80vw !important;
+    transform: translateX(-100%) !important;
+    opacity: 1 !important;
+    padding: 0 !important;
+  }
+  body.sidebar-hidden.sidebar-open .sidebar {
+    transform: translateX(0) !important;
+  }
+  body.sidebar-hidden .sidebar .logo,
+  body.sidebar-hidden .sidebar a,
+  body.sidebar-hidden .sidebar nav {
+    display: revert !important;
+    font-size: revert !important;
+    color: revert !important;
+    width: auto !important;
+    height: auto !important;
+  }
+  body.sidebar-hidden .sidebar a,
+  body.sidebar-hidden .sidebar [data-page] {
+    display: flex !important;
+    font-size: 0.86rem !important;
+    color: #fff !important;
+    width: auto !important;
+    height: auto !important;
+    padding: 0.7rem 1.1rem !important;
+    justify-content: flex-start !important;
+  }
+  body.sidebar-hidden .sidebar a svg {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  /* Floating presentasi/dark tidak menutupi konten penting */
+  #theme-toggle,
+  button[onclick*="toggleTheme"],
+  .present-btn,
+  #btn-presentasi {
+    bottom: 12px !important;
+    right: 12px !important;
+    z-index: 9000 !important;
+    opacity: 0.92 !important;
+    font-size: 0.72rem !important;
+    padding: 0.4rem 0.65rem !important;
+  }
+
+  /* Form & table di HP */
+  .toolbar {
+    flex-wrap: wrap !important;
+  }
+  .table-wrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  .stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
 }
 
-body { background: #f4f6f8 !important; }
-.main, .content { background: #f4f6f8 !important; }
+/* Desktop: biarkan behavior icon-rail tetap */
+@media (min-width: 901px) {
+  body.sidebar-open .sidebar { transform: none !important; }
+}
 </style>
+
+<script>
+(function(){
+  // HP: ☰ buka/tutup overlay sidebar (class sidebar-open)
+  function isMobile(){ return window.matchMedia && window.matchMedia("(max-width: 900px)").matches; }
+  function bindMobileNav(){
+    var b = document.getElementById("btn-toggle-sidebar");
+    if (!b) return;
+    b.onclick = function(e){
+      if (e) e.preventDefault();
+      if (isMobile()) {
+        document.body.classList.toggle("sidebar-open");
+        // jangan pakai sidebar-hidden di mobile
+        document.body.classList.remove("sidebar-hidden");
+      } else {
+        document.body.classList.toggle("sidebar-hidden");
+        document.body.classList.remove("sidebar-open");
+        try {
+          localStorage.setItem("patatas_sidebar_hidden",
+            document.body.classList.contains("sidebar-hidden") ? "1" : "0");
+        } catch(err){}
+      }
+    };
+    // klik overlay / link menu → tutup
+    document.body.addEventListener("click", function(ev){
+      if (!isMobile() || !document.body.classList.contains("sidebar-open")) return;
+      var t = ev.target;
+      if (t && t.closest && t.closest(".sidebar a, .sidebar [data-page]")) {
+        document.body.classList.remove("sidebar-open");
+      }
+      // klik di luar sidebar
+      if (t === document.body || (t.classList && t.id === "app")) {
+        /* overlay via ::before not clickable easily */
+      }
+    }, true);
+    // restore desktop preference only on desktop
+    if (!isMobile()) {
+      try {
+        if (localStorage.getItem("patatas_sidebar_hidden") === "1")
+          document.body.classList.add("sidebar-hidden");
+      } catch(e){}
+    } else {
+      document.body.classList.remove("sidebar-hidden");
+      document.body.classList.remove("sidebar-open");
+    }
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", bindMobileNav);
+  else bindMobileNav();
+  setTimeout(bindMobileNav, 400);
+  window.addEventListener("resize", function(){
+    if (!isMobile()) document.body.classList.remove("sidebar-open");
+  });
+})();
+</script>
 
 </html>
