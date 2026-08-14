@@ -892,7 +892,10 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                   <input type="date" id="tf-date" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
                 </div>
                 <div>
-               </div>
+                  <label style="font-size:0.72rem;font-weight:600;color:#64748b">Qty default</label>
+                  <input type="number" id="tf-qty-default" min="1" value="1" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+                </div>
+              </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
                 <div>
                   <label style="font-size:0.72rem;font-weight:600;color:#64748b">Dari Outlet *</label>
@@ -6831,7 +6834,7 @@ window.togglePresentMode = function () {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Patatas Group<br>Asset Control</h1>'+
+      '<h1> Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
