@@ -107,6 +107,122 @@ body.viewer-only .act.edit,body.viewer-only .act.del,body.viewer-only .btn-edit-
 footer{text-align:center;padding:1rem;font-size:.72rem;color:var(--muted)}
 .empty{text-align:center;padding:2.5rem;color:var(--muted)}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--success);display:inline-block;margin-right:.35rem}
+/* Sembunyikan semua indikator API status di UI */
+#api-status, #ba-api-status, #tf-data-hint, #ba-data-hint,
+.status-dot { display: none !important; }
+
+/* Report directory */
+.rp-link {
+  color: #0d9488;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.rp-link:hover { color: #0f766e; text-decoration: underline; }
+body.dark-mode .rp-link { color: #5eead4; }
+body.dark-mode #report-directory { background: #1e293b !important; border-color: #334155 !important; }
+body.dark-mode #report-directory h2,
+body.dark-mode #report-directory h3 { color: #f1f5f9 !important; }
+body.dark-mode #report-find { background:#0f172a; color:#e2e8f0; border-color:#475569; }
+
+/* ===== Dark mode full coverage (kartu putih / search / table) ===== */
+body.dark-mode {
+  background: #0b1220 !important;
+  color: #e2e8f0 !important;
+  --card: #1e293b;
+  --border: #334155;
+  --muted: #94a3b8;
+  --navy: #e2e8f0;
+}
+body.dark-mode .tw-search-card,
+body.dark-mode .tw-search-card * {
+  color: #e2e8f0;
+}
+body.dark-mode .tw-search-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .tw-search-header {
+  background: transparent !important;
+  color: #f1f5f9 !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .tw-search-card input,
+body.dark-mode .tw-search-card select,
+body.dark-mode .tw-search-card textarea {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .tw-search-card label,
+body.dark-mode .tw-search-card .tw-field-label {
+  color: #94a3b8 !important;
+}
+body.dark-mode table thead,
+body.dark-mode table thead th {
+  background: #0f172a !important;
+  color: #cbd5e1 !important;
+  border-color: #334155 !important;
+}
+body.dark-mode table tbody td {
+  border-color: #1e293b !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode table tbody tr {
+  background: #1e293b !important;
+}
+body.dark-mode table tbody tr:nth-child(even) {
+  background: #162032 !important;
+}
+body.dark-mode .content > div[style*="background"],
+body.dark-mode .page > div[style*="background:#fff"],
+body.dark-mode .page > div[style*="background: #fff"],
+body.dark-mode .page > div[style*="background:var(--card"],
+body.dark-mode .page div[style*="background:#fff"],
+body.dark-mode .page div[style*="background: #fff"] {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .page h2,
+body.dark-mode .page h3,
+body.dark-mode .page h1 {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .user-box,
+body.dark-mode .user-box * {
+  color: #e2e8f0 !important;
+}
+body.dark-mode .btn-outline {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .modal-box,
+body.dark-mode #detail-modal .modal-box {
+  background: #1e293b !important;
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+body.dark-mode #page-settings > div > div {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .report-panel {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .ms-panel {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .badge-cat,
+body.dark-mode .badge-subcat {
+  filter: brightness(0.9);
+}
 
 .nav .sub{display:none;padding-left:0}
 .nav .sub.open{display:block}
@@ -280,8 +396,20 @@ body.present-mode #present-toggle { background: #0b4f37; color: #fff; border-col
   opacity: 1 !important;
   visibility: visible !important;
 }
-#theme-toggle { right: 1rem !important; }
-#present-toggle { right: 6.2rem !important; }
+#theme-toggle {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+#present-toggle {
+  display: inline-flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 90;
+}
 body.dark-mode #theme-toggle,
 body.dark-mode #present-toggle {
   background: #1e293b !important;
@@ -579,7 +707,7 @@ body.present-mode .table-wrap {
 
 </style>
 
-<style id="esb-rail-safe">
+<style id="sidebar-rail-safe">
 body.sidebar-hidden { --sidebar-w: 56px !important; }
 body.sidebar-hidden .sidebar {
   width: 56px !important; min-width: 56px !important; max-width: 56px !important;
@@ -618,7 +746,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 </style>
 
 
-<style id="esb-login-css">
+<style id="login-screen-css">
 #login-screen {
   position: fixed !important;
   inset: 0 !important;
@@ -722,8 +850,9 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 <body>
 <!-- LOGIN -->
 
-<button type="button" id="theme-toggle" onclick="window.toggleTheme&&window.toggleTheme();return false;">🌙 Dark</button>
-<button type="button" id="present-toggle" onclick="window.togglePresentMode&&window.togglePresentMode();return false;" title="Sembunyikan kartu statistik (Total SKU, QTY, dll) agar tabel lebih lebar">👁 Presentasi</button>
+<!-- Dark mode hanya di Settings; Presentasi tetap di pojok kanan bawah -->
+<button type="button" id="theme-toggle" style="display:none !important" aria-hidden="true">Dark</button>
+<button type="button" id="present-toggle" onclick="window.togglePresentMode&&window.togglePresentMode();return false;" title="Sembunyikan kartu statistik agar tabel lebih lebar">👁 Presentasi</button>
 
 <div id="login-screen">
   <div class="login-card">
@@ -751,7 +880,8 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
         <span class="arrow">▾</span>
       </a>
       <div class="sub" id="sub-assets">
-        <a data-page="assets" id="nav-assets-list" onclick="navTo('assets',this);return false;">Item Asset</a>
+        <a data-page="assets" id="nav-assets-list" onclick="navTo('assets',this);return false;">Aset Tetap</a>
+        <a data-page="aset-lancar" id="nav-aset-lancar" onclick="navTo('aset-lancar',this);return false;">Aset Lancar</a>
         <a data-page="valuation" id="nav-valuation" onclick="navTo('valuation',this);return false;">Valuation Stock</a>
       </div>
       <a data-page="dashboard" onclick="navTo('dashboard',this)">
@@ -774,7 +904,11 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
       </a>
       <a data-page="report" onclick="navTo('report',this)">
         <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></svg>
-        Laporan
+        <span data-i18n="nav_report">Report</span>
+      </a>
+      <a data-page="settings" onclick="navTo('settings',this)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span data-i18n="nav_settings">Settings</span>
       </a>
     </nav>
     <div class="user-box">
@@ -794,7 +928,8 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
         <h1 id="page-title">Daftar Aset</h1>
       </div>
       <div class="actions">
-        <span style="font-size:.75rem;color:var(--muted)"><span class="status-dot"></span><span id="api-status">Data siap</span></span>
+        <!-- status API disembunyikan (opsional debug: hapus display:none) -->
+        <span style="display:none;font-size:.75rem;color:var(--muted)"><span class="status-dot"></span><span id="api-status">Data siap</span></span>
       </div>
     </header>
 
@@ -803,15 +938,15 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
       <div class="page active" id="page-assets">
         <div class="stats" id="stats"></div>
 
-        <!-- ESB-style Search Panel -->
-        <div class="esb-search-card" id="assets-search-panel">
-          <div class="esb-search-header">
+        <!-- Search Panel -->
+        <div class="tw-search-card" id="assets-search-panel">
+          <div class="tw-search-header">
             <span>Search</span>
-            <button type="button" class="esb-collapse-btn" onclick="(function(b){var bdy=document.getElementById('assets-search-body');if(!bdy)return;var h=bdy.style.display==='none';bdy.style.display=h?'block':'none';b.textContent=h?'−':'+';})(this)">−</button>
+            <button type="button" class="tw-collapse-btn" onclick="(function(b){var bdy=document.getElementById('assets-search-body');if(!bdy)return;var h=bdy.style.display==='none';bdy.style.display=h?'block':'none';b.textContent=h?'−':'+';})(this)">−</button>
           </div>
-          <div class="esb-search-body" id="assets-search-body">
-            <div class="esb-search-grid">
-              <div class="esb-field">
+          <div class="tw-search-body" id="assets-search-body">
+            <div class="tw-search-grid">
+              <div class="tw-field">
                 <label>Category</label>
                 <div class="ms-wrap" id="ms-category">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-category')"><span class="ms-label">- Select Category -</span><span class="ms-arrow">▾</span></button>
@@ -822,7 +957,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                 </div>
                 <select id="filter-category" style="display:none" multiple></select>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Sub Category</label>
                 <div class="ms-wrap" id="ms-sub">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-sub')"><span class="ms-label">- Select Sub Category -</span><span class="ms-arrow">▾</span></button>
@@ -833,11 +968,11 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                 </div>
                 <select id="filter-sub" style="display:none" multiple></select>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Product Name / SKU</label>
                 <input type="text" id="search" placeholder="Cari SKU, nama, penanggung jawab..." oninput="applyFilter()"/>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Location</label>
                 <div class="ms-wrap" id="ms-location">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-location')"><span class="ms-label">- Select Location -</span><span class="ms-arrow">▾</span></button>
@@ -848,7 +983,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                 </div>
                 <select id="filter-location" style="display:none" multiple></select>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Kondisi / Status</label>
                 <div class="ms-wrap" id="ms-kondisi">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-kondisi')"><span class="ms-label">- Show All -</span><span class="ms-arrow">▾</span></button>
@@ -859,12 +994,12 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                 </div>
                 <select id="filter-kondisi" style="display:none" multiple></select>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Penanggung Jawab</label>
                 <input type="text" id="filter-pj" placeholder="- Optional -" oninput="applyFilter()"/>
               </div>
             </div>
-            <div class="esb-search-actions">
+            <div class="tw-search-actions">
               <button type="button" class="btn btn-teal" onclick="applyFilter()">🔍 Search</button>
               <button type="button" class="btn btn-success" onclick="exportExcel()">📥 Export Data</button>
               <button type="button" class="btn btn-primary" onclick="resetFilter()">↺ Clear Filter</button>
@@ -877,7 +1012,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
         </div>
 
         <div class="table-wrap" style="margin-top:1rem">
-          <div style="padding:0.65rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border);font-weight:600;font-size:0.9rem;color:var(--navy)">Asset List</div>
+          <div style="padding:0.65rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border);font-weight:600;font-size:0.9rem;color:var(--navy)">Aset Tetap</div>
           <table>
             <thead>
               <tr>
@@ -891,19 +1026,149 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
         </div>
       </div>
 
-      
+      <!-- ASET LANCAR = Inventory Stock + List SO -->
+      <div class="page" id="page-aset-lancar">
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem">
+          <button type="button" id="tab-inv-stock" class="btn btn-primary" onclick="window.switchLancarTab&&switchLancarTab('stock')" style="font-size:0.85rem">Inventory Stock</button>
+          <button type="button" id="tab-list-so" class="btn btn-outline" onclick="window.switchLancarTab&&switchLancarTab('so')" style="font-size:0.85rem">List SO</button>
+        </div>
+
+        <div id="lancar-panel-stock">
+          <div class="stats" id="lancar-stats"></div>
+
+          <div class="tw-search-card" id="lancar-search-panel">
+            <div class="tw-search-header">
+              <span>Search</span>
+              <button type="button" class="tw-collapse-btn" onclick="(function(b){var bdy=document.getElementById('lancar-search-body');if(!bdy)return;var h=bdy.style.display==='none';bdy.style.display=h?'block':'none';b.textContent=h?'−':'+';})(this)">−</button>
+            </div>
+            <div class="tw-search-body" id="lancar-search-body">
+              <div class="tw-search-grid">
+                <div class="tw-field">
+                  <label>Category</label>
+                  <div class="ms-wrap" id="ms-lancar-category">
+                    <button type="button" class="ms-btn" onclick="toggleMs('ms-lancar-category')"><span class="ms-label">- Select Category -</span><span class="ms-arrow">▾</span></button>
+                    <div class="ms-panel" hidden>
+                      <label class="ms-item ms-all"><input type="checkbox" class="ms-select-all" onchange="msSelectAll('ms-lancar-category',this.checked);window.filterAsetLancar&&filterAsetLancar()"/> <b>Select All</b></label>
+                      <div class="ms-list"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tw-field">
+                  <label>Sub Category</label>
+                  <div class="ms-wrap" id="ms-lancar-sub">
+                    <button type="button" class="ms-btn" onclick="toggleMs('ms-lancar-sub')"><span class="ms-label">- Select Sub Category -</span><span class="ms-arrow">▾</span></button>
+                    <div class="ms-panel" hidden>
+                      <label class="ms-item ms-all"><input type="checkbox" class="ms-select-all" onchange="msSelectAll('ms-lancar-sub',this.checked);window.filterAsetLancar&&filterAsetLancar()"/> <b>Select All</b></label>
+                      <div class="ms-list"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="tw-field">
+                  <label>Product ID / Code / Name</label>
+                  <input type="text" id="lancar-search" placeholder="Cari Product ID, Code, Name..." oninput="window.filterAsetLancar&&filterAsetLancar()"/>
+                </div>
+                <div class="tw-field">
+                  <label>Unit</label>
+                  <div class="ms-wrap" id="ms-lancar-unit">
+                    <button type="button" class="ms-btn" onclick="toggleMs('ms-lancar-unit')"><span class="ms-label">- Select Unit -</span><span class="ms-arrow">▾</span></button>
+                    <div class="ms-panel" hidden>
+                      <label class="ms-item ms-all"><input type="checkbox" class="ms-select-all" onchange="msSelectAll('ms-lancar-unit',this.checked);window.filterAsetLancar&&filterAsetLancar()"/> <b>Select All</b></label>
+                      <div class="ms-list"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="tw-search-actions">
+                <button type="button" class="btn btn-teal" onclick="window.filterAsetLancar&&filterAsetLancar()">🔍 Search</button>
+                <button type="button" class="btn btn-success" onclick="window.exportLancarExcel&&exportLancarExcel()">📥 Export Data</button>
+                <button type="button" class="btn btn-primary" onclick="window.resetLancarFilter&&resetLancarFilter()">↺ Clear Filter</button>
+                <button type="button" class="btn btn-outline" onclick="window.loadAsetLancar&&loadAsetLancar(true)">↻ Refresh</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem">
+            <div style="padding:0.65rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border);font-weight:600;font-size:0.9rem;color:var(--navy)">Inventory Stock</div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Product ID</th><th>Category</th><th>Sub Category</th>
+                  <th>Product Code</th><th>Product Name</th><th>Unit</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-lancar">
+                <tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#94a3b8">Memuat data Inventory Stock…</td></tr>
+              </tbody>
+            </table>
+            <div class="empty" id="lancar-empty" style="display:none">Tidak ada data</div>
+          </div>
+        </div>
+
+        <div id="lancar-panel-so" style="display:none">
+          <div style="background:var(--card,#fff);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+            <h3 style="margin:0 0 0.35rem;color:var(--navy)">Form List SO</h3>
+            <p style="margin:0 0 1rem;font-size:0.85rem;color:#64748b">Item dipilih dari <b>Inventory Stock</b>. Data masuk ke sheet <b>List SO</b>.</p>
+            <form id="so-form" onsubmit="event.preventDefault();window.soSubmit&&soSubmit();return false;" style="display:grid;gap:0.75rem">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
+                <div>
+                  <label style="font-size:0.72rem;font-weight:600;color:#64748b">Tanggal *</label>
+                  <input type="date" id="so-date" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+                </div>
+                <div>
+                  <label style="font-size:0.72rem;font-weight:600;color:#64748b">Outlet *</label>
+                  <select id="so-loc" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box">
+                    <option value="">— Pilih —</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item dari Inventory Stock *</label>
+                <div id="so-lines" style="display:grid;gap:0.5rem;margin-top:0.35rem"></div>
+                <button type="button" class="btn btn-outline" onclick="window.soAddLine&&soAddLine()" style="margin-top:0.5rem;font-size:0.8rem">+ Tambah Item</button>
+                <datalist id="so-product-list"></datalist>
+              </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:600;color:#64748b">Catatan</label>
+                <textarea id="so-note" rows="2" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"></textarea>
+              </div>
+              <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap">
+                <button type="submit" class="btn btn-primary">Simpan List SO</button>
+                <span id="so-msg" style="font-size:0.8rem;color:#64748b"></span>
+              </div>
+            </form>
+          </div>
+          <div class="table-wrap">
+            <div style="padding:0.65rem 1rem;background:#f8fafc;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:0.5rem;flex-wrap:wrap">
+              <span style="font-weight:600;font-size:0.9rem;color:var(--navy)">Riwayat List SO</span>
+              <button type="button" class="btn btn-outline" onclick="window.loadListSO&&loadListSO(true)" style="font-size:0.75rem;padding:0.3rem 0.6rem">↻ Refresh</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th><th>Tanggal</th><th>Outlet</th><th>Product ID</th><th>Category</th><th>Subcategory</th>
+                  <th>Product Code</th><th>Product Name</th><th>Unit</th><th>Qty</th><th>Catatan</th><th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="table-body-so">
+                <tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#94a3b8">Belum ada data List SO</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
       <!-- VALUATION STOCK PAGE -->
       <div class="page" id="page-valuation">
         <div class="stats" id="val-stats"></div>
 
-        <div class="esb-search-card" id="val-search-panel">
-          <div class="esb-search-header">
+        <div class="tw-search-card" id="val-search-panel">
+          <div class="tw-search-header">
             <span>Search</span>
-            <button type="button" class="esb-collapse-btn" onclick="(function(b){var bdy=document.getElementById('val-search-body');if(!bdy)return;var h=bdy.style.display==='none';bdy.style.display=h?'block':'none';b.textContent=h?'−':'+';})(this)">−</button>
+            <button type="button" class="tw-collapse-btn" onclick="(function(b){var bdy=document.getElementById('val-search-body');if(!bdy)return;var h=bdy.style.display==='none';bdy.style.display=h?'block':'none';b.textContent=h?'−':'+';})(this)">−</button>
           </div>
-          <div class="esb-search-body" id="val-search-body">
-            <div class="esb-search-grid">
-              <div class="esb-field">
+          <div class="tw-search-body" id="val-search-body">
+            <div class="tw-search-grid">
+              <div class="tw-field">
                 <label>Category</label>
                 <div class="ms-wrap" id="ms-val-category">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-val-category')"><span class="ms-label">- Select Category -</span><span class="ms-arrow">▾</span></button>
@@ -913,7 +1178,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                   </div>
                 </div>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Location</label>
                 <div class="ms-wrap" id="ms-val-location">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-val-location')"><span class="ms-label">- Select Location -</span><span class="ms-arrow">▾</span></button>
@@ -923,7 +1188,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                   </div>
                 </div>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>UOM</label>
                 <div class="ms-wrap" id="ms-val-uom">
                   <button type="button" class="ms-btn" onclick="toggleMs('ms-val-uom')"><span class="ms-label">- Select UOM -</span><span class="ms-arrow">▾</span></button>
@@ -933,12 +1198,12 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                   </div>
                 </div>
               </div>
-              <div class="esb-field">
+              <div class="tw-field">
                 <label>Product Name / SKU</label>
                 <input type="text" id="val-search" placeholder="Cari SKU, nama, lokasi..." oninput="filterValuation()"/>
               </div>
             </div>
-            <div class="esb-search-actions">
+            <div class="tw-search-actions">
               <button type="button" class="btn btn-teal" onclick="filterValuation()">🔍 Search</button>
               <button type="button" class="btn btn-success" onclick="exportValuation()">📥 Export Data</button>
               <button type="button" class="btn btn-primary" onclick="resetValuationFilter()">↺ Clear Filter</button>
@@ -987,15 +1252,9 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
             <h3 style="margin:0 0 0.35rem;color:var(--navy)">Form Transfer Antar Outlet</h3>
             <p style="font-size:0.8rem;color:var(--muted);margin:0 0 1rem">Admin & Outlet bisa input. Hapus hanya Admin.</p>
             <form id="tf-form" onsubmit="event.preventDefault(); if(window.tfSubmit) window.tfSubmit(event); return false;" style="display:grid;gap:0.75rem">
-              <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
-                <div>
-                  <label style="font-size:0.72rem;font-weight:600;color:#64748b">Tanggal *</label>
-                  <input type="date" id="tf-date" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
-                </div>
-                <div>
-                  <label style="font-size:0.72rem;font-weight:600;color:#64748b">Qty default</label>
-                  <input type="number" id="tf-qty-default" min="1" value="1" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
-                </div>
+              <div>
+                <label style="font-size:0.72rem;font-weight:600;color:#64748b">Tanggal *</label>
+                <input type="date" id="tf-date" required style="width:100%;max-width:280px;padding:0.5rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.6rem">
                 <div>
@@ -1009,7 +1268,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
               </div>
               <div>
                 <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU) *</label>
-                <div id="tf-data-hint" style="font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
+                <div id="tf-data-hint" style="display:none;font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
                 <div id="tf-lines"></div>
                 <button type="button" onclick="window.tfAddLine && window.tfAddLine()" style="margin-top:0.4rem;padding:0.4rem 0.75rem;border:1px dashed #0d9488;background:#f0fdfa;color:#0f766e;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem">+ Tambah SKU</button>
                 <datalist id="tf-sku-list"></datalist>
@@ -1054,7 +1313,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
     <!-- PAGE: BERITA ACARA -->
     <div class="page" id="page-ba">
       <div style="padding:0;max-width:100%;width:100%">
-        <div id="ba-api-status" style="font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">—</div>
+        <div id="ba-api-status" style="display:none;font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">—</div>
         <div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1rem">
           <h3 style="margin:0 0 0.25rem;font-size:1.05rem">Form Berita Acara</h3>
           <p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b">Catat pengurangan aset (rusak / hilang / write-off). Data masuk sheet <b>BA</b>.</p>
@@ -1073,7 +1332,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
             </div>
             <div style="margin-top:0.75rem">
               <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU) *</label>
-              <div id="ba-data-hint" style="font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
+              <div id="ba-data-hint" style="display:none;font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
               <div id="ba-lines"></div>
               <button type="button" id="ba-add-sku" onclick="window.baAddLine&&baAddLine()" style="margin-top:0.4rem;padding:0.4rem 0.75rem;border:1px dashed #0d9488;background:#f0fdfa;color:#0f766e;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem">+ Tambah SKU</button>
               <datalist id="ba-sku-list"></datalist>
@@ -1134,12 +1393,54 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
     </div>
 
     <div class="page" id="page-report">
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
-          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Laporan Inventaris</h3>
+      <!-- Report Directory -->
+      <div id="report-directory" style="background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:12px;padding:1.5rem 1.75rem;margin-bottom:1rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap">
+          <h2 style="margin:0;font-size:1.35rem;font-weight:700;color:#0f172a">Reports</h2>
+          <input type="search" id="report-find" placeholder="Find Report..." oninput="window.filterReportMenu&&filterReportMenu(this.value)"
+            style="min-width:220px;padding:0.5rem 0.85rem;border:1px solid #cbd5e1;border-radius:8px;font-size:0.88rem;outline:none"/>
+        </div>
+        <div class="report-menu-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem 2rem">
+          <div class="report-cat">
+            <h3 style="margin:0 0 0.65rem;font-size:1rem;font-weight:700;color:#0f172a">Inventory</h3>
+            <ul style="list-style:disc;padding-left:1.15rem;margin:0;line-height:1.85">
+              <li><a href="javascript:void(0)" class="rp-link" data-report="asset" onclick="openReport('asset')">Asset List Report</a></li>
+              <li><a href="javascript:void(0)" class="rp-link" data-report="valuation" onclick="openReport('valuation')">Inventory Valuation Report</a></li>
+              <li><a href="javascript:void(0)" class="rp-link" data-report="listso" onclick="openReport('listso')">List SO Report</a></li>
+            </ul>
+          </div>
+          <div class="report-cat">
+            <h3 style="margin:0 0 0.65rem;font-size:1rem;font-weight:700;color:#0f172a">Movement</h3>
+            <ul style="list-style:disc;padding-left:1.15rem;margin:0;line-height:1.85">
+              <li><a href="javascript:void(0)" class="rp-link" data-report="transfer" onclick="openReport('transfer')">Transfer Outlet Report</a></li>
+              <li><a href="javascript:void(0)" class="rp-link" data-report="transfer-pending" onclick="openReport('transfer-pending')">Pending Transfer Report</a></li>
+              <li><a href="javascript:void(0)" class="rp-link" data-report="ba" onclick="openReport('ba')">Write-off / BA Report</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail panels (hidden until a report is chosen) -->
+      <div id="report-detail-wrap" style="display:none">
+        <button type="button" class="btn btn-outline" onclick="closeReport()" style="margin-bottom:0.85rem;font-size:0.85rem">← Back to Reports</button>
+
+        <!-- Asset List -->
+        <div class="report-panel" id="rp-panel-asset" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Asset List Report</h3>
+          <p style="font-size:0.82rem;color:#64748b;margin:0 0 0.85rem">Export seluruh daftar aset (mengikuti filter outlet login).</p>
           <button class="btn btn-success" onclick="exportExcel()">📥 Download Excel Aset (.xlsx)</button>
         </div>
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem">
-          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Laporan Transfer</h3>
+
+        <!-- Valuation -->
+        <div class="report-panel" id="rp-panel-valuation" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Inventory Valuation Report</h3>
+          <p style="font-size:0.82rem;color:#64748b;margin:0 0 0.85rem">Laporan valuasi stok. Buka menu Valuation Stock untuk detail, atau export di sini.</p>
+          <button class="btn btn-success" onclick="if(window.exportValuationExcel)exportValuationExcel(); else if(window.navTo)navTo('valuation')">📥 Download / Buka Valuation</button>
+        </div>
+
+        <!-- Transfer -->
+        <div class="report-panel" id="rp-panel-transfer" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Transfer Report</h3>
           <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:end;margin-bottom:0.85rem">
             <div>
               <label style="font-size:0.72rem;font-weight:600;color:#64748b">Dari Tanggal</label>
@@ -1158,7 +1459,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
                 <option value="rejected">Rejected</option>
               </select>
             </div>
-            <div style="display:flex;gap:0.35rem">
+            <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
               <button type="button" class="btn btn-primary" onclick="window.tfRenderReport && tfRenderReport()">Filter</button>
               <button type="button" class="btn btn-success" onclick="window.tfExportExcel && tfExportExcel()">Export Excel</button>
               <button type="button" class="btn btn-primary" onclick="window.tfExportPdf && tfExportPdf()">Export PDF</button>
@@ -1192,8 +1493,9 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
           </div>
         </div>
 
-        <div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-top:1rem">
-          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Laporan Berita Acara</h3>
+        <!-- Berita Acara -->
+        <div class="report-panel" id="rp-panel-ba" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.75rem;color:var(--navy)">Berita Acara Report</h3>
           <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:end;margin-bottom:0.85rem">
             <div style="min-width:140px">
               <label style="font-size:0.72rem;font-weight:600;color:#64748b">Dari Tanggal</label>
@@ -1224,6 +1526,108 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
               </thead>
               <tbody id="ba-rp-tbody"><tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
             </table>
+          </div>
+        </div>
+
+        <!-- List SO Report -->
+        <div class="report-panel" id="rp-panel-listso" style="display:none;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.75rem;color:var(--navy)">List SO Report</h3>
+          <p style="font-size:0.82rem;color:#64748b;margin:0 0 0.85rem">Filter berdasarkan tanggal &amp; outlet, lalu export Excel.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.5rem;align-items:end;margin-bottom:0.85rem">
+            <div style="min-width:140px">
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b">Dari Tanggal</label>
+              <input type="date" id="so-rp-from" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+            </div>
+            <div style="min-width:140px">
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b">Sampai Tanggal</label>
+              <input type="date" id="so-rp-to" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+            </div>
+            <div style="min-width:180px">
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b">Outlet</label>
+              <select id="so-rp-outlet" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box">
+                <option value="">Semua</option>
+              </select>
+            </div>
+            <div style="display:flex;gap:0.35rem;flex-wrap:wrap">
+              <button type="button" class="btn btn-primary" onclick="window.soRenderReport&&soRenderReport()">Filter</button>
+              <button type="button" class="btn btn-success" onclick="window.soExportExcel&&soExportExcel()">Export Excel</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table style="width:100%;font-size:0.78rem;border-collapse:collapse">
+              <thead>
+                <tr style="text-align:left;color:#64748b;border-bottom:1px solid var(--border)">
+                  <th style="padding:0.4rem">Tanggal</th>
+                  <th style="padding:0.4rem">Outlet</th>
+                  <th style="padding:0.4rem">Product ID</th>
+                  <th style="padding:0.4rem">Category</th>
+                  <th style="padding:0.4rem">Subcategory</th>
+                  <th style="padding:0.4rem">Product Code</th>
+                  <th style="padding:0.4rem">Product Name</th>
+                  <th style="padding:0.4rem">Unit</th>
+                  <th style="padding:0.4rem">Qty</th>
+                  <th style="padding:0.4rem">Catatan</th>
+                </tr>
+              </thead>
+              <tbody id="so-rp-tbody"><tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: SETTINGS -->
+    <div class="page" id="page-settings">
+      <div style="max-width:560px">
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.35rem;font-size:1.05rem" data-i18n="set_appearance">Tampilan / Appearance</h3>
+          <p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b" data-i18n="set_appearance_hint">Dark mode hanya diatur di sini (tidak ada tombol mengambang).</p>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:0.85rem">
+            <span style="font-weight:600;font-size:0.9rem" data-i18n="set_dark_mode">Dark Mode</span>
+            <label style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer">
+              <input type="checkbox" id="set-dark-toggle" onchange="window.settingsSetDark && settingsSetDark(this.checked)" style="width:18px;height:18px"/>
+              <span id="set-dark-label" style="font-size:0.85rem;color:#64748b">Off</span>
+            </label>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;border-top:1px solid var(--border,#e2e8f0);padding-top:0.85rem">
+            <div>
+              <span style="font-weight:600;font-size:0.9rem">Mode Presentasi</span>
+              <div style="font-size:0.75rem;color:#64748b">Sembunyikan kartu statistik agar tabel lebih lebar</div>
+            </div>
+            <label style="display:inline-flex;align-items:center;gap:0.5rem;cursor:pointer">
+              <input type="checkbox" id="set-present-toggle" onchange="window.settingsSetPresent && settingsSetPresent(this.checked)" style="width:18px;height:18px"/>
+              <span id="set-present-label" style="font-size:0.85rem;color:#64748b">Off</span>
+            </label>
+          </div>
+        </div>
+
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.35rem;font-size:1.05rem" data-i18n="set_language">Bahasa / Language</h3>
+          <p style="margin:0 0 0.85rem;font-size:0.8rem;color:#64748b" data-i18n="set_language_hint">Pilih bahasa tampilan menu.</p>
+          <select id="set-lang" onchange="window.settingsSetLang && settingsSetLang(this.value)" style="width:100%;padding:0.55rem 0.75rem;border:1px solid var(--border);border-radius:8px;font-size:0.9rem">
+            <option value="id">Bahasa Indonesia</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div style="background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:14px;padding:1.25rem;margin-bottom:1rem">
+          <h3 style="margin:0 0 0.35rem;font-size:1.05rem" data-i18n="set_password">Ganti Password</h3>
+          <p style="margin:0 0 0.85rem;font-size:0.8rem;color:#64748b" data-i18n="set_password_hint">Password disimpan di browser ini untuk akun yang sedang login.</p>
+          <div style="display:grid;gap:0.65rem">
+            <div>
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b" data-i18n="set_pass_current">Password saat ini</label>
+              <input type="password" id="set-pass-current" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+            </div>
+            <div>
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b" data-i18n="set_pass_new">Password baru</label>
+              <input type="password" id="set-pass-new" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+            </div>
+            <div>
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b" data-i18n="set_pass_confirm">Konfirmasi password baru</label>
+              <input type="password" id="set-pass-confirm" style="width:100%;padding:0.5rem 0.75rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>
+            </div>
+            <button type="button" class="btn btn-primary" onclick="window.settingsChangePassword && settingsChangePassword()" data-i18n="set_pass_save">Simpan Password</button>
+            <div id="set-pass-msg" style="font-size:0.8rem;color:#64748b"></div>
           </div>
         </div>
       </div>
@@ -1341,7 +1745,7 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 const EMBEDDED_DATA = [{"sku": "PTTS - HO JKT - KECO0001", "name": "S/S WORKING  TABLE  600 X 1150  X 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0002", "name": "S/S SINGLE SINK W/GREASE TRAP 700 X 700 X 50", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0003", "name": "S/S RACK 4 TIER  1000 x 500 x 1550", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0004", "name": "S/S WORKING  TABLE  1500 x 800 x 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0005", "name": "S/S WORKING TABLE  2000 x 800 x 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0006", "name": "SINGLE BURNER 50 X 50 X 50", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0007", "name": "SINGLE BURNER  60 X 60 X60", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0008", "name": "GAS DEEP FRYER 40 X 77 X 87", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0009", "name": "S/S KUKUSAN BAKPAO + MEJA 102 X 54 X 60", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0010", "name": "STEAMER 70 X 55 X 120", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0011", "name": "SINGLE SINK  75 X 76 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0012", "name": "SINK WITH TABLE HOLE 75 X75 X85 &70 X 75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0013", "name": "LANDING  TABLE DISWASHING W/ BACK SPLASH  75 X 65 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0014", "name": "DOUBLE KWALI RANGE WITH BLOWER 180 X 100 X 80", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0015", "name": "S/S WORKING TABLE W/BACK SPLASH 125 X 75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0016", "name": "S/S WORKING TABLE W/BACK SPLASH 150 X 75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 3, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0017", "name": "S/S RACK  4 TIER", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0018", "name": "S/S WORKING  TABLE  230 X75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0019", "name": "S/S WORKING  TABLE  180 X75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0020", "name": "DOUBLE SINK WITH  TABLE  180 X 75 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0021", "name": "S/S WORKING TABLE W/DOUBLE RACK  120 X 70 X 85", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0022", "name": "S/S WORKING TABLE W/DOUBLE SHELFING 1800 X 750 X 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0023", "name": "S/S WORKING TABLE  1200 X 750 X 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0024", "name": "S/S 4 TIER RACK", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KECO0025", "name": "S/S WORKING TABLE  1200 X 600 X 850", "category": "Kitchen Equipment", "subCategory": "Cooking Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0001", "name": "MICROWAVE  SHARP", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0002", "name": "COFFEEMACHINE  DELONGHI", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0003", "name": "COMBI OVEN ,ZEPPLIN 97 X 122 X 176", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0004", "name": "STOVE 4 BURNER 60 X 75 X 90", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0005", "name": "WATER FILTER ,GEA 42 X 20 X 70", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0006", "name": "HOT WATER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0007", "name": "GAS DOUGH MIXER + BURNER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0008", "name": "PLANETARY MIXER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0009", "name": "MESIN GILING BUMBU /SPCE GRINDER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0010", "name": "DOUGH MIXER 160 X 104 X 210", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0011", "name": "MEAT SLICER MACHINE", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0012", "name": "GRINDER POWDER 1000 gr", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0013", "name": "MEAT GRINDER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0014", "name": "SPINNER MACHINE", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0015", "name": "VACUUM  SEALER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0016", "name": "VERTICAL PLASTIC SEALER  MACHINE", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0017", "name": "BOTLE SEALER", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0018", "name": "NOODLE DOUGH MACHINE", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0019", "name": "SHOW CASE  SANSIO", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0020", "name": "UNDERCOUNTER CHILLER W/DOUBLE SHELF  1500 x 800 X 850", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0021", "name": "UC CHILLER 2 DOOR w/ double shelfing", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0022", "name": "HOSHIZAKI  UP RIGHTFREEZER 4 DOOR  1200 X 800 X 1800", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0023", "name": "UP RIGHT FREEZER 1200 X 800 X 1800", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Rusak", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0024", "name": "UP RIGHT CHILLER HOSHIZAKI 1200 X 800 X 1800", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0025", "name": "CHEST FREEZER DOOR 3 2400 x 650 x 850", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0026", "name": "UP RIGHT CHILLER 4 DOOR , HOSHIZAKI 120 X 80 X 210", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0027", "name": "UP RIGHT FREEZER 4 DOOR , HOSHIZAKI 1200 X 800 X 1800", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0028", "name": "CHEST  FREEZER  24000 X 650 X 850", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0029", "name": "UNDER COUNTER CHILLER WITH RACK", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0030", "name": "CHEST FREEZER 3 DOOR", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 5, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0031", "name": "CHEST  FREEZER 2 DOOR", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0032", "name": "UP RIGHT  FREEZER 4 DOOR 1200 X 800 X 2100", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - KEEM0033", "name": "HOSHIZAKI CHILLER 4 DOOR", "category": "Kitchen Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE0001", "name": "CANON PRINTER", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-1", "name": "HARDDISK SEAGATE   2TB", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "DIDI SEPTIAWAN LUBIS", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-10", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "SAVITRI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-11", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "AMANDA DWI SHAFIRA", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-12", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "EPI YANTI OKTAVIANI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-13", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP + MOUSE", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "SENO BEKTI PANCORO", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-14", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP + MOUSE", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "AMANDA PUTRI HERAWATI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-15", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP + MOUSE", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "MICHELLE", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-16", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP + MOUSE + SSD", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "DWI WAHYUNINGSIH", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-17", "name": "LAPTOP LENOVO   8GB iCore 7 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "INDAH PURNAMA SARI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-18", "name": "LAPTOP LENOVO   8GB Intel(R) Core(TM) i5-8365U CHARGER", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "TAJI WIJAYA", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-19", "name": "LAPTOP MSI   32GB INTEL I7-13620H GEN 13  CHARGER + TAS", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "RAYES YUDRIANDA", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE0002", "name": "MESIN LABEL", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-2", "name": "HARDDISK SEAGATE   4TB", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "NURFIYANTHI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-20", "name": "MACBOOK APPLE", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "DIDI SEPTIAWAN LUBIS", "kondisi": "Rusak", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE0003", "name": "PRINTER EPSON  EPSON", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-3", "name": "HARDDISK WD   6TB", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "DIDI SEPTIAWAN LUBIS", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-4", "name": "LAPTOP ASUS   4GB INTEL CELERON CHARGER LAPTOP + TAS LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "NURFIYANTHI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-5", "name": "LAPTOP ASUS   64GB AMD RYZEN 7 7435HS CHARGER + MOUSE + TAS", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "DIDI SEPTIAWAN LUBIS", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-6", "name": "LAPTOP HP   16GB AMD Ryzen 5 5500U CHARGER", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "FRANCESCA", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-7", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ARIF NURDIN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-8", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "RIZKA SINAGA", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OECE000-9", "name": "LAPTOP LENOVO   8GB iCore 5 CHARGER LAPTOP", "category": "Office Equipment", "subCategory": "Computer Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "MOCHAMAD HELMY FAIZ", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEEM0001", "name": "AC DAIKIN 2 PK", "category": "Office Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEEM0002", "name": "AC 1 PK  DAIKIN", "category": "Office Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEEM0003", "name": "AC 2 PK GREE", "category": "Office Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEEM0004", "name": "AC 2 PK DAIKIN", "category": "Office Equipment", "subCategory": "Equipment & Machine", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEFF0001", "name": "DISPENSER", "category": "Office Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0001", "name": "HANDPHONE  IPHONE 11 PRO   4GB", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "INDAH PURNAMA SARI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0002", "name": "HANDPHONE REDMI 13C   6GB", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "NURFIYANTHI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0003", "name": "HANDPHONE REDMI NOTE 14   8GB  CHARGER", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "NURFIYANTHI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0004", "name": "HANDPHONE SAMSUNG GALAXY A30   3GB", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "NURFIYANTHI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0005", "name": "HANDPHONE XIAOMI REDMI 13 C   128GB  CHARGER", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "EPI YANTI OKTAVIANI", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - OEIE0006", "name": "TABLET SAMSUNG   4GB  CASE PROTECTED", "category": "Office Equipment", "subCategory": "IT Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "MOCHAMAD HELMY FAIZ", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0001", "name": "STEEL RACK 5 TIER WHITE  1200 x 600 x 1800", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0002", "name": "CABINET  TABLE", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0003", "name": "RACK PUTIH  1500 X 400 X 1700", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0004", "name": "MEJA KAYU LIPAT", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0005", "name": "MEJA KAYU EX OUTLET  IDD", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0006", "name": "WALL SHELF RACK", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 3, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0007", "name": "RACK PUTIH 100 X 42 X 202", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0008", "name": "RACK PUTIH  1150 X 400 X 2000", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0009", "name": "WALL SHELFING  1500 X 300", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0010", "name": "WALL SHELFING  1800 X 300", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0011", "name": "LOCKER 12 DOOR", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0012", "name": "LOCKER 6 DOOR", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0013", "name": "MEJA KERJA KAYU", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0014", "name": "KURSI  KERJA", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0015", "name": "RACK PUTIH  1200 X 600 X 2000", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 5, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0016", "name": "RACK PUTIH  1000 X 400 X 1700", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0017", "name": "LEMARI  KABINET KAYU", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0018", "name": "WALL SHELVING 2METER", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0019", "name": "WALL SHELVING 1.5METER", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0020", "name": "RACK BESI 4 SUSUN 180 X 50 X 190", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEFF0021", "name": "RACK BESI 4 SUSUN 240 X 50 X 190", "category": "Warehouse Equipment", "subCategory": "Furniture & Fixtures", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEME0001", "name": "DIGITAL SCALE  40 KG MAX/ YOUTA", "category": "Warehouse Equipment", "subCategory": "Measuring Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEME0002", "name": "DIGITAL SCALE 40  KG", "category": "Warehouse Equipment", "subCategory": "Measuring Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 1, "uom": "Unit"}, {"sku": "PTTS - HO JKT - WEME0003", "name": "DIGITAL SCALE 5  KG", "category": "Warehouse Equipment", "subCategory": "Measuring Equipment", "location": "CK - WH JAKARTA (HO)", "penanggungJawab": "ASET MANAJEMEN", "kondisi": "Baik", "qty": 2, "uom": "Unit"}];
 
 
-window.API_URL = "https://script.google.com/macros/s/AKfycbwSfxNFEC9rvvVdtkdpMwMMN-l7pkfVRCCm6PWSkFRyibftToTCeUcjM9572KgyGAg0/exec";
+window.API_URL = "https://script.google.com/macros/s/AKfycbw_NgB9xmogGbK9TDLk4ICzbe9wRxa7fLmkmw2sS6wTierqXj6w3B7wzfmcORjJLpCD/exec";
 window.VALUATION_CSV_URL = "https://docs.google.com/spreadsheets/d/16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk/export?format=csv&gid=1398625945";
 window.SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQIfY-iYNWU5L4uqGTWhOexuptD-p3UWeKt7Hx04kqB7uigvZBbGEUAznPQmNA7_SWCMoziVdOS-XIb/pub?gid=0&single=true&output=csv";
 
@@ -1678,10 +2082,10 @@ function toggleAssetsMenu(el) {
 function navTo(page, el){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("active"));
-  // Submenu Daftar Aset: buka jika assets atau valuation
+  // Submenu Daftar Aset: buka jika assets / aset-lancar / valuation
   const sub = document.getElementById("sub-assets");
   const parent = document.getElementById("nav-assets");
-  if (page === "assets" || page === "valuation") {
+  if (page === "assets" || page === "valuation" || page === "aset-lancar") {
     if (sub) sub.classList.add("open");
     if (parent) parent.classList.add("active");
   } else {
@@ -1693,6 +2097,11 @@ function navTo(page, el){
   if (page === "assets") {
     const list = document.getElementById("nav-assets-list");
     if (list) list.classList.add("active");
+  }
+  if (page === "aset-lancar") {
+    const al = document.getElementById("nav-aset-lancar");
+    if (al) al.classList.add("active");
+    if (window.loadAsetLancar) setTimeout(function(){ loadAsetLancar(false); }, 50);
   }
   if (page === "valuation") {
     if (!window.USER_CAN_EDIT) {
@@ -1709,14 +2118,16 @@ function navTo(page, el){
       window.syncValuationFromSheet().then(function(){ renderValuation(); });
     } else renderValuation();
   }
-  const titles = {
-    assets:"Daftar Aset",
+  const titles = (window.I18N_TITLES && window.I18N_TITLES()) || {
+    assets:"Aset Tetap",
+    "aset-lancar":"Aset Lancar",
     valuation:"Valuation Stock",
     dashboard:"Dashboard",
     scan:"Scan QR",
-    report:"Laporan",
+    report:"Report",
     transfer:"Transfer Aset",
-    ba:"Berita Acara"
+    ba:"Berita Acara",
+    settings:"Settings"
   };
   var titleEl = document.getElementById("page-title");
   if (titleEl) titleEl.textContent = titles[page] || page;
@@ -1751,8 +2162,11 @@ function navTo(page, el){
   if (page === "ba" && typeof window.baReload === "function") {
     try { window.baReload(); } catch(e) {}
   }
-  if (page === "report" && typeof window.tfRenderReport === "function") {
-    try { window.tfRenderReport(); } catch(e) {}
+  if (page === "report") {
+    // Tampilkan directory report, jangan langsung buka detail
+    try {
+      if (typeof window.closeReport === "function") window.closeReport();
+    } catch(e) {}
   }
   if (page === "scan") {
     setTimeout(function(){ if (window.openScanner) window.openScanner(); }, 250);
@@ -2845,6 +3259,24 @@ window.addEventListener("DOMContentLoaded", function() {
     var b2 = b.replace(/\s+/g, "");
     return a === b || a2 === b2;
   }
+  // Password kustom dari Settings (localStorage)
+  function getCustomPass(keys) {
+    try {
+      var map = JSON.parse(localStorage.getItem("patatas_passwords") || "{}");
+      for (var i = 0; i < keys.length; i++) {
+        var k = String(keys[i] || "").toLowerCase().replace(/\s+/g, " ").trim();
+        if (map[k]) return map[k];
+        var k2 = k.replace(/\s+/g, "");
+        if (map[k2]) return map[k2];
+      }
+    } catch (e) {}
+    return null;
+  }
+  function checkPass(input, defaultPass, keys) {
+    var custom = getCustomPass(keys);
+    if (custom) return passMatch(input, custom);
+    return passMatch(input, defaultPass) || passMatch(input, keys[0] || "");
+  }
 
   function applySession(s) {
     window.USER_EMAIL = s.email || "";
@@ -2894,6 +3326,7 @@ window.addEventListener("DOMContentLoaded", function() {
     if (typeof applyOutletScopeToUI === "function" && window.ALL_ASSET_DATA && window.ALL_ASSET_DATA.length) {
       applyOutletScopeToUI();
     }
+        if (window.lockSOOutlet) try { window.lockSOOutlet(); } catch(e) {}
     if (typeof loadLiveData === "function") loadLiveData();
     else {
       if (typeof populateFilters === "function") populateFilters();
@@ -2925,12 +3358,12 @@ window.addEventListener("DOMContentLoaded", function() {
     // 1) USER / HO JKT / admin → lihat SEMUA
     var allAcc = SEE_ALL[lower] || SEE_ALL[compact];
     if (allAcc) {
-      if (!passMatch(pass, allAcc.password) && !(allAcc.password === "POTLOT14" && pass === "POTLOT14")) {
-        // juga izinkan password = kode yang diketik (untuk HO JKT)
-        if (!passMatch(pass, raw)) {
-          alert("Password salah");
-          return;
-        }
+      var okAdmin = checkPass(pass, allAcc.password, [lower, compact, raw, allAcc.label]);
+      if (!okAdmin && allAcc.password === "POTLOT14" && pass === "POTLOT14") okAdmin = true;
+      if (!okAdmin && passMatch(pass, raw)) okAdmin = true; // HO JKT default = kode
+      if (!okAdmin) {
+        alert("Password salah");
+        return;
       }
       s.role = allAcc.role;
       s.canEdit = !!allAcc.canEdit;
@@ -2938,18 +3371,18 @@ window.addEventListener("DOMContentLoaded", function() {
       s.canTransfer = !!allAcc.canTransfer;
       s.label = allAcc.label;
       s.email = allAcc.label.indexOf("@") >= 0 ? allAcc.label : raw.toUpperCase();
+      s.loginKey = lower;
       s.outletKeyword = null;
       try { localStorage.setItem(SESSION, JSON.stringify(s)); } catch(e) {}
       applySession(s);
       return;
     }
 
-    // 2) Outlet biasa → hanya lokasi sendiri, password = kode
+    // 2) Outlet biasa → hanya lokasi sendiri, password = kode (atau custom)
     var out = OUTLETS[lower] || OUTLETS[compact];
     if (out) {
-      // password harus sama dengan kode login
-      if (!passMatch(pass, raw) && !passMatch(pass, lower) && !passMatch(pass, compact)) {
-        alert("Password salah. Password = kode outlet.");
+      if (!checkPass(pass, raw, [lower, compact, raw])) {
+        alert("Password salah. Password = kode outlet (atau yang sudah diganti di Settings).");
         return;
       }
       s.role = "outlet";
@@ -2964,6 +3397,7 @@ window.addEventListener("DOMContentLoaded", function() {
       s.canTransfer = true;
       s.outletKeyword = out.keyword;
       s.outletName = out.name;
+      s.loginKey = lower;
       try { localStorage.setItem(SESSION, JSON.stringify(s)); } catch(e) {}
       applySession(s);
       return;
@@ -3169,7 +3603,7 @@ window.addEventListener("DOMContentLoaded", function() {
   function fillMeta(){
     var data = assetData();
     var outs=outlets();
-    ["tf-from","tf-to"].forEach(function(id){
+    ["tf-from","tf-to","so-loc"].forEach(function(id){
       var el=document.getElementById(id);
       if(!el) return;
       var cur=el.value;
@@ -3467,34 +3901,69 @@ window.addEventListener("DOMContentLoaded", function() {
   
 window.exportAsExcelTable=function(filename, cols, rows){
   if(!rows||!rows.length){ alert("Tidak ada data"); return; }
+  cols = cols || Object.keys(rows[0] || {});
+  var NUM_COLS = { Qty:1, qty:1, Price:1, price:1, Total:1, total:1, Harga:1, harga:1 };
+  function toNum(v){
+    if (typeof v === "number" && isFinite(v)) return v;
+    if (v == null || v === "") return 0;
+    var s = String(v).replace(/[^\d.,\-]/g,"").trim();
+    if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) s = s.replace(/\./g,"").replace(",",".");
+    else if (s.indexOf(",") >= 0 && s.indexOf(".") < 0) s = s.replace(",",".");
+    else s = s.replace(/,/g,"");
+    var n = parseFloat(s);
+    return isFinite(n) ? n : 0;
+  }
+  var clean = rows.map(function(r){
+    var o = {};
+    cols.forEach(function(c){
+      var v = r[c];
+      if (NUM_COLS[c]) { o[c] = toNum(v); return; }
+      if (v == null) v = "";
+      v = String(v);
+      if (v.indexOf("data:image") === 0 || v.indexOf("data:application") === 0) v = "[FOTO]";
+      if (v.length > 500 && v.indexOf("http") !== 0) v = v.substring(0, 120) + "...";
+      o[c] = v;
+    });
+    return o;
+  });
+  if (typeof XLSX !== "undefined") {
+    var ws = XLSX.utils.json_to_sheet(clean, { header: cols });
+    cols.forEach(function(c, idx){
+      if (!NUM_COLS[c]) return;
+      var colLetter = XLSX.utils.encode_col(idx);
+      for (var r = 1; r <= clean.length; r++) {
+        var addr = colLetter + (r + 1);
+        if (ws[addr] && typeof ws[addr].v === "number") {
+          ws[addr].t = "n";
+          ws[addr].z = (c === "Qty" || c === "qty") ? "0" : "#,##0";
+        }
+      }
+    });
+    ws["!cols"] = cols.map(function(c){
+      var max = String(c).length;
+      clean.forEach(function(r){ var L = String(r[c]||"").length; if (L > max) max = Math.min(L, 40); });
+      return { wch: Math.max(10, max + 2) };
+    });
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Data");
+    var name = String(filename || "report.xlsx").replace(/\.xls$/i, ".xlsx").replace(/\.csv$/i, ".xlsx");
+    if (!/\.xlsx$/i.test(name)) name += ".xlsx";
+    XLSX.writeFile(wb, name);
+    return;
+  }
   function esc(s){
-    s=String(s==null?"":s);
-    if(s.indexOf("data:image")===0) s="[FOTO]";
+    s = String(s == null ? "" : s);
     return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
-  var th=cols.map(function(c){ return "<th style='background:#0b4f37;color:#fff;border:1px solid #ccc;padding:6px'>"+esc(c)+"</th>"; }).join("");
-  var body=rows.map(function(r){
-    return "<tr>"+cols.map(function(c){
-      return "<td style='border:1px solid #ccc;padding:6px;vertical-align:top'>"+esc(r[c])+"</td>";
-    }).join("")+"</tr>";
+  var th = cols.map(function(c){ return "<th>"+esc(c)+"</th>"; }).join("");
+  var body = clean.map(function(r){
+    return "<tr>"+cols.map(function(c){ return "<td>"+esc(r[c])+"</td>"; }).join("")+"</tr>";
   }).join("");
-  var doc="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>"+
-    "<head><meta charset='UTF-8'><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>"+
-    "<x:Name>Data</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>"+
-    "</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>"+
-    "<body><table>"+th+"</table><table><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table></body>
-</html>";
-  // single table
-  doc="<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel' xmlns='http://www.w3.org/TR/REC-html40'>"+
-    "<head><meta charset='UTF-8'><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>"+
-    "<x:Name>Data</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet>"+
-    "</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head>"+
-    "<body><table border='1'><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table></body>
-</html>";
-  var blob=new Blob([doc],{type:"application/vnd.ms-excel;charset=utf-8;"});
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(blob);
-  a.download=filename.replace(/\.csv$/i,".xls");
+  var doc = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel'><head><meta charset='UTF-8'></head><body><table border='1'><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table></body></html>";
+  var blob = new Blob([doc], { type: "application/vnd.ms-excel;charset=utf-8;" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = String(filename || "report.xls").replace(/\.csv$/i, ".xls");
   document.body.appendChild(a);
   a.click();
   setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} }, 400);
@@ -3530,7 +3999,7 @@ window.tfExportExcel=function(){
       });
     });
     if(!rows.length){ alert("Tidak ada data Transfer"); return; }
-    window.exportAsExcelTable("laporan-transfer.xls", cols, rows);
+    window.exportAsExcelTable("report-transfer.xlsx", cols, rows);
   };
   window.tfExportPdf=function(){
     var rows=window.tfCollectReportRows();
@@ -4481,7 +4950,7 @@ window.saveItemPhotoLink = function() {
       };
     });
     if(!rows.length){ alert("Tidak ada data Berita Acara"); return; }
-    window.exportAsExcelTable("laporan-berita-acara.xls", cols, rows);
+    window.exportAsExcelTable("report-berita-acara.xlsx", cols, rows);
   };
   window.baExportPdf=function(){
     var rows=window.baCollectReportRows();
@@ -4937,11 +5406,10 @@ window.togglePresentMode = function () {
   }
   window.fillTransferOutlets = function(){
     var outs = allOutlets();
-    ["tf-from","tf-to","ba-loc"].forEach(function(id){
+    ["tf-from","tf-to","ba-loc","so-loc"].forEach(function(id){
       var el = document.getElementById(id);
       if (!el || el.tagName !== "SELECT") return;
       var cur = el.value;
-      var keep = el.querySelector('option[value=""]');
       el.innerHTML = "";
       var o0 = document.createElement("option");
       o0.value = ""; o0.textContent = "— Pilih —";
@@ -4953,6 +5421,60 @@ window.togglePresentMode = function () {
       });
       if (cur) el.value = cur;
     });
+    if (window.lockSOOutlet) window.lockSOOutlet();
+  };
+
+  /** Outlet login: kunci so-loc. User / HO JKT bebas pilih. */
+  window.lockSOOutlet = function() {
+    var el = document.getElementById("so-loc");
+    if (!el) return;
+
+    var sess = null;
+    try { sess = JSON.parse(localStorage.getItem("patatas_asset_session") || "null"); } catch (e) {}
+
+    var isOutlet = !!(sess && sess.role === "outlet");
+    var kw = (sess && (sess.outletKeyword || sess.outletName)) || window.USER_OUTLET || "";
+    var name = (sess && sess.outletName) || "";
+
+    // User admin & HO JKT → USER_OUTLET null / role bukan outlet → bebas
+    if (!isOutlet || !kw) {
+      el.disabled = false;
+      el.removeAttribute("data-locked");
+      el.style.background = "";
+      el.style.cursor = "";
+      return;
+    }
+
+    // Cari opsi outlet yang cocok
+    var match = "";
+    var opts = el.options;
+    var kwL = String(kw).toLowerCase();
+    var nameL = String(name).toLowerCase();
+    for (var i = 0; i < opts.length; i++) {
+      var v = String(opts[i].value || "");
+      var vl = v.toLowerCase();
+      if (!v) continue;
+      if (name && (vl === nameL || vl.indexOf(nameL) >= 0 || nameL.indexOf(vl) >= 0)) { match = v; break; }
+      if (vl.indexOf(kwL) >= 0 || kwL.indexOf(vl) >= 0) { match = v; break; }
+    }
+    if (!match && name) match = name;
+    if (!match) match = String(kw);
+
+    // Pastikan opsi ada
+    var found = false;
+    for (var j = 0; j < el.options.length; j++) {
+      if (el.options[j].value === match) { found = true; break; }
+    }
+    if (!found && match) {
+      var opt = document.createElement("option");
+      opt.value = match; opt.textContent = match;
+      el.appendChild(opt);
+    }
+    el.value = match;
+    el.disabled = true;
+    el.setAttribute("data-locked", "1");
+    el.style.background = "#f1f5f9";
+    el.style.cursor = "not-allowed";
   };
 
   /* ===== tfAddLine backup ===== */
@@ -5037,6 +5559,30 @@ window.togglePresentMode = function () {
       if(m) return m[3]+"-"+("0"+m[2]).slice(-2)+"-"+("0"+m[1]).slice(-2);
       return d.substring(0,10);
     }
+    // Lookup price dari Valuation / Master bila BA tidak punya price
+    function lookupPrice(sku){
+      sku = String(sku||"").trim().toUpperCase();
+      if (!sku) return 0;
+      try {
+        var val = window.valuationData || window.VALUATION_DATA || [];
+        for (var i=0;i<val.length;i++){
+          if (String(val[i].sku||"").trim().toUpperCase() === sku) {
+            var p = Number(val[i].price);
+            if (p > 0) return p;
+          }
+        }
+      } catch(e){}
+      try {
+        var src = window.uniqueData || window.ALL_ASSET_DATA || [];
+        for (var j=0;j<src.length;j++){
+          if (String(src[j].sku||"").trim().toUpperCase() === sku) {
+            var p2 = Number(src[j].price);
+            if (p2 > 0) return p2;
+          }
+        }
+      } catch(e){}
+      return 0;
+    }
     from=nd(from); to=nd(to);
     return list.filter(function(t){
       var td=nd(t.date||"");
@@ -5044,9 +5590,24 @@ window.togglePresentMode = function () {
       if(to&&td&&td>to) return false;
       return true;
     }).map(function(t){
+      var qty = Number(t.qty)||0;
+      var price = Number(t.price);
+      if (!price || price === 0) price = lookupPrice(t.sku);
+      var total = Number(t.total);
+      if (!total || total === 0) total = price * qty;
+      var foto = t.foto || t.Foto || "";
+      if (String(foto).indexOf("data:") === 0) foto = "[FOTO]";
       return {
-        Tanggal: t.date||"", SKU: t.sku||"", Nama: t.name||"", Loc: t.loc||"",
-        Qty: Number(t.qty)||0, Keterangan: t.keterangan||"", Foto: t.foto||""
+        Tanggal: t.date||"",
+        SKU: t.sku||"",
+        Nama: t.name||"",
+        Uom: t.uom || "PCS",
+        Qty: qty,
+        Price: price,
+        Total: total,
+        Keterangan: t.keterangan||"",
+        Foto: foto,
+        Loc: t.loc || t.location || ""
       };
     });
   };
@@ -5243,24 +5804,10 @@ window.togglePresentMode = function () {
     if (!rows.length) { alert("Tidak ada data Transfer untuk di-export"); return; }
     var cols = ["Tanggal","SKU","Nama","Dari","Ke","Qty","Status","Foto"];
     if (typeof window.exportAsExcelTable === "function") {
-      window.exportAsExcelTable("laporan-transfer.xls", cols, rows);
+      window.exportAsExcelTable("report-transfer.xlsx", cols, rows);
       return;
     }
-    // fallback CSV
-    var lines = [cols.join(",")];
-    rows.forEach(function(r){
-      lines.push(cols.map(function(c){
-        var v = String(r[c]==null?"":r[c]);
-        if (v.indexOf("data:")===0) v = "[FOTO]";
-        if (/[",\n]/.test(v)) v = '"'+v.replace(/"/g,'""')+'"';
-        return v;
-      }).join(","));
-    });
-    var blob = new Blob(["\ufeff"+lines.join("\n")], {type:"text/csv;charset=utf-8"});
-    var a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
-    a.download = "laporan-transfer.csv";
-    a.click();
+    alert("Library Excel tidak tersedia");
   };
 
   window.tfExportPdf = function(){
@@ -5459,27 +6006,84 @@ window.togglePresentMode = function () {
 
 <script>
 (function(){
+  // Export Excel asli (.xlsx tabel) — override final
+  // Qty / Price / Total tetap NUMBER agar Excel bisa dijumlah & diformat
   window.exportAsExcelTable = function(filename, cols, rows){
     if (!rows || !rows.length) { alert("Tidak ada data"); return; }
     cols = cols || Object.keys(rows[0] || {});
-    function cell(v){
-      v = String(v == null ? "" : v);
-      if (v.indexOf("data:image") === 0 || v.indexOf("data:application") === 0) v = "[FOTO]";
-      if (v.length > 200 && v.indexOf("http") !== 0) v = v.substring(0, 80) + "...";
-      if (/[",\n\r]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
-      return v;
+    var NUM_COLS = { Qty:1, qty:1, Price:1, price:1, Total:1, total:1, Harga:1, harga:1 };
+
+    function toNum(v){
+      if (typeof v === "number" && isFinite(v)) return v;
+      if (v == null || v === "") return 0;
+      var s = String(v).replace(/[^\d.,\-]/g,"").trim();
+      // format ID: 1.300.000 atau 1300000 atau 1,300,000.50
+      if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+        s = s.replace(/\./g, "").replace(",", ".");
+      } else if (s.indexOf(",") >= 0 && s.indexOf(".") < 0) {
+        s = s.replace(",", ".");
+      } else {
+        s = s.replace(/,/g, "");
+      }
+      var n = parseFloat(s);
+      return isFinite(n) ? n : 0;
     }
-    var lines = [cols.join(",")];
-    rows.forEach(function(r){
-      lines.push(cols.map(function(c){ return cell(r[c]); }).join(","));
+
+    var clean = rows.map(function(r){
+      var o = {};
+      cols.forEach(function(c){
+        var v = r[c];
+        if (NUM_COLS[c]) {
+          o[c] = toNum(v);
+          return;
+        }
+        if (v == null) v = "";
+        v = String(v);
+        if (v.indexOf("data:image") === 0 || v.indexOf("data:application") === 0) v = "[FOTO]";
+        if (v.length > 500 && v.indexOf("http") !== 0) v = v.substring(0, 120) + "...";
+        o[c] = v;
+      });
+      return o;
     });
-    var blob = new Blob(["\ufeff" + lines.join("\n")], { type: "application/vnd.ms-excel;charset=utf-8" });
+
+    if (typeof XLSX !== "undefined") {
+      var ws = XLSX.utils.json_to_sheet(clean, { header: cols });
+      // Format kolom angka di Excel (number, 0 desimal untuk harga)
+      cols.forEach(function(c, idx){
+        if (!NUM_COLS[c]) return;
+        var colLetter = XLSX.utils.encode_col(idx);
+        for (var r = 1; r <= clean.length; r++) {
+          var addr = colLetter + (r + 1); // +1 karena header baris 1
+          if (ws[addr] && typeof ws[addr].v === "number") {
+            ws[addr].t = "n";
+            ws[addr].z = (c === "Qty" || c === "qty") ? "0" : "#,##0";
+          }
+        }
+      });
+      ws["!cols"] = cols.map(function(c){
+        var max = String(c).length;
+        clean.forEach(function(r){ var L = String(r[c]||"").length; if (L > max) max = Math.min(L, 40); });
+        return { wch: Math.max(10, max + 2) };
+      });
+      var wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Data");
+      var name = String(filename || "report.xlsx").replace(/\.xls$/i, ".xlsx").replace(/\.csv$/i, ".xlsx");
+      if (!/\.xlsx$/i.test(name)) name += ".xlsx";
+      XLSX.writeFile(wb, name);
+      return;
+    }
+    // fallback
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    var th = cols.map(function(c){ return "<th>"+esc(c)+"</th>"; }).join("");
+    var body = clean.map(function(r){ return "<tr>"+cols.map(function(c){ return "<td>"+esc(r[c])+"</td>"; }).join("")+"</tr>"; }).join("");
+    var doc = "<html><head><meta charset='UTF-8'></head><body><table border='1'><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table></body></html>";
+    var blob = new Blob([doc], { type: "application/vnd.ms-excel;charset=utf-8;" });
     var a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = filename || "laporan.xls";
+    a.download = String(filename || "report.xls").replace(/\.csv$/i, ".xls");
     document.body.appendChild(a);
     a.click();
-    setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    setTimeout(function(){ try{ a.remove(); }catch(e){} }, 400);
   };
 
   window.baExportExcel = function(){
@@ -5491,25 +6095,40 @@ window.togglePresentMode = function () {
       try {
         var list = JSON.parse(localStorage.getItem("patatas_ba_v1") || "[]");
         rows = list.map(function(t){
+          var qty = Number(t.qty)||0;
+          var price = Number(t.price)||0;
           return {
-            Tanggal: t.date||"", SKU: t.sku||"", Nama: t.name||"", Loc: t.loc||"",
-            Qty: t.qty||0, Keterangan: t.keterangan||"", Foto: t.foto ? "[FOTO]" : ""
+            Tanggal: t.date||"", SKU: t.sku||"", Nama: t.name||"", Uom: t.uom||"PCS",
+            Qty: qty, Price: price, Total: Number(t.total)||(price*qty),
+            Keterangan: t.keterangan||"", Foto: t.foto ? "[FOTO]" : "", Loc: t.loc||""
           };
         });
       } catch(e){}
     }
     if (!rows.length) { alert("Tidak ada data BA untuk di-export"); return; }
-    var cols = ["Tanggal","SKU","Nama","Loc","Qty","Keterangan","Foto"];
+    // Header mengikuti sheet BA
+    var cols = ["Tanggal","SKU","Nama","Uom","Qty","Price","Total","Keterangan","Foto","Loc"];
     var clean = rows.map(function(r){
       var o = {};
       cols.forEach(function(c){
         var v = r[c];
+        if (v == null || v === "") {
+          if (c === "Uom") v = r.uom || "PCS";
+          else if (c === "Loc") v = r.loc || r.Location || "";
+          else if (c === "Price") v = Number(r.price || r.Price || 0);
+          else if (c === "Total") v = Number(r.total || r.Total || 0);
+          else if (c === "Qty") v = Number(r.qty || r.Qty || 0);
+        }
         if (String(v||"").indexOf("data:") === 0) v = "[FOTO]";
-        o[c] = v;
+        o[c] = v == null ? "" : v;
       });
+      // pastikan angka
+      o.Price = Number(o.Price) || 0;
+      o.Total = Number(o.Total) || (o.Price * (Number(o.Qty)||0));
+      o.Qty = Number(o.Qty) || 0;
       return o;
     });
-    window.exportAsExcelTable("laporan-berita-acara.xls", cols, clean);
+    window.exportAsExcelTable("report-berita-acara.xlsx", cols, clean);
   };
 
   window.tfExportExcel = function(){
@@ -5521,50 +6140,40 @@ window.togglePresentMode = function () {
       try {
         var list = JSON.parse(localStorage.getItem("patatas_transfers_v1") || "[]");
         list.forEach(function(t){
-          (t.items || [{sku:t.sku,name:t.name,qty:t.qty}]).forEach(function(it){
+          (t.items || [{sku:t.sku,name:t.name,qty:t.qty,uom:t.uom,price:t.price}]).forEach(function(it){
+            var qty = Number(it.qty)||0;
+            var price = Number(it.price||t.price||0);
             rows.push({
-              Tanggal: t.date||"", SKU: it.sku||"", Nama: it.name||"",
-              Dari: t.from||"", Ke: t.to||"", Qty: it.qty||0,
-              Status: (t.status||"").toUpperCase(), Foto: t.photo ? "[FOTO]" : ""
+              Tanggal: t.date||"", SKU: it.sku||t.sku||"", Nama: it.name||t.name||"",
+              Dari: t.from||"", Ke: t.to||"", Qty: qty, Uom: it.uom||t.uom||"PCS",
+              Status: (t.status||"").toUpperCase(), Oleh: t.by||"",
+              Foto: t.photo ? "[FOTO]" : "", Price: price, Total: price * qty
             });
           });
         });
       } catch(e){}
     }
     if (!rows.length) { alert("Tidak ada data Transfer untuk di-export"); return; }
-    var cols = ["Tanggal","SKU","Nama","Dari","Ke","Qty","Status","Foto"];
-    window.exportAsExcelTable("laporan-transfer.xls", cols, rows);
+    // Header mengikuti sheet TRANSFER OUTLET
+    var cols = ["Tanggal","SKU","Nama","Dari","Ke","Qty","Uom","Status","Oleh","Foto","Price","Total"];
+    var clean = rows.map(function(r){
+      var o = {};
+      cols.forEach(function(c){
+        var v = r[c];
+        if (v == null && c === "Uom") v = "PCS";
+        if (v == null && c === "Price") v = r.Price || 0;
+        if (v == null && c === "Total") v = r.Total || 0;
+        if (v == null && c === "Oleh") v = r.Oleh || r["Approved By (Outlet Penerimaan)"] || "";
+        if (String(v||"").indexOf("data:") === 0) v = "[FOTO]";
+        o[c] = v == null ? "" : v;
+      });
+      return o;
+    });
+    window.exportAsExcelTable("report-transfer.xlsx", cols, clean);
   };
 
-  // rebind buttons that might call old handlers
-  document.addEventListener("click", function(ev){
-    var btn = ev.target.closest("button");
-    if (!btn) return;
-    var t = (btn.textContent || "").trim();
-    var inBA = btn.closest && (btn.closest("#page-laporan") || btn.closest("#page-report") || document.getElementById("ba-rp-tbody"));
-    if (t === "Export Excel" || t.indexOf("Export Excel") >= 0) {
-      // detect section
-      var parent = btn.parentElement;
-      var section = btn.closest("div");
-      var html = (section && section.innerHTML) || "";
-      // if near BA table
-      var baTable = document.getElementById("ba-rp-tbody");
-      var tfTable = document.getElementById("rp-tbody");
-      if (baTable && section && section.contains && section.contains(baTable) === false) {
-        // walk up
-      }
-      var h = "";
-      var p = btn;
-      for (var i=0;i<8 && p;i++){ h += p.innerHTML || ""; p = p.parentElement; }
-      if (h.indexOf("Berita Acara") >= 0 || h.indexOf("ba-rp") >= 0) {
-        ev.preventDefault();
-        window.baExportExcel();
-      } else if (h.indexOf("Transfer") >= 0 || h.indexOf("rp-tbody") >= 0) {
-        ev.preventDefault();
-        window.tfExportExcel();
-      }
-    }
-  }, true);
+  // Jangan rebind click Export — tombol sudah punya onclick.
+  // Listener ganda menyebabkan Chrome: "mendownload beberapa file secara otomatis".
 })();
 </script>
 
@@ -6365,7 +6974,7 @@ window.togglePresentMode = function () {
     var row = document.createElement("div");
     row.className = "tf-line";
     row.style.cssText = "margin-bottom:0.65rem;padding:0.65rem;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:#fafafa";
-    var q0 = qty || ((document.getElementById("tf-qty-default") || {}).value) || 1;
+    var q0 = qty || 1;
     row.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 80px 36px;gap:0.4rem;align-items:start">'+
       '<div>'+
@@ -6464,7 +7073,7 @@ window.togglePresentMode = function () {
     var row = document.createElement("div");
     row.className = "tf-line";
     row.style.cssText = "margin-bottom:0.65rem;padding:0.65rem;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:#fafafa";
-    var q0 = qty || ((document.getElementById("tf-qty-default") || {}).value) || 1;
+    var q0 = qty || 1;
     row._foto = "";
     row.innerHTML =
       '<div style="display:grid;grid-template-columns:1fr 80px 36px;gap:0.4rem;align-items:start">'+
@@ -7260,7 +7869,7 @@ window.togglePresentMode = function () {
 
 <script>
 (function(){
-  function buildLoginESB(){
+  function buildLoginScreen(){
     var screen = document.getElementById("login-screen");
     if (!screen || screen.querySelector(".login-brand-panel")) return;
     var card = screen.querySelector(".login-card");
@@ -7273,9 +7882,9 @@ window.togglePresentMode = function () {
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildLoginESB);
-  else buildLoginESB();
-  setTimeout(buildLoginESB, 200);
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildLoginScreen);
+  else buildLoginScreen();
+  setTimeout(buildLoginScreen, 200);
 })();
 </script>
 
@@ -7670,6 +8279,858 @@ input:focus, select:focus, textarea:focus {
   });
 })();
 </script>
+<script>
+/* ===== Settings: Dark mode, Language, Change password ===== */
+(function(){
+  var LANG_KEY = "patatas_lang";
+  var PASS_KEY = "patatas_passwords";
+  var THEME_KEY = "patatas_theme";
+
+  var I18N = {
+    id: {
+      nav_report: "Report",
+      nav_settings: "Settings",
+      set_appearance: "Tampilan",
+      set_appearance_hint: "Dark mode hanya diatur di sini (tidak ada tombol mengambang).",
+      set_dark_mode: "Dark Mode",
+      set_language: "Bahasa",
+      set_language_hint: "Pilih bahasa tampilan menu.",
+      set_password: "Ganti Password",
+      set_password_hint: "Password disimpan di browser ini untuk akun yang sedang login.",
+      set_pass_current: "Password saat ini",
+      set_pass_new: "Password baru",
+      set_pass_confirm: "Konfirmasi password baru",
+      set_pass_save: "Simpan Password",
+      titles: {
+        assets: "Aset Tetap", "aset-lancar": "Aset Lancar", valuation: "Valuation Stock", dashboard: "Dashboard",
+        scan: "Scan QR", report: "Report", transfer: "Transfer Aset",
+        ba: "Berita Acara", settings: "Settings"
+      }
+    },
+    en: {
+      nav_report: "Report",
+      nav_settings: "Settings",
+      set_appearance: "Appearance",
+      set_appearance_hint: "Dark mode is controlled here only (no floating buttons).",
+      set_dark_mode: "Dark Mode",
+      set_language: "Language",
+      set_language_hint: "Choose menu language.",
+      set_password: "Change Password",
+      set_password_hint: "Password is stored in this browser for the logged-in account.",
+      set_pass_current: "Current password",
+      set_pass_new: "New password",
+      set_pass_confirm: "Confirm new password",
+      set_pass_save: "Save Password",
+      titles: {
+        assets: "Fixed Assets", "aset-lancar": "Current Assets", valuation: "Valuation Stock", dashboard: "Dashboard",
+        scan: "Scan QR", report: "Report", transfer: "Transfer Asset",
+        ba: "Berita Acara", settings: "Settings"
+      }
+    }
+  };
+
+  function currentLang() {
+    try { return localStorage.getItem(LANG_KEY) || "id"; } catch(e) { return "id"; }
+  }
+
+  window.I18N_TITLES = function() {
+    var L = I18N[currentLang()] || I18N.id;
+    return L.titles;
+  };
+
+  window.applyI18n = function() {
+    var lang = currentLang();
+    var pack = I18N[lang] || I18N.id;
+    document.querySelectorAll("[data-i18n]").forEach(function(el){
+      var k = el.getAttribute("data-i18n");
+      if (pack[k]) el.textContent = pack[k];
+    });
+    var sel = document.getElementById("set-lang");
+    if (sel) sel.value = lang;
+    // update page title if on a page
+    var titleEl = document.getElementById("page-title");
+    if (titleEl && window.I18N_TITLES) {
+      var active = document.querySelector(".page.active");
+      if (active && active.id) {
+        var page = active.id.replace(/^page-/, "");
+        var t = window.I18N_TITLES()[page];
+        if (t) titleEl.textContent = t;
+      }
+    }
+  };
+
+  window.settingsSetDark = function(on) {
+    document.body.classList.toggle("dark-mode", !!on);
+    try { localStorage.setItem(THEME_KEY, on ? "dark" : "light"); } catch(e) {}
+    var lab = document.getElementById("set-dark-label");
+    if (lab) lab.textContent = on ? "On" : "Off";
+    var cb = document.getElementById("set-dark-toggle");
+    if (cb) cb.checked = !!on;
+  };
+
+  window.settingsSetPresent = function(on) {
+    document.body.classList.toggle("present-mode", !!on);
+    try { localStorage.setItem("patatas_present", on ? "1" : "0"); } catch(e) {}
+    var lab = document.getElementById("set-present-label");
+    if (lab) lab.textContent = on ? "On" : "Off";
+    var cb = document.getElementById("set-present-toggle");
+    if (cb) cb.checked = !!on;
+    var btn = document.getElementById("present-toggle");
+    if (btn) btn.textContent = on ? "Mode Normal" : "👁 Presentasi";
+  };
+
+  // Sinkronkan toggle presentasi yang sudah ada
+  var _tp = window.togglePresentMode;
+  window.togglePresentMode = function() {
+    var on = !document.body.classList.contains("present-mode");
+    window.settingsSetPresent(on);
+  };
+
+  window.settingsSetLang = function(lang) {
+    if (lang !== "en" && lang !== "id") lang = "id";
+    try { localStorage.setItem(LANG_KEY, lang); } catch(e) {}
+    window.applyI18n();
+  };
+
+  window.settingsChangePassword = function() {
+    var cur = ((document.getElementById("set-pass-current") || {}).value || "");
+    var neu = ((document.getElementById("set-pass-new") || {}).value || "");
+    var conf = ((document.getElementById("set-pass-confirm") || {}).value || "");
+    var msg = document.getElementById("set-pass-msg");
+    function show(t, ok) {
+      if (msg) { msg.textContent = t; msg.style.color = ok ? "#16a34a" : "#dc2626"; }
+    }
+    if (!neu || neu.length < 3) { show("Password baru minimal 3 karakter", false); return; }
+    if (neu !== conf) { show("Konfirmasi password tidak cocok", false); return; }
+
+    var session = null;
+    try { session = JSON.parse(localStorage.getItem("patatas_asset_session") || "null"); } catch(e) {}
+    if (!session) { show("Anda belum login", false); return; }
+
+    var key = String(session.loginKey || session.email || "").toLowerCase().replace(/\s+/g, " ").trim();
+    if (!key) { show("Akun tidak dikenali", false); return; }
+
+    // Verifikasi password saat ini (custom atau default)
+    var map = {};
+    try { map = JSON.parse(localStorage.getItem(PASS_KEY) || "{}"); } catch(e) { map = {}; }
+    var expected = map[key] || map[key.replace(/\s+/g, "")];
+    if (!expected) {
+      // default: kode login / POTLOT14 untuk admin
+      expected = key.indexOf("@") >= 0 || key === "senoaset" || key === "seno" || key === "admin" || key === "senobekti"
+        ? "POTLOT14"
+        : (key === "user" ? "user" : String(session.email || key));
+      if (key === "ho jkt" || key === "hojkt") expected = "HO JKT";
+    }
+    var okCur = String(cur).toLowerCase().replace(/\s+/g,"") === String(expected).toLowerCase().replace(/\s+/g,"");
+    if (!okCur && String(cur) !== String(expected)) {
+      show("Password saat ini salah", false);
+      return;
+    }
+
+    map[key] = neu;
+    map[key.replace(/\s+/g, "")] = neu;
+    try { localStorage.setItem(PASS_KEY, JSON.stringify(map)); } catch(e) {
+      show("Gagal menyimpan di browser", false); return;
+    }
+    show("Password berhasil diganti. Gunakan password baru saat login berikutnya.", true);
+    ["set-pass-current","set-pass-new","set-pass-confirm"].forEach(function(id){
+      var el = document.getElementById(id); if (el) el.value = "";
+    });
+  };
+
+  function initSettingsUI() {
+    // Sync dark toggle
+    var isDark = false;
+    try { isDark = localStorage.getItem(THEME_KEY) === "dark"; } catch(e) {}
+    if (isDark) document.body.classList.add("dark-mode");
+    var cb = document.getElementById("set-dark-toggle");
+    if (cb) cb.checked = isDark;
+    var lab = document.getElementById("set-dark-label");
+    if (lab) lab.textContent = isDark ? "On" : "Off";
+
+    // Sync present mode
+    var isPresent = false;
+    try { isPresent = localStorage.getItem("patatas_present") === "1"; } catch(e) {}
+    if (isPresent) document.body.classList.add("present-mode");
+    var pcb = document.getElementById("set-present-toggle");
+    if (pcb) pcb.checked = isPresent;
+    var plab = document.getElementById("set-present-label");
+    if (plab) plab.textContent = isPresent ? "On" : "Off";
+    var pbtn = document.getElementById("present-toggle");
+    if (pbtn) {
+      pbtn.style.display = "inline-flex";
+      pbtn.textContent = isPresent ? "Mode Normal" : "👁 Presentasi";
+    }
+
+    // Dark floating tetap disembunyikan
+    var t = document.getElementById("theme-toggle");
+    if (t) t.style.display = "none";
+
+    window.applyI18n();
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", initSettingsUI);
+  else initSettingsUI();
+  setTimeout(initSettingsUI, 300);
+})();
+</script>
+<script>
+/* ===== Aset Lancar / Inventory Stock =====
+ * Sheet header yang dibaca:
+ * Product ID | Category | Subcategory | Product Code | Product Name | Unit
+ * Tanpa barcode.
+ * API: ?action=listInventoryStock  → { ok:true, items:[...] }
+ */
+(function(){
+  window.asetLancarData = window.asetLancarData || [];
+  window.asetLancarFiltered = window.asetLancarFiltered || [];
+
+  function esc(s){
+    return String(s == null ? "" : s)
+      .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  function msCheckedValues(wrapId) {
+    var wrap = document.getElementById(wrapId);
+    if (!wrap) return [];
+    var boxes = wrap.querySelectorAll(".ms-list input[type=checkbox]:checked");
+    var out = [];
+    for (var i = 0; i < boxes.length; i++) out.push(String(boxes[i].value || "").trim());
+    return out.filter(Boolean);
+  }
+
+  function fillLancarMsOptions() {
+    var src = window.asetLancarData || [];
+    function unique(key) {
+      var s = {}, arr = [];
+      src.forEach(function(r) {
+        var v = String(r[key] || "").trim();
+        if (v && !s[v]) { s[v] = 1; arr.push(v); }
+      });
+      return arr.sort();
+    }
+    function fill(wrapId, values) {
+      var wrap = document.getElementById(wrapId);
+      if (!wrap) return;
+      var list = wrap.querySelector(".ms-list");
+      if (!list) return;
+      var html = "";
+      values.forEach(function(v) {
+        html += '<label class="ms-item"><input type="checkbox" value="' + esc(v) + '" onchange="window.filterAsetLancar&&filterAsetLancar()"/> ' + esc(v) + '</label>';
+      });
+      list.innerHTML = html;
+      var lab = wrap.querySelector(".ms-label");
+      if (lab) lab.textContent = lab.textContent.indexOf("Category") >= 0 || wrapId.indexOf("category") >= 0
+        ? "- Select Category -" : (wrapId.indexOf("sub") >= 0 ? "- Select Sub Category -" : "- Select Unit -");
+    }
+    fill("ms-lancar-category", unique("category"));
+    fill("ms-lancar-sub", unique("subcategory"));
+    fill("ms-lancar-unit", unique("unit"));
+  }
+
+  function renderLancarStats(list) {
+    var el = document.getElementById("lancar-stats");
+    if (!el) return;
+    var n = (list || []).length;
+    var units = {};
+    (list || []).forEach(function(r) {
+      var u = String(r.unit || "").trim() || "-";
+      units[u] = (units[u] || 0) + 1;
+    });
+    el.innerHTML =
+      '<div class="stat-card"><div class="stat-value">' + n + '</div><div class="stat-label">Total Item</div></div>' +
+      '<div class="stat-card"><div class="stat-value">' + Object.keys(units).length + '</div><div class="stat-label">Unit Types</div></div>';
+  }
+
+  window.renderAsetLancar = function(rows){
+    var tb = document.getElementById("table-body-lancar");
+    var empty = document.getElementById("lancar-empty");
+    if (!tb) return;
+    var list = rows || window.asetLancarFiltered || [];
+    renderLancarStats(list);
+    if (!list.length) {
+      tb.innerHTML = "";
+      if (empty) empty.style.display = "block";
+      else tb.innerHTML = '<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#94a3b8">Tidak ada data Inventory Stock</td></tr>';
+      return;
+    }
+    if (empty) empty.style.display = "none";
+    var html = "";
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i] || {};
+      html += "<tr>"
+        + "<td>" + (i + 1) + "</td>"
+        + "<td>" + esc(r.productId || "") + "</td>"
+        + "<td>" + esc(r.category || "") + "</td>"
+        + "<td>" + esc(r.subcategory || "") + "</td>"
+        + "<td>" + esc(r.productCode || "") + "</td>"
+        + "<td>" + esc(r.productName || "") + "</td>"
+        + "<td>" + esc(r.unit || "") + "</td>"
+        + "</tr>";
+    }
+    tb.innerHTML = html;
+  };
+
+  window.filterAsetLancar = function(){
+    var q = ((document.getElementById("lancar-search") || {}).value || "").toLowerCase().trim();
+    var cats = msCheckedValues("ms-lancar-category");
+    var subs = msCheckedValues("ms-lancar-sub");
+    var units = msCheckedValues("ms-lancar-unit");
+    var src = window.asetLancarData || [];
+    window.asetLancarFiltered = src.filter(function(r){
+      if (cats.length && cats.indexOf(String(r.category || "").trim()) < 0) return false;
+      if (subs.length && subs.indexOf(String(r.subcategory || "").trim()) < 0) return false;
+      if (units.length && units.indexOf(String(r.unit || "").trim()) < 0) return false;
+      if (!q) return true;
+      var blob = [r.productId, r.category, r.subcategory, r.productCode, r.productName, r.unit].join(" ").toLowerCase();
+      return blob.indexOf(q) >= 0;
+    });
+    // update ms labels
+    function updLabel(wrapId, allText) {
+      var wrap = document.getElementById(wrapId);
+      if (!wrap) return;
+      var lab = wrap.querySelector(".ms-label");
+      var n = msCheckedValues(wrapId).length;
+      if (lab) lab.textContent = n ? (n + " selected") : allText;
+    }
+    updLabel("ms-lancar-category", "- Select Category -");
+    updLabel("ms-lancar-sub", "- Select Sub Category -");
+    updLabel("ms-lancar-unit", "- Select Unit -");
+    window.renderAsetLancar(window.asetLancarFiltered);
+  };
+
+  window.resetLancarFilter = function() {
+    var s = document.getElementById("lancar-search");
+    if (s) s.value = "";
+    ["ms-lancar-category","ms-lancar-sub","ms-lancar-unit"].forEach(function(id) {
+      var wrap = document.getElementById(id);
+      if (!wrap) return;
+      wrap.querySelectorAll("input[type=checkbox]").forEach(function(c){ c.checked = false; });
+    });
+    window.filterAsetLancar();
+  };
+
+  window.exportLancarExcel = function() {
+    var rows = window.asetLancarFiltered || window.asetLancarData || [];
+    if (!rows.length) { alert("Tidak ada data"); return; }
+    if (typeof XLSX === "undefined") { alert("Library Excel belum termuat"); return; }
+    var data = rows.map(function(r) {
+      return {
+        "Product ID": r.productId || "",
+        "Category": r.category || "",
+        "Subcategory": r.subcategory || "",
+        "Product Code": r.productCode || "",
+        "Product Name": r.productName || "",
+        "Unit": r.unit || ""
+      };
+    });
+    var ws = XLSX.utils.json_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Inventory Stock");
+    XLSX.writeFile(wb, "Inventory_Stock.xlsx");
+  };
+
+  window.loadAsetLancar = async function(force){
+    var tb = document.getElementById("table-body-lancar");
+    if (tb && force) {
+      tb.innerHTML = '<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#94a3b8">Memuat…</td></tr>';
+    }
+    var url = (window.API_URL || "").replace(/\/$/, "");
+    if (!url) {
+      if (tb) tb.innerHTML = '<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#94a3b8">API_URL belum diset. Hubungkan sheet Inventory Stock dulu.</td></tr>';
+      return;
+    }
+    try {
+      var res = await fetch(url + "?action=listInventoryStock&_=" + Date.now(), { cache: "no-store" });
+      var text = await res.text();
+      var json = null;
+      try { json = JSON.parse(text); } catch (e) {
+        throw new Error("Response bukan JSON. Deploy ulang Code.gs dengan action listInventoryStock.");
+      }
+      var items = (json && (json.items || json.data)) || [];
+      if (!Array.isArray(items)) items = [];
+      window.asetLancarData = items.map(function(r){
+        return {
+          productId: r.productId || r.product_id || r["Product ID"] || "",
+          category: r.category || r.Category || "",
+          subcategory: r.subcategory || r.subCategory || r.Subcategory || r["Sub Category"] || "",
+          productCode: r.productCode || r.product_code || r["Product Code"] || "",
+          productName: r.productName || r.product_name || r.name || r["Product Name"] || "",
+          unit: r.unit || r.uom || r.Unit || ""
+        };
+      });
+      fillLancarMsOptions();
+      window.filterAsetLancar();
+    } catch (err) {
+      console.warn("loadAsetLancar", err);
+      if (tb) {
+        tb.innerHTML = '<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#b91c1c">Gagal load Inventory Stock: '
+          + esc(err.message || err) + '</td></tr>';
+      }
+    }
+  };
+
+  // ---- List SO (item dari Inventory Stock) ----
+  window.listSOData = window.listSOData || [];
+
+  window.switchLancarTab = function(tab) {
+    var stock = document.getElementById("lancar-panel-stock");
+    var so = document.getElementById("lancar-panel-so");
+    var bStock = document.getElementById("tab-inv-stock");
+    var bSO = document.getElementById("tab-list-so");
+    if (tab === "so") {
+      if (stock) stock.style.display = "none";
+      if (so) so.style.display = "block";
+      if (bStock) { bStock.className = "btn btn-outline"; }
+      if (bSO) { bSO.className = "btn btn-primary"; }
+      // pastikan inventory termuat untuk datalist
+      if (!(window.asetLancarData || []).length) loadAsetLancar(false).then(function(){ fillSOProductList(); soEnsureLines(); });
+      else { fillSOProductList(); soEnsureLines(); }
+      loadListSO(false);
+      if (window.fillTransferOutlets) fillTransferOutlets();
+      if (window.lockSOOutlet) lockSOOutlet();
+      var d = document.getElementById("so-date");
+      if (d && !d.value) {
+        try { d.value = new Date().toISOString().slice(0,10); } catch(e) {}
+      }
+    } else {
+      if (stock) stock.style.display = "block";
+      if (so) so.style.display = "none";
+      if (bStock) { bStock.className = "btn btn-primary"; }
+      if (bSO) { bSO.className = "btn btn-outline"; }
+    }
+  };
+
+  function fillSOProductList() {
+    var dl = document.getElementById("so-product-list");
+    if (!dl) return;
+    var items = window.asetLancarData || [];
+    var opts = "";
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var label = [r.productId, r.productCode, r.productName].filter(Boolean).join(" | ");
+      if (!label) continue;
+      opts += '<option value="' + esc(label) + '"></option>';
+    }
+    dl.innerHTML = opts;
+  }
+
+  function findInventoryProduct(query) {
+    var q = String(query || "").toLowerCase().trim();
+    if (!q) return null;
+    var items = window.asetLancarData || [];
+    // exact match on productId / productCode / full label
+    for (var i = 0; i < items.length; i++) {
+      var r = items[i];
+      var label = [r.productId, r.productCode, r.productName].filter(Boolean).join(" | ").toLowerCase();
+      if (label === q) return r;
+      if (String(r.productId || "").toLowerCase() === q) return r;
+      if (String(r.productCode || "").toLowerCase() === q) return r;
+    }
+    // partial: product code or name contains
+    for (var j = 0; j < items.length; j++) {
+      var x = items[j];
+      var blob = [x.productId, x.productCode, x.productName].join(" ").toLowerCase();
+      if (blob.indexOf(q) >= 0) return x;
+    }
+    return null;
+  }
+
+  window.soAddLine = function() {
+    var box = document.getElementById("so-lines");
+    if (!box) return;
+    var row = document.createElement("div");
+    row.className = "so-line";
+    row.style.cssText = "display:grid;grid-template-columns:1fr 90px 70px 40px;gap:0.4rem;align-items:center";
+    row.innerHTML =
+      '<input type="text" class="so-product" list="so-product-list" placeholder="Ketik Product ID / Code / Name..." required style="padding:0.45rem;border:1px solid var(--border);border-radius:8px"/>' +
+      '<input type="text" class="so-unit" placeholder="Unit" readonly style="padding:0.45rem;border:1px solid var(--border);border-radius:8px;background:#f8fafc"/>' +
+      '<input type="number" class="so-qty" min="0.01" step="any" value="1" required style="padding:0.45rem;border:1px solid var(--border);border-radius:8px"/>' +
+      '<button type="button" class="btn btn-outline" style="padding:0.35rem;color:#b91c1c;border-color:#fecaca" onclick="this.closest(\'.so-line\').remove()">×</button>';
+    var inp = row.querySelector(".so-product");
+    var unit = row.querySelector(".so-unit");
+    function syncUnit() {
+      var p = findInventoryProduct(inp.value);
+      if (p) {
+        unit.value = p.unit || "";
+        // normalize display
+        inp.dataset.productId = p.productId || "";
+        inp.dataset.productCode = p.productCode || "";
+        inp.dataset.productName = p.productName || "";
+        inp.dataset.unit = p.unit || "";
+      } else {
+        unit.value = "";
+        delete inp.dataset.productId;
+        delete inp.dataset.productCode;
+        delete inp.dataset.productName;
+        delete inp.dataset.unit;
+      }
+    }
+    inp.addEventListener("change", syncUnit);
+    inp.addEventListener("blur", syncUnit);
+    box.appendChild(row);
+  };
+
+  function soEnsureLines() {
+    var box = document.getElementById("so-lines");
+    if (!box) return;
+    if (!box.querySelector(".so-line")) window.soAddLine();
+  }
+
+  window.soCollectLines = function() {
+    var rows = document.querySelectorAll("#so-lines .so-line");
+    var out = [];
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var inp = row.querySelector(".so-product");
+      var qtyEl = row.querySelector(".so-qty");
+      var qty = Number((qtyEl && qtyEl.value) || 0);
+      var p = findInventoryProduct(inp && inp.value);
+      if (!p) continue;
+      if (!(qty > 0)) continue;
+      out.push({
+        productId: p.productId || "",
+        productCode: p.productCode || "",
+        productName: p.productName || "",
+        unit: p.unit || "",
+        category: p.category || "",
+        subcategory: p.subcategory || "",
+        qty: qty
+      });
+    }
+    return out;
+  };
+
+  window.soSubmit = async function() {
+    var msg = document.getElementById("so-msg");
+    function show(t, ok) {
+      if (msg) { msg.textContent = t; msg.style.color = ok ? "#16a34a" : "#dc2626"; }
+    }
+    var date = ((document.getElementById("so-date") || {}).value || "").trim();
+    var loc = ((document.getElementById("so-loc") || {}).value || "").trim();
+    var note = ((document.getElementById("so-note") || {}).value || "").trim();
+    if (!date || !loc) { show("Tanggal dan Outlet wajib diisi", false); return; }
+    if (!(window.asetLancarData || []).length) {
+      await loadAsetLancar(false);
+      fillSOProductList();
+    }
+    var lines = window.soCollectLines();
+    if (!lines.length) {
+      show("Pilih minimal 1 item dari Inventory Stock (ketik ID/Code/Name dari daftar)", false);
+      return;
+    }
+    var url = (window.API_URL || "").replace(/\/$/, "");
+    show("Menyimpan...", true);
+    var payload = {
+      action: "saveListSO",
+      date: date,
+      loc: loc,
+      note: note,
+      items: lines,
+      oleh: (function(){
+        try {
+          var s = JSON.parse(localStorage.getItem("patatas_asset_session") || "null");
+          return (s && (s.email || s.label)) || "";
+        } catch(e) { return ""; }
+      })()
+    };
+    try {
+      if (!url) throw new Error("API_URL kosong");
+      var res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(payload)
+      });
+      var text = await res.text();
+      var json = null;
+      try { json = JSON.parse(text); } catch(e) {
+        throw new Error("Response bukan JSON. Tambah action saveListSO di Code.gs lalu deploy.");
+      }
+      if (json && (json.ok === false || json.status === "error")) {
+        throw new Error(json.error || json.message || "Gagal simpan");
+      }
+      show("Tersimpan " + lines.length + " item ke List SO", true);
+      // reset lines
+      var box = document.getElementById("so-lines");
+      if (box) box.innerHTML = "";
+      soEnsureLines();
+      document.getElementById("so-note").value = "";
+      loadListSO(true);
+    } catch (err) {
+      console.warn(err);
+      show(String(err.message || err), false);
+    }
+  };
+
+  function formatSODate(v) {
+    var s = String(v || "").trim();
+    // already dd-mm-yy
+    if (/^\d{2}-\d{2}-\d{2}$/.test(s)) return s;
+    // yyyy-mm-dd
+    var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[3] + "-" + m[2] + "-" + m[1].slice(-2);
+    // Date parse fallback
+    var d = new Date(s);
+    if (!isNaN(d.getTime())) {
+      var dd = String(d.getDate()).padStart(2, "0");
+      var mm = String(d.getMonth() + 1).padStart(2, "0");
+      var yy = String(d.getFullYear()).slice(-2);
+      return dd + "-" + mm + "-" + yy;
+    }
+    return s;
+  }
+
+  window.renderListSO = function(rows) {
+    var tb = document.getElementById("table-body-so");
+    if (!tb) return;
+    var list = rows || window.listSOData || [];
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#94a3b8">Belum ada data List SO</td></tr>';
+      return;
+    }
+    var canDel = true;
+    try {
+      var sess = JSON.parse(localStorage.getItem("patatas_asset_session") || "null");
+      if (sess && sess.canEdit === false) canDel = false;
+    } catch (e) {}
+    var html = "";
+    for (var i = 0; i < list.length; i++) {
+      var r = list[i] || {};
+      var id = r.id || "";
+      var delBtn = canDel && id
+        ? '<button type="button" class="btn btn-outline" style="padding:0.2rem 0.45rem;font-size:0.72rem;color:#b91c1c;border-color:#fecaca" onclick="window.soDeleteRow&&soDeleteRow(\'' + String(id).replace(/'/g, "") + '\')">Hapus</button>'
+        : "—";
+      html += "<tr>"
+        + "<td>" + (i+1) + "</td>"
+        + "<td>" + esc(formatSODate(r.date || "")) + "</td>"
+        + "<td>" + esc(r.loc || r.outlet || "") + "</td>"
+        + "<td>" + esc(r.productId || "") + "</td>"
+        + "<td>" + esc(r.category || "") + "</td>"
+        + "<td>" + esc(r.subcategory || r.subCategory || "") + "</td>"
+        + "<td>" + esc(r.productCode || "") + "</td>"
+        + "<td>" + esc(r.productName || "") + "</td>"
+        + "<td>" + esc(r.unit || "") + "</td>"
+        + "<td>" + esc(r.qty != null ? r.qty : "") + "</td>"
+        + "<td>" + esc(r.note || r.catatan || "") + "</td>"
+        + "<td>" + delBtn + "</td>"
+        + "</tr>";
+    }
+    tb.innerHTML = html;
+  };
+
+  window.soDeleteRow = async function(id) {
+    if (!id) return;
+    if (!confirm("Hapus baris List SO ini?")) return;
+    var url = (window.API_URL || "").replace(/\/$/, "");
+    if (!url) { alert("API_URL kosong"); return; }
+    try {
+      var res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "deleteListSO", id: id })
+      });
+      var text = await res.text();
+      var json = null;
+      try { json = JSON.parse(text); } catch (e) {
+        throw new Error("Response bukan JSON. Tambah action deleteListSO di Code.gs lalu deploy.");
+      }
+      if (json && (json.ok === false || json.status === "error")) {
+        throw new Error(json.error || json.message || "Gagal hapus");
+      }
+      await loadListSO(true);
+    } catch (err) {
+      alert(String(err.message || err));
+    }
+  };
+
+  window.loadListSO = async function(force) {
+    var tb = document.getElementById("table-body-so");
+    if (tb && force) tb.innerHTML = '<tr><td colspan="12" style="padding:1rem;text-align:center;color:#94a3b8">Memuat…</td></tr>';
+    var url = (window.API_URL || "").replace(/\/$/, "");
+    if (!url) {
+      if (tb) tb.innerHTML = '<tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#94a3b8">API_URL belum diset</td></tr>';
+      return;
+    }
+    try {
+      var res = await fetch(url + "?action=listSO&_=" + Date.now(), { cache: "no-store" });
+      var text = await res.text();
+      var json = null;
+      try { json = JSON.parse(text); } catch(e) {
+        throw new Error("Bukan JSON. Deploy Code.gs dengan action listSO.");
+      }
+      var items = (json && (json.items || json.data || json.list)) || [];
+      if (!Array.isArray(items)) items = [];
+      window.listSOData = items;
+      window.renderListSO(items);
+    } catch (err) {
+      console.warn("loadListSO", err);
+      if (tb) tb.innerHTML = '<tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#b91c1c">' + esc(err.message || err) + '</td></tr>';
+    }
+  };
+
+
+  window.soCollectReportRows = function() {
+    var from = ((document.getElementById("so-rp-from") || {}).value || "").trim();
+    var to = ((document.getElementById("so-rp-to") || {}).value || "").trim();
+    var outlet = ((document.getElementById("so-rp-outlet") || {}).value || "").trim().toLowerCase();
+    var list = window.listSOData || [];
+    return list.filter(function(r) {
+      var d = String(r.date || "").substring(0, 10);
+      if (from && d < from) return false;
+      if (to && d > to) return false;
+      if (outlet) {
+        var loc = String(r.loc || r.outlet || "").toLowerCase();
+        if (loc.indexOf(outlet) < 0 && outlet.indexOf(loc) < 0 && loc !== outlet) return false;
+      }
+      return true;
+    });
+  };
+
+  window.soRenderReport = async function() {
+    if (!(window.listSOData || []).length) {
+      try { await loadListSO(false); } catch(e) {}
+    }
+    // fill outlet filter
+    var sel = document.getElementById("so-rp-outlet");
+    if (sel && sel.options.length <= 1) {
+      var outs = {};
+      (window.listSOData || []).forEach(function(r) {
+        var o = String(r.loc || r.outlet || "").trim();
+        if (o) outs[o] = 1;
+      });
+      if (window.fillTransferOutlets) {
+        // also use known outlets
+      }
+      var cur = sel.value;
+      sel.innerHTML = '<option value="">Semua</option>';
+      Object.keys(outs).sort().forEach(function(o) {
+        var opt = document.createElement("option");
+        opt.value = o; opt.textContent = o;
+        sel.appendChild(opt);
+      });
+      if (cur) sel.value = cur;
+    }
+    var rows = window.soCollectReportRows();
+    var tb = document.getElementById("so-rp-tbody");
+    if (!tb) return;
+    if (!rows.length) {
+      tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+      return;
+    }
+    var html = "";
+    rows.forEach(function(r) {
+      html += "<tr>"
+        + "<td style='padding:0.35rem'>" + esc(formatSODate(r.date || "")) + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.loc || r.outlet || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.productId || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.category || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.subcategory || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.productCode || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.productName || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.unit || "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.qty != null ? r.qty : "") + "</td>"
+        + "<td style='padding:0.35rem'>" + esc(r.note || "") + "</td>"
+        + "</tr>";
+    });
+    tb.innerHTML = html;
+  };
+
+  window.soExportExcel = function() {
+    var rows = window.soCollectReportRows();
+    if (!rows.length) { alert("Tidak ada data untuk diexport"); return; }
+    if (typeof XLSX === "undefined") { alert("Library Excel belum termuat"); return; }
+    var data = rows.map(function(r) {
+      return {
+        "Tanggal": formatSODate(r.date || ""),
+        "Outlet": r.loc || r.outlet || "",
+        "Product ID": r.productId || "",
+        "Category": r.category || "",
+        "Subcategory": r.subcategory || "",
+        "Product Code": r.productCode || "",
+        "Product Name": r.productName || "",
+        "Unit": r.unit || "",
+        "Qty": Number(r.qty) || 0,
+        "Catatan": r.note || ""
+      };
+    });
+    var ws = XLSX.utils.json_to_sheet(data);
+    var wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "List SO");
+    XLSX.writeFile(wb, "List_SO_Report.xlsx");
+  };
+
+  // setelah inventory load, isi datalist SO
+  var _origLoad = window.loadAsetLancar;
+  window.loadAsetLancar = async function(force) {
+    await _origLoad(force);
+    fillSOProductList();
+  };
+})();
+</script>
+<script>
+/* Report menu */
+(function(){
+  window.openReport = function(key){
+    var dir = document.getElementById("report-directory");
+    var wrap = document.getElementById("report-detail-wrap");
+    if (dir) dir.style.display = "none";
+    if (wrap) wrap.style.display = "block";
+    document.querySelectorAll(".report-panel").forEach(function(p){ p.style.display = "none"; });
+
+    var map = {
+      asset: "rp-panel-asset",
+      valuation: "rp-panel-valuation",
+      transfer: "rp-panel-transfer",
+      "transfer-pending": "rp-panel-transfer",
+      ba: "rp-panel-ba",
+      listso: "rp-panel-listso"
+    };
+    var id = map[key] || "rp-panel-transfer";
+    var panel = document.getElementById(id);
+    if (panel) panel.style.display = "block";
+
+    if (key === "transfer-pending") {
+      var st = document.getElementById("rp-status");
+      if (st) st.value = "pending";
+    }
+    if (key === "transfer" || key === "transfer-pending") {
+      try { if (window.tfRenderReport) window.tfRenderReport(); } catch(e){}
+    }
+    if (key === "ba") {
+      try { if (window.baRenderReport) window.baRenderReport(); } catch(e){}
+    }
+    if (key === "listso") {
+      try { if (window.soRenderReport) window.soRenderReport(); } catch(e){}
+    }
+    if (key === "valuation" && typeof window.navTo === "function") {
+      // optional: stay on report panel; export handled by button
+    }
+  };
+
+  window.closeReport = function(){
+    var dir = document.getElementById("report-directory");
+    var wrap = document.getElementById("report-detail-wrap");
+    if (dir) dir.style.display = "block";
+    if (wrap) wrap.style.display = "none";
+    document.querySelectorAll(".report-panel").forEach(function(p){ p.style.display = "none"; });
+  };
+
+  window.filterReportMenu = function(q){
+    q = String(q || "").toLowerCase().trim();
+    document.querySelectorAll(".report-cat").forEach(function(cat){
+      var items = cat.querySelectorAll("li");
+      var any = false;
+      items.forEach(function(li){
+        var t = (li.textContent || "").toLowerCase();
+        var show = !q || t.indexOf(q) >= 0;
+        li.style.display = show ? "" : "none";
+        if (show) any = true;
+      });
+      cat.style.display = any || !q ? "" : "none";
+    });
+  };
+})();
+</script>
 <style id="page-visibility-fix">
 /* Pastikan halaman BA / Scan / Laporan tampil saat aktif */
 .page { display: none !important; }
@@ -7694,8 +9155,8 @@ input:focus, select:focus, textarea:focus {
   color: #0b4f37 !important;
 }
 
-/* ===== ESB-style Search Panel ===== */
-.esb-search-card {
+/* ===== Search Panel ===== */
+.tw-search-card {
   background: #fff;
   border: 1px solid #e2e8f0;
   border-radius: 6px;
@@ -7705,25 +9166,25 @@ input:focus, select:focus, textarea:focus {
   position: relative;
   z-index: 20;
 }
-.esb-search-body {
+.tw-search-body {
   overflow: visible !important;
 }
-.esb-search-grid {
+.tw-search-grid {
   overflow: visible !important;
 }
-.esb-field {
+.tw-field {
   position: relative;
   z-index: 1;
   overflow: visible !important;
 }
-.esb-field:focus-within,
-.esb-field:has(.ms-panel:not([hidden])) {
+.tw-field:focus-within,
+.tw-field:has(.ms-panel:not([hidden])) {
   z-index: 50;
 }
 .content, .main, #page-assets, #page-valuation {
   overflow: visible !important;
 }
-.esb-search-header {
+.tw-search-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -7734,7 +9195,7 @@ input:focus, select:focus, textarea:focus {
   color: #1e293b;
   background: #fff;
 }
-.esb-collapse-btn {
+.tw-collapse-btn {
   width: 28px;
   height: 28px;
   border: 1px solid #cbd5e1;
@@ -7745,29 +9206,29 @@ input:focus, select:focus, textarea:focus {
   line-height: 1;
   color: #64748b;
 }
-.esb-search-body {
+.tw-search-body {
   padding: 1rem 1.1rem 1.1rem;
 }
-.esb-search-grid {
+.tw-search-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 0.85rem 1rem;
 }
 @media (max-width: 1100px) {
-  .esb-search-grid { grid-template-columns: repeat(2, 1fr); }
+  .tw-search-grid { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 600px) {
-  .esb-search-grid { grid-template-columns: 1fr; }
+  .tw-search-grid { grid-template-columns: 1fr; }
 }
-.esb-field label {
+.tw-field label {
   display: block;
   font-size: 0.78rem;
   font-weight: 600;
   color: #334155;
   margin-bottom: 0.3rem;
 }
-.esb-field input,
-.esb-field select {
+.tw-field input,
+.tw-field select {
   width: 100%;
   padding: 0.5rem 0.65rem;
   border: 1px solid #cbd5e1;
@@ -7777,12 +9238,12 @@ input:focus, select:focus, textarea:focus {
   outline: none;
   box-sizing: border-box;
 }
-.esb-field input:focus,
-.esb-field select:focus {
+.tw-field input:focus,
+.tw-field select:focus {
   border-color: #0d9488;
   box-shadow: 0 0 0 2px rgba(13,148,136,.15);
 }
-.esb-search-actions {
+.tw-search-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
@@ -7791,7 +9252,7 @@ input:focus, select:focus, textarea:focus {
   padding-top: 0.75rem;
   border-top: 1px solid #f1f5f9;
 }
-.esb-search-actions .btn {
+.tw-search-actions .btn {
   padding: 0.45rem 0.9rem;
   font-size: 0.82rem;
   border-radius: 4px;
@@ -7848,6 +9309,104 @@ input:focus, select:focus, textarea:focus {
 .ms-item:hover { background: #f0fdfa; }
 .ms-item input { width: 15px; height: 15px; accent-color: #0d9488; cursor: pointer; }
 .ms-all { border-bottom: 1px solid #e2e8f0; margin-bottom: 0.2rem; padding-bottom: 0.45rem; }
+
+/* ===== Dark mode: sidebar + multi-select filter ===== */
+body.dark-mode .sidebar,
+body.dark-mode aside.sidebar,
+body.dark-mode #sidebar {
+  background: linear-gradient(180deg, #020617 0%, #0f172a 50%, #1e293b 100%) !important;
+  color: #e2e8f0 !important;
+  border-right: 1px solid #1e293b !important;
+}
+body.dark-mode .sidebar a,
+body.dark-mode .sidebar [data-page],
+body.dark-mode .sidebar .nav-item,
+body.dark-mode .sidebar span {
+  color: #cbd5e1 !important;
+}
+body.dark-mode .sidebar a.active,
+body.dark-mode .sidebar [data-page].active,
+body.dark-mode .sidebar .nav-item.active {
+  background: rgba(13, 148, 136, 0.35) !important;
+  border-left: 3px solid #2dd4bf !important;
+  color: #fff !important;
+}
+body.dark-mode .sidebar a:hover,
+body.dark-mode .sidebar [data-page]:hover {
+  background: rgba(148, 163, 184, 0.12) !important;
+}
+body.dark-mode .sidebar .logo,
+body.dark-mode .sidebar .logo * {
+  color: #f1f5f9 !important;
+}
+body.dark-mode .sidebar .user-box,
+body.dark-mode .sidebar .user-box * {
+  color: #e2e8f0 !important;
+  border-color: #334155 !important;
+}
+body.dark-mode .sidebar svg {
+  stroke: #cbd5e1 !important;
+  color: #cbd5e1 !important;
+}
+body.dark-mode .sidebar .user-box .role {
+  background: rgba(45, 212, 191, 0.2) !important;
+  color: #5eead4 !important;
+}
+body.dark-mode .sidebar .btn-outline,
+body.dark-mode .sidebar button {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+
+body.dark-mode .ms-btn {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .ms-btn:hover {
+  border-color: #2dd4bf !important;
+}
+body.dark-mode .ms-label {
+  color: #e2e8f0 !important;
+}
+body.dark-mode .ms-arrow {
+  color: #94a3b8 !important;
+}
+body.dark-mode .ms-panel {
+  background: #1e293b !important;
+  border-color: #475569 !important;
+  box-shadow: 0 12px 28px rgba(0,0,0,.45) !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .ms-item {
+  color: #e2e8f0 !important;
+}
+body.dark-mode .ms-item:hover {
+  background: #0f172a !important;
+}
+body.dark-mode .ms-item input {
+  accent-color: #2dd4bf !important;
+}
+body.dark-mode .ms-all {
+  border-bottom-color: #334155 !important;
+}
+body.dark-mode .tw-search-card .ms-btn,
+body.dark-mode #page-assets .ms-btn,
+body.dark-mode #page-valuation .ms-btn {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
+body.dark-mode .tw-search-card select,
+body.dark-mode #filter-location,
+body.dark-mode #filter-kondisi,
+body.dark-mode #filter-category,
+body.dark-mode #filter-subcategory {
+  background: #0f172a !important;
+  border-color: #475569 !important;
+  color: #e2e8f0 !important;
+}
 </style>
 </html>
 
