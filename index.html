@@ -405,15 +405,7 @@ body.sidebar-hidden #nav-present-monkey #nav-monkey-label { display: none; }
   visibility: hidden !important;
   pointer-events: none !important;
 }
-#present-toggle {
-  display: inline-flex !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 90;
-}
+#present-toggle { display: none !important; }
 body.dark-mode #theme-toggle,
 body.dark-mode #present-toggle {
   background: #1e293b !important;
@@ -850,14 +842,17 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 }
 </style>
 
-</head>
+<style id="so-ac-css">
+.so-ac-item:hover, .so-ac-item:active { background: #ecfdf5; }
+body.dark-mode .so-ac-list { background: #0f172a; border-color: #334155; }
+body.dark-mode .so-ac-item { border-color: #1e293b; color: #e2e8f0; }
+body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background: #134e4a; }
+</style></head>
 <body>
 <!-- LOGIN -->
 
 <!-- Dark mode & Presentasi di sidebar / Settings -->
 <button type="button" id="theme-toggle" style="display:none !important" aria-hidden="true">Dark</button>
-<button type="button" id="present-toggle" style="display:none !important" aria-hidden="true">Presentasi</button>
-
 <div id="login-screen">
   <div class="login-card">
     <div class="brand" style="text-align:center;margin-bottom:1.25rem;background:transparent">
@@ -3987,7 +3982,23 @@ window.exportAsExcelTable=function(filename, cols, rows){
   var body = clean.map(function(r){
     return "<tr>"+cols.map(function(c){ return "<td>"+esc(r[c])+"</td>"; }).join("")+"</tr>";
   }).join("");
-  var doc = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel'><head><meta charset='UTF-8'></head><body><table border='1'><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table></body></html>";
+  var doc = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:x='urn:schemas-microsoft-com:office:excel'><head><meta charset='UTF-8'></head><body><table border='1'><thead><tr>"+th+"</tr></thead><tbody>"+body+"</tbody></table><style id="hide-float-present">
+/* Sembunyikan tombol floating Mode Normal / Presentasi di pojok layar */
+#present-toggle,
+#btn-presentasi,
+.present-btn,
+button#present-toggle {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+  position: absolute !important;
+  left: -9999px !important;
+}
+</style></body></html>";
   var blob = new Blob([doc], { type: "application/vnd.ms-excel;charset=utf-8;" });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
@@ -8776,42 +8787,113 @@ input:focus, select:focus, textarea:focus {
     return null;
   }
 
-  window.soAddLine = function() {
+    window.soAddLine = function() {
     var box = document.getElementById("so-lines");
     if (!box) return;
     var row = document.createElement("div");
     row.className = "so-line";
-    row.style.cssText = "display:grid;grid-template-columns:1fr 90px 70px 40px;gap:0.4rem;align-items:center";
+    row.style.cssText = "display:grid;grid-template-columns:1fr 90px 70px 40px;gap:0.4rem;align-items:start;position:relative";
     row.innerHTML =
-      '<input type="text" class="so-product" list="so-product-list" placeholder="Ketik Product ID / Code / Name..." required style="padding:0.45rem;border:1px solid var(--border);border-radius:8px"/>' +
+      '<div class="so-ac-wrap" style="position:relative;min-width:0">' +
+        '<input type="text" class="so-product" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ketik Product ID / Code / Name..." required style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>' +
+        '<div class="so-ac-list" hidden style="position:absolute;left:0;right:0;top:100%;z-index:50;max-height:220px;overflow:auto;background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:2px"></div>' +
+      '</div>' +
       '<input type="text" class="so-unit" placeholder="Unit" readonly style="padding:0.45rem;border:1px solid var(--border);border-radius:8px;background:#f8fafc"/>' +
       '<input type="number" class="so-qty" min="0.01" step="any" value="1" required style="padding:0.45rem;border:1px solid var(--border);border-radius:8px"/>' +
       '<button type="button" class="btn btn-outline" style="padding:0.35rem;color:#b91c1c;border-color:#fecaca" onclick="this.closest(\'.so-line\').remove()">×</button>';
+
     var inp = row.querySelector(".so-product");
     var unit = row.querySelector(".so-unit");
-    function syncUnit() {
+    var listEl = row.querySelector(".so-ac-list");
+
+    function productLabel(r) {
+      return [r.productId, r.productCode, r.productName].filter(Boolean).join(" | ");
+    }
+    function applyProduct(p) {
+      if (!p) return;
+      inp.value = productLabel(p);
+      unit.value = p.unit || "";
+      inp.dataset.productId = p.productId || "";
+      inp.dataset.productCode = p.productCode || "";
+      inp.dataset.productName = p.productName || "";
+      inp.dataset.category = p.category || "";
+      inp.dataset.subcategory = p.subcategory || "";
+      inp.dataset.unit = p.unit || "";
+      listEl.hidden = true;
+      listEl.innerHTML = "";
+    }
+    function syncFromText() {
       var p = findInventoryProduct(inp.value);
-      if (p) {
-        unit.value = p.unit || "";
-        // normalize display
-        inp.dataset.productId = p.productId || "";
-        inp.dataset.productCode = p.productCode || "";
-        inp.dataset.productName = p.productName || "";
-        inp.dataset.unit = p.unit || "";
-      } else {
+      if (p) applyProduct(p);
+      else {
         unit.value = "";
         delete inp.dataset.productId;
         delete inp.dataset.productCode;
         delete inp.dataset.productName;
+        delete inp.dataset.category;
+        delete inp.dataset.subcategory;
         delete inp.dataset.unit;
       }
     }
-    inp.addEventListener("change", syncUnit);
-    inp.addEventListener("blur", syncUnit);
+    function renderSuggestions() {
+      var q = String(inp.value || "").toLowerCase().trim();
+      var items = window.asetLancarData || [];
+      if (!items.length) {
+        listEl.innerHTML = '<div style="padding:0.55rem 0.7rem;font-size:0.8rem;color:#94a3b8">Inventory Stock belum termuat</div>';
+        listEl.hidden = false;
+        return;
+      }
+      var matches = [];
+      for (var i = 0; i < items.length; i++) {
+        var r = items[i];
+        var blob = [r.productId, r.productCode, r.productName, r.category, r.subcategory].join(" ").toLowerCase();
+        if (!q || blob.indexOf(q) >= 0) matches.push(r);
+        if (matches.length >= 40) break;
+      }
+      if (!matches.length) {
+        listEl.innerHTML = '<div style="padding:0.55rem 0.7rem;font-size:0.8rem;color:#94a3b8">Tidak ada cocokan</div>';
+        listEl.hidden = false;
+        return;
+      }
+      var html = "";
+      matches.forEach(function(r, idx) {
+        var lab = productLabel(r);
+        html += '<div class="so-ac-item" data-idx="' + idx + '" style="padding:0.55rem 0.7rem;font-size:0.82rem;cursor:pointer;border-bottom:1px solid var(--border,#f1f5f9)">' +
+          esc(lab) + (r.unit ? ' <span style="color:#94a3b8">(' + esc(r.unit) + ')</span>' : '') +
+          '</div>';
+      });
+      listEl.innerHTML = html;
+      listEl.hidden = false;
+      listEl.querySelectorAll(".so-ac-item").forEach(function(el) {
+        el.addEventListener("mousedown", function(e) {
+          e.preventDefault(); // prevent blur before select (penting Android)
+          var i = parseInt(el.getAttribute("data-idx"), 10);
+          if (!isNaN(i) && matches[i]) applyProduct(matches[i]);
+        });
+      });
+    }
+
+    inp.addEventListener("input", function() {
+      renderSuggestions();
+    });
+    inp.addEventListener("focus", function() {
+      renderSuggestions();
+    });
+    inp.addEventListener("blur", function() {
+      setTimeout(function() {
+        listEl.hidden = true;
+        syncFromText();
+      }, 180);
+    });
+    inp.addEventListener("keydown", function(e) {
+      if (e.key === "Escape") { listEl.hidden = true; }
+    });
+
     box.appendChild(row);
+    try { inp.focus(); } catch (e) {}
   };
 
-  function soEnsureLines() {
+function soEnsureLines() {
     var box = document.getElementById("so-lines");
     if (!box) return;
     if (!box.querySelector(".so-line")) window.soAddLine();
