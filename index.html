@@ -3151,39 +3151,69 @@ function onScanOk(text){
   return String(s||"").toUpperCase().replace(/\s+/g,"").replace(/–|—/g,"-").trim();
 }
 function findItemBySku(sku){
-  if(!sku || !uniqueData || !uniqueData.length) return null;
+  if(!sku) return null;
   sku = String(sku).trim();
+  // buang URL jika QR berisi link ?sku=
+  try {
+    if (/^https?:\/\//i.test(sku)) {
+      var u = new URL(sku);
+      var q = u.searchParams.get("sku");
+      if (q) sku = q.trim();
+    }
+  } catch (e) {}
+
   var nSku = normSku(sku);
-  var item = uniqueData.find(function(i){ return (i.sku||"").trim() === sku; });
-  if(!item) item = uniqueData.find(function(i){ return normSku(i.sku) === nSku; });
-  if(!item){
+  if (!nSku) return null;
+
+  // Cari di data penuh dulu (abaikan filter outlet sementara untuk scan)
+  var pools = [];
+  if (window.ALL_ASSET_DATA && window.ALL_ASSET_DATA.length) pools.push(window.ALL_ASSET_DATA);
+  if (typeof uniqueData !== "undefined" && uniqueData && uniqueData.length) pools.push(uniqueData);
+  if (typeof EMBEDDED_DATA !== "undefined" && EMBEDDED_DATA && EMBEDDED_DATA.length) pools.push(EMBEDDED_DATA);
+
+  function searchIn(list) {
+    if (!list || !list.length) return null;
+    var item = list.find(function(i){ return String(i.sku || "").trim() === sku; });
+    if (item) return item;
+    item = list.find(function(i){ return normSku(i.sku) === nSku; });
+    if (item) return item;
+
     var parts = sku.split(/\s*-\s*/);
-    var last = (parts[parts.length-1]||"").trim();
+    var last = (parts[parts.length - 1] || "").trim();
     var nLast = normSku(last);
-    if(nLast){
-      var hits = uniqueData.filter(function(i){
+    if (nLast && nLast.length >= 4) {
+      var hits = list.filter(function(i) {
         var ns = normSku(i.sku);
         return ns.endsWith(nLast) || ns.indexOf(nLast) >= 0;
       });
-      if(hits.length === 1) item = hits[0];
-      else if(hits.length > 1){
-        if(parts.length >= 2){
+      if (hits.length === 1) return hits[0];
+      if (hits.length > 1) {
+        if (parts.length >= 2) {
           var mid = normSku(parts[1]);
           var pref = hits.filter(function(i){ return normSku(i.sku).indexOf(mid) >= 0; });
-          if(pref.length) item = pref[0];
+          if (pref.length) return pref[0];
         }
-        if(!item) item = hits[0];
+        return hits[0];
       }
     }
-  }
-  if(!item){
-    var hits2 = uniqueData.filter(function(i){
+    var hits2 = list.filter(function(i) {
       var ns = normSku(i.sku);
       return ns.indexOf(nSku) >= 0 || nSku.indexOf(ns) >= 0;
     });
-    if(hits2.length) item = hits2[0];
+    if (hits2.length === 1) return hits2[0];
+    if (hits2.length > 1) {
+      // prioritaskan exact ends with last segment
+      var prefer = hits2.filter(function(i){ return normSku(i.sku).endsWith(nLast || nSku); });
+      return (prefer[0] || hits2[0]);
+    }
+    return null;
   }
-  return item || null;
+
+  for (var p = 0; p < pools.length; p++) {
+    var found = searchIn(pools[p]);
+    if (found) return found;
+  }
+  return null;
 }
 function showFoundItem(item){
   var searchEl = document.getElementById("search-input");
