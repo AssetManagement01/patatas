@@ -847,6 +847,35 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 body.dark-mode .so-ac-list { background: #0f172a; border-color: #334155; }
 body.dark-mode .so-ac-item { border-color: #1e293b; color: #e2e8f0; }
 body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background: #134e4a; }
+
+/* List SO autocomplete — lebar penuh di HP */
+.so-ac-list {
+  -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 768px) {
+  .so-line {
+    grid-template-columns: 1fr 72px 64px 40px !important;
+    gap: 0.45rem !important;
+  }
+  .so-ac-wrap {
+    grid-column: 1 / -1;
+  }
+  .so-ac-list.so-ac-open {
+    position: fixed !important;
+    left: 10px !important;
+    right: 10px !important;
+    width: auto !important;
+    max-height: 55vh !important;
+    z-index: 100000 !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 40px rgba(0,0,0,.25) !important;
+  }
+  .so-ac-item {
+    padding: 0.85rem 1rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.35 !important;
+  }
+}
 </style></head>
 <body>
 <!-- LOGIN -->
@@ -5534,15 +5563,11 @@ window.togglePresentMode = function () {
 
     var sess = null;
     try { sess = JSON.parse(localStorage.getItem("patatas_asset_session") || "null"); } catch (e) {}
-    if (!sess) {
-      try { sess = JSON.parse(localStorage.getItem("patatas_session") || "null"); } catch (e2) {}
-    }
 
-    var isOutlet = !!(sess && String(sess.role || "").toLowerCase() === "outlet");
-    var name = String((sess && (sess.outletName || sess.outlet || "")) || "").trim();
-    var kw = String((sess && (sess.outletKeyword || sess.outletName || "")) || window.USER_OUTLET || "").trim();
+    var role = String((sess && sess.role) || window.USER_ROLE || "").toLowerCase();
+    var isOutlet = role === "outlet";
 
-    // Bukan outlet (USER / HO / admin) → bebas
+    // USER / HO / admin → bebas pilih
     if (!isOutlet) {
       el.disabled = false;
       el.removeAttribute("data-locked");
@@ -5553,54 +5578,76 @@ window.togglePresentMode = function () {
       return;
     }
 
-    // Tentukan nama outlet resmi
-    var match = "";
-    var nameL = name.toLowerCase();
-    var kwL = kw.toLowerCase();
+    var name = String((sess && (sess.outletName || sess.outlet)) || "").trim();
+    var kw = String((sess && sess.outletKeyword) || window.USER_OUTLET || "").trim();
 
-    // 1) cocokkan ke opsi yang sudah ada
-    for (var i = 0; i < el.options.length; i++) {
-      var v = String(el.options[i].value || "").trim();
-      if (!v) continue;
-      var vl = v.toLowerCase();
-      if (nameL && (vl === nameL || vl.indexOf(nameL) >= 0 || nameL.indexOf(vl) >= 0)) { match = v; break; }
-    }
-    if (!match) {
-      for (var j = 0; j < el.options.length; j++) {
-        var v2 = String(el.options[j].value || "").trim();
-        if (!v2) continue;
-        var v2l = v2.toLowerCase();
-        if (kwL && (v2l.indexOf(kwL) >= 0 || kwL.indexOf(v2l) >= 0)) { match = v2; break; }
+    // Lengkapi dari kode login jika session lama kosong
+    if ((!name || !kw) && typeof OUTLETS !== "undefined") {
+      var keys = [
+        sess && sess.loginKey,
+        sess && sess.email,
+        window.USER_EMAIL
+      ];
+      for (var i = 0; i < keys.length; i++) {
+        var raw = String(keys[i] || "").toLowerCase().trim();
+        if (!raw) continue;
+        var compact = raw.replace(/\s+/g, "");
+        // ambil kode di depan " · "
+        var code = raw.split("·")[0].trim().toLowerCase();
+        var entry = OUTLETS[code] || OUTLETS[compact] || OUTLETS[raw];
+        if (!entry) {
+          // coba tanpa spasi pada semua key
+          Object.keys(OUTLETS).forEach(function(k) {
+            if (!entry && k.replace(/\s+/g, "") === compact) entry = OUTLETS[k];
+          });
+        }
+        if (entry) {
+          if (!name) name = entry.name || "";
+          if (!kw) kw = entry.keyword || entry.name || "";
+          break;
+        }
       }
     }
-    // 2) FALLBACK_OUTLETS
-    if (!match && typeof FALLBACK_OUTLETS !== "undefined") {
+
+    var match = name || kw;
+    // cocokkan ke FALLBACK_OUTLETS untuk nama resmi
+    if (typeof FALLBACK_OUTLETS !== "undefined") {
+      var nameL = String(name || "").toLowerCase();
+      var kwL = String(kw || "").toLowerCase();
       for (var k = 0; k < FALLBACK_OUTLETS.length; k++) {
         var fo = String(FALLBACK_OUTLETS[k] || "");
         var fol = fo.toLowerCase();
-        if (nameL && (fol === nameL || fol.indexOf(nameL) >= 0)) { match = fo; break; }
-        if (kwL && fol.indexOf(kwL) >= 0) { match = fo; break; }
+        if (nameL && (fol === nameL || fol.indexOf(nameL) >= 0 || nameL.indexOf(fol) >= 0)) {
+          match = fo; break;
+        }
+        if (kwL && kwL.length >= 3 && fol.indexOf(kwL) >= 0) {
+          match = fo; break;
+        }
       }
     }
-    if (!match) match = name || kw;
 
-    // Hanya tampilkan outlet sendiri (tidak bisa pilih lain)
+    if (!match) match = name || kw || "";
+
     el.innerHTML = "";
     var opt = document.createElement("option");
     opt.value = match;
-    opt.textContent = match || "— Outlet —";
+    opt.textContent = match || "(Outlet tidak terdeteksi — login ulang)";
     el.appendChild(opt);
     el.value = match;
-
     el.disabled = true;
     el.setAttribute("data-locked", "1");
     el.setAttribute("data-locked-value", match);
     el.style.background = "#f1f5f9";
     el.style.cursor = "not-allowed";
     el.style.pointerEvents = "none";
+    // dark mode
+    if (document.body.classList.contains("dark-mode")) {
+      el.style.background = "#1e293b";
+      el.style.color = "#e2e8f0";
+    }
   };
 
-  window.getSOOutletValue = function() {
+window.getSOOutletValue = function() {
     var el = document.getElementById("so-loc");
     if (!el) return "";
     if (el.getAttribute("data-locked") === "1") {
@@ -8010,7 +8057,7 @@ window.togglePresentMode = function () {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
+      '<h1>Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
@@ -8879,7 +8926,7 @@ input:focus, select:focus, textarea:focus {
     row.innerHTML =
       '<div class="so-ac-wrap" style="position:relative;min-width:0">' +
         '<input type="text" class="so-product" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ketik Product ID / Code / Name..." required style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>' +
-        '<div class="so-ac-list" hidden style="position:absolute;left:0;right:0;top:100%;z-index:50;max-height:220px;overflow:auto;background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.12);margin-top:2px"></div>' +
+        '<div class="so-ac-list" hidden style="position:absolute;left:0;right:0;top:100%;z-index:9999;max-height:280px;overflow:auto;background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);margin-top:4px"></div>' +
       '</div>' +
       '<input type="text" class="so-unit" placeholder="Unit" readonly style="padding:0.45rem;border:1px solid var(--border);border-radius:8px;background:#f8fafc"/>' +
       '<input type="number" class="so-qty" min="0.01" step="any" value="1" required style="padding:0.45rem;border:1px solid var(--border);border-radius:8px"/>' +
@@ -8888,6 +8935,30 @@ input:focus, select:focus, textarea:focus {
     var inp = row.querySelector(".so-product");
     var unit = row.querySelector(".so-unit");
     var listEl = row.querySelector(".so-ac-list");
+
+    function positionSOAcList() {
+      listEl.classList.add("so-ac-open");
+      try {
+        if (window.innerWidth <= 768) {
+          var rect = inp.getBoundingClientRect();
+          listEl.style.position = "fixed";
+          listEl.style.left = "10px";
+          listEl.style.right = "10px";
+          listEl.style.width = "auto";
+          listEl.style.top = (rect.bottom + 4) + "px";
+          listEl.style.maxHeight = Math.max(180, window.innerHeight - rect.bottom - 20) + "px";
+          listEl.style.zIndex = "100000";
+        } else {
+          listEl.style.position = "absolute";
+          listEl.style.left = "0";
+          listEl.style.right = "0";
+          listEl.style.top = "100%";
+          listEl.style.width = "";
+          listEl.style.maxHeight = "280px";
+        }
+      } catch (e) {}
+    }
+
 
     function productLabel(r) {
       return [r.productId, r.productCode, r.productName].filter(Boolean).join(" | ");
@@ -8922,8 +8993,8 @@ input:focus, select:focus, textarea:focus {
       var q = String(inp.value || "").toLowerCase().trim();
       var items = window.asetLancarData || [];
       if (!items.length) {
-        listEl.innerHTML = '<div style="padding:0.55rem 0.7rem;font-size:0.8rem;color:#94a3b8">Inventory Stock belum termuat</div>';
-        listEl.hidden = false;
+        listEl.innerHTML = '<div style="padding:0.85rem 1rem;font-size:0.9rem;color:#94a3b8">Inventory Stock belum termuat</div>';
+        listEl.hidden = false; positionSOAcList();
         return;
       }
       var matches = [];
@@ -8934,8 +9005,8 @@ input:focus, select:focus, textarea:focus {
         if (matches.length >= 40) break;
       }
       if (!matches.length) {
-        listEl.innerHTML = '<div style="padding:0.55rem 0.7rem;font-size:0.8rem;color:#94a3b8">Tidak ada cocokan</div>';
-        listEl.hidden = false;
+        listEl.innerHTML = '<div style="padding:0.85rem 1rem;font-size:0.9rem;color:#94a3b8">Tidak ada cocokan</div>';
+        listEl.hidden = false; positionSOAcList();
         return;
       }
       var html = "";
@@ -8947,6 +9018,7 @@ input:focus, select:focus, textarea:focus {
       });
       listEl.innerHTML = html;
       listEl.hidden = false;
+      positionSOAcList();
       listEl.querySelectorAll(".so-ac-item").forEach(function(el) {
         el.addEventListener("mousedown", function(e) {
           e.preventDefault(); // prevent blur before select (penting Android)
@@ -8965,6 +9037,7 @@ input:focus, select:focus, textarea:focus {
     inp.addEventListener("blur", function() {
       setTimeout(function() {
         listEl.hidden = true;
+        listEl.classList.remove("so-ac-open");
         syncFromText();
       }, 180);
     });
