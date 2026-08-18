@@ -1960,16 +1960,48 @@ window.OUTLET_ACCOUNTS = {
 /** Data master penuh (semua outlet) — filter outlet diterapkan di getScopedData */
 window.ALL_ASSET_DATA = window.ALL_ASSET_DATA || [];
 
+function getSessionOutletScope() {
+  var sess = null;
+  try { sess = JSON.parse(localStorage.getItem("patatas_asset_session") || "null"); } catch (e) {}
+  if (!sess || String(sess.role || "").toLowerCase() !== "outlet") {
+    return { active: false, keyword: null, name: null };
+  }
+  return {
+    active: true,
+    keyword: String(sess.outletKeyword || window.USER_OUTLET || "").trim(),
+    name: String(sess.outletName || sess.outlet || "").trim()
+  };
+}
+
+function locationMatchesOutlet(loc, scope) {
+  var L = String(loc || "").toLowerCase().trim();
+  if (!L) return false;
+  var name = String(scope.name || "").toLowerCase().trim();
+  var kw = String(scope.keyword || "").toLowerCase().trim();
+  if (name) {
+    if (L === name) return true;
+    if (L.indexOf(name) >= 0 || name.indexOf(L) >= 0) return true;
+  }
+  if (kw) {
+    // keyword minimal 3 char agar tidak salah cocok
+    if (kw.length >= 3 && L.indexOf(kw) >= 0) return true;
+  }
+  return false;
+}
+
 function getScopedData() {
   var all = (window.ALL_ASSET_DATA && window.ALL_ASSET_DATA.length)
     ? window.ALL_ASSET_DATA
     : (typeof uniqueData !== "undefined" && uniqueData ? uniqueData : []);
-  var kw = window.USER_OUTLET;
-  if (!kw) return all.slice();
-  var k = String(kw).toLowerCase();
+  var scope = getSessionOutletScope();
+  // USER / HO / admin → semua
+  if (!scope.active) {
+    window.USER_OUTLET = null;
+    return all.slice();
+  }
+  window.USER_OUTLET = scope.keyword || scope.name || null;
   return all.filter(function (item) {
-    var loc = String(item.location || item.loc || "").toLowerCase();
-    return loc.indexOf(k) >= 0;
+    return locationMatchesOutlet(item.location || item.loc || "", scope);
   });
 }
 
@@ -1977,6 +2009,22 @@ function applyOutletScopeToUI() {
   uniqueData = getScopedData();
   window.uniqueData = uniqueData;
   filtered = uniqueData.slice();
+
+  // Outlet login: kunci filter Location hanya ke outlet sendiri
+  var scope = getSessionOutletScope();
+  var msLoc = document.getElementById("ms-location");
+  if (msLoc) {
+    if (scope.active) {
+      msLoc.style.opacity = "0.65";
+      msLoc.style.pointerEvents = "none";
+      var lab = msLoc.querySelector(".ms-label");
+      if (lab) lab.textContent = scope.name || scope.keyword || "Outlet locked";
+    } else {
+      msLoc.style.opacity = "";
+      msLoc.style.pointerEvents = "";
+    }
+  }
+
   if (typeof populateFilters === "function") populateFilters();
   if (typeof applyFilter === "function") applyFilter();
   else {
@@ -3307,8 +3355,10 @@ window.addEventListener("DOMContentLoaded", function() {
     window.USER_CAN_EDIT = !!s.canEdit;
     window.USER_CAN_DELETE = !!s.canDelete;
     window.USER_CAN_TRANSFER = !!s.canTransfer;
-    // null = lihat semua outlet (user / HO JKT)
-    window.USER_OUTLET = (s.role === "outlet" && s.outletKeyword) ? s.outletKeyword : null;
+    // null = lihat semua outlet (USER / HO JKT / admin)
+    window.USER_OUTLET = (s.role === "outlet" && (s.outletKeyword || s.outletName))
+      ? (s.outletKeyword || s.outletName)
+      : null;
 
     document.body.classList.toggle("viewer-only", !s.canEdit);
     document.body.classList.toggle("can-transfer", !!(s.canTransfer || s.canEdit));
@@ -3346,7 +3396,8 @@ window.addEventListener("DOMContentLoaded", function() {
       }
     }
 
-    if (typeof applyOutletScopeToUI === "function" && window.ALL_ASSET_DATA && window.ALL_ASSET_DATA.length) {
+    // Selalu filter Item Asset sesuai outlet login (USER/HO = semua)
+    if (typeof applyOutletScopeToUI === "function") {
       applyOutletScopeToUI();
     }
         if (window.lockSOOutlet) try { window.lockSOOutlet(); } catch(e) {}
@@ -7959,7 +8010,7 @@ window.togglePresentMode = function () {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Patatas Group<br>Asset Control</h1>'+
+      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
