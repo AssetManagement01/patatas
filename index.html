@@ -5476,56 +5476,86 @@ window.togglePresentMode = function () {
   };
 
   /** Outlet login: kunci so-loc. User / HO JKT bebas pilih. */
+    /** Outlet login: kunci so-loc ke outlet sendiri. User / HO JKT bebas pilih. */
   window.lockSOOutlet = function() {
     var el = document.getElementById("so-loc");
     if (!el) return;
 
     var sess = null;
     try { sess = JSON.parse(localStorage.getItem("patatas_asset_session") || "null"); } catch (e) {}
+    if (!sess) {
+      try { sess = JSON.parse(localStorage.getItem("patatas_session") || "null"); } catch (e2) {}
+    }
 
-    var isOutlet = !!(sess && sess.role === "outlet");
-    var kw = (sess && (sess.outletKeyword || sess.outletName)) || window.USER_OUTLET || "";
-    var name = (sess && sess.outletName) || "";
+    var isOutlet = !!(sess && String(sess.role || "").toLowerCase() === "outlet");
+    var name = String((sess && (sess.outletName || sess.outlet || "")) || "").trim();
+    var kw = String((sess && (sess.outletKeyword || sess.outletName || "")) || window.USER_OUTLET || "").trim();
 
-    // User admin & HO JKT → USER_OUTLET null / role bukan outlet → bebas
-    if (!isOutlet || !kw) {
+    // Bukan outlet (USER / HO / admin) → bebas
+    if (!isOutlet) {
       el.disabled = false;
       el.removeAttribute("data-locked");
+      el.removeAttribute("data-locked-value");
       el.style.background = "";
       el.style.cursor = "";
+      el.style.pointerEvents = "";
       return;
     }
 
-    // Cari opsi outlet yang cocok
+    // Tentukan nama outlet resmi
     var match = "";
-    var opts = el.options;
-    var kwL = String(kw).toLowerCase();
-    var nameL = String(name).toLowerCase();
-    for (var i = 0; i < opts.length; i++) {
-      var v = String(opts[i].value || "");
-      var vl = v.toLowerCase();
-      if (!v) continue;
-      if (name && (vl === nameL || vl.indexOf(nameL) >= 0 || nameL.indexOf(vl) >= 0)) { match = v; break; }
-      if (vl.indexOf(kwL) >= 0 || kwL.indexOf(vl) >= 0) { match = v; break; }
-    }
-    if (!match && name) match = name;
-    if (!match) match = String(kw);
+    var nameL = name.toLowerCase();
+    var kwL = kw.toLowerCase();
 
-    // Pastikan opsi ada
-    var found = false;
-    for (var j = 0; j < el.options.length; j++) {
-      if (el.options[j].value === match) { found = true; break; }
+    // 1) cocokkan ke opsi yang sudah ada
+    for (var i = 0; i < el.options.length; i++) {
+      var v = String(el.options[i].value || "").trim();
+      if (!v) continue;
+      var vl = v.toLowerCase();
+      if (nameL && (vl === nameL || vl.indexOf(nameL) >= 0 || nameL.indexOf(vl) >= 0)) { match = v; break; }
     }
-    if (!found && match) {
-      var opt = document.createElement("option");
-      opt.value = match; opt.textContent = match;
-      el.appendChild(opt);
+    if (!match) {
+      for (var j = 0; j < el.options.length; j++) {
+        var v2 = String(el.options[j].value || "").trim();
+        if (!v2) continue;
+        var v2l = v2.toLowerCase();
+        if (kwL && (v2l.indexOf(kwL) >= 0 || kwL.indexOf(v2l) >= 0)) { match = v2; break; }
+      }
     }
+    // 2) FALLBACK_OUTLETS
+    if (!match && typeof FALLBACK_OUTLETS !== "undefined") {
+      for (var k = 0; k < FALLBACK_OUTLETS.length; k++) {
+        var fo = String(FALLBACK_OUTLETS[k] || "");
+        var fol = fo.toLowerCase();
+        if (nameL && (fol === nameL || fol.indexOf(nameL) >= 0)) { match = fo; break; }
+        if (kwL && fol.indexOf(kwL) >= 0) { match = fo; break; }
+      }
+    }
+    if (!match) match = name || kw;
+
+    // Hanya tampilkan outlet sendiri (tidak bisa pilih lain)
+    el.innerHTML = "";
+    var opt = document.createElement("option");
+    opt.value = match;
+    opt.textContent = match || "— Outlet —";
+    el.appendChild(opt);
     el.value = match;
+
     el.disabled = true;
     el.setAttribute("data-locked", "1");
+    el.setAttribute("data-locked-value", match);
     el.style.background = "#f1f5f9";
     el.style.cursor = "not-allowed";
+    el.style.pointerEvents = "none";
+  };
+
+  window.getSOOutletValue = function() {
+    var el = document.getElementById("so-loc");
+    if (!el) return "";
+    if (el.getAttribute("data-locked") === "1") {
+      return el.getAttribute("data-locked-value") || el.value || "";
+    }
+    return (el.value || "").trim();
   };
 
   /* ===== tfAddLine backup ===== */
@@ -8740,6 +8770,8 @@ input:focus, select:focus, textarea:focus {
       loadListSO(false);
       if (window.fillTransferOutlets) fillTransferOutlets();
       if (window.lockSOOutlet) lockSOOutlet();
+      setTimeout(function(){ if (window.lockSOOutlet) lockSOOutlet(); }, 50);
+      setTimeout(function(){ if (window.lockSOOutlet) lockSOOutlet(); }, 300);
       var d = document.getElementById("so-date");
       if (d && !d.value) {
         try { d.value = new Date().toISOString().slice(0,10); } catch(e) {}
@@ -8929,7 +8961,7 @@ function soEnsureLines() {
       if (msg) { msg.textContent = t; msg.style.color = ok ? "#16a34a" : "#dc2626"; }
     }
     var date = ((document.getElementById("so-date") || {}).value || "").trim();
-    var loc = ((document.getElementById("so-loc") || {}).value || "").trim();
+    var loc = (window.getSOOutletValue ? window.getSOOutletValue() : ((document.getElementById("so-loc") || {}).value || "")).trim();
     var note = ((document.getElementById("so-note") || {}).value || "").trim();
     if (!date || !loc) { show("Tanggal dan Outlet wajib diisi", false); return; }
     if (!(window.asetLancarData || []).length) {
