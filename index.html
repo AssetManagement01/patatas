@@ -374,6 +374,10 @@ body.present-mode .role { opacity: 0.85; }
 }
 body.dark-mode #present-toggle { background: #1e293b; color: #e2e8f0; border-color: #334155; }
 body.present-mode #present-toggle { background: #0b4f37; color: #fff; border-color: #0b4f37; }
+#nav-present-monkey #nav-monkey-icon { font-size: 1.35rem; }
+body.present-mode #nav-present-monkey { background: rgba(255,255,255,0.12); }
+body.sidebar-hidden #nav-present-monkey #nav-monkey-label { display: none; }
+
 
 
 #theme-toggle, #present-toggle {
@@ -850,9 +854,9 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
 <body>
 <!-- LOGIN -->
 
-<!-- Dark mode hanya di Settings; Presentasi tetap di pojok kanan bawah -->
+<!-- Dark mode & Presentasi di sidebar / Settings -->
 <button type="button" id="theme-toggle" style="display:none !important" aria-hidden="true">Dark</button>
-<button type="button" id="present-toggle" onclick="window.togglePresentMode&&window.togglePresentMode();return false;" title="Sembunyikan kartu statistik agar tabel lebih lebar">👁 Presentasi</button>
+<button type="button" id="present-toggle" style="display:none !important" aria-hidden="true">Presentasi</button>
 
 <div id="login-screen">
   <div class="login-card">
@@ -874,12 +878,12 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
       <span style="display:block;font-size:0.68rem;opacity:0.75;margin-top:0.35rem">Asset Management</span>
     </div>
     <nav class="nav">
-      <a class="active nav-parent" data-page="assets" id="nav-assets" onclick="toggleAssetsMenu(this); navTo('assets',this);">
+      <a class="active nav-parent" data-page="assets" id="nav-assets" onclick="toggleAssetsMenu(this); return false;">
         <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
         Daftar Aset
         <span class="arrow">▾</span>
       </a>
-      <div class="sub" id="sub-assets">
+      <div class="sub open" id="sub-assets">
         <a data-page="assets" id="nav-assets-list" onclick="navTo('assets',this);return false;">Aset Tetap</a>
         <a data-page="aset-lancar" id="nav-aset-lancar" onclick="navTo('aset-lancar',this);return false;">Aset Lancar</a>
         <a data-page="valuation" id="nav-valuation" onclick="navTo('valuation',this);return false;">Valuation Stock</a>
@@ -909,6 +913,10 @@ body.sidebar-hidden #page-ba > div { max-width: 100% !important; width: 100% !im
       <a data-page="settings" onclick="navTo('settings',this)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
         <span data-i18n="nav_settings">Settings</span>
+      </a>
+      <a href="javascript:void(0)" id="nav-present-monkey" onclick="window.togglePresentMode&&window.togglePresentMode();return false;" title="Mode Presentasi / Normal" style="cursor:pointer">
+        <span id="nav-monkey-icon" style="font-size:1.25rem;line-height:1;width:22px;text-align:center;display:inline-block">🙉</span>
+        <span id="nav-monkey-label">Mode Normal</span>
       </a>
     </nav>
     <div class="user-box">
@@ -2072,24 +2080,44 @@ window.doLogout = doLogout;
 
 
 function toggleAssetsMenu(el) {
-  const sub = document.getElementById("sub-assets");
+  var sub = document.getElementById("sub-assets");
   if (!sub) return;
-  // Jika sudah di halaman assets/valuation dan sub terbuka, biarkan terbuka
-  // Klik parent selalu membuka submenu
-  sub.classList.add("open");
+  var isOpen = sub.classList.toggle("open");
+  var arrow = (el && el.querySelector) ? el.querySelector(".arrow") : document.querySelector("#nav-assets .arrow");
+  if (arrow) arrow.textContent = isOpen ? "▾" : "▸";
+  try { localStorage.setItem("patatas_sub_assets", isOpen ? "1" : "0"); } catch (e) {}
 }
+(function initAssetsSubmenu(){
+  function apply() {
+    var sub = document.getElementById("sub-assets");
+    var parent = document.getElementById("nav-assets");
+    if (!sub) return;
+    var pref = null;
+    try { pref = localStorage.getItem("patatas_sub_assets"); } catch (e) {}
+    // default: terbuka
+    var open = pref === null ? true : pref === "1";
+    sub.classList.toggle("open", open);
+    var arrow = parent && parent.querySelector(".arrow");
+    if (arrow) arrow.textContent = open ? "▾" : "▸";
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", apply);
+  else apply();
+})();
 
 function navTo(page, el){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.querySelectorAll(".nav a").forEach(a=>a.classList.remove("active"));
-  // Submenu Daftar Aset: buka jika assets / aset-lancar / valuation
+  // Submenu Daftar Aset: buka saat masuk halaman anak; tidak memaksa tutup saat pindah
   const sub = document.getElementById("sub-assets");
   const parent = document.getElementById("nav-assets");
   if (page === "assets" || page === "valuation" || page === "aset-lancar") {
     if (sub) sub.classList.add("open");
     if (parent) parent.classList.add("active");
+    var arrow = parent && parent.querySelector(".arrow");
+    if (arrow) arrow.textContent = "▾";
   } else {
-    if (sub) sub.classList.remove("open");
+    // biarkan user yang kontrol buka/tutup via klik Daftar Aset
+    if (parent) parent.classList.remove("active");
   }
   const pg = document.getElementById("page-"+page);
   if(pg) pg.classList.add("active");
@@ -5267,13 +5295,26 @@ window.toggleTheme = function () {
     if (btn) btn.textContent = on ? "Light" : "Dark";
   } catch (err) { console.error(err); }
 };
+window.syncPresentUI = function () {
+  var on = document.body.classList.contains("present-mode");
+  // 🙈 tertutup = presentasi (fokus tabel), 🙉 terbuka = mode normal
+  var icon = document.getElementById("nav-monkey-icon");
+  var lab = document.getElementById("nav-monkey-label");
+  if (icon) icon.textContent = on ? "🙈" : "🙉";
+  if (lab) lab.textContent = on ? "Presentasi" : "Mode Normal";
+  var btn = document.getElementById("present-toggle");
+  if (btn) btn.textContent = on ? "Mode Normal" : "Presentasi";
+  var chk = document.getElementById("set-present-toggle");
+  if (chk) chk.checked = on;
+  var sl = document.getElementById("set-present-label");
+  if (sl) sl.textContent = on ? "On" : "Off";
+};
 window.togglePresentMode = function () {
   try {
     var on = !document.body.classList.contains("present-mode");
     document.body.classList.toggle("present-mode", on);
     try { localStorage.setItem("patatas_present", on ? "1" : "0"); } catch (e) {}
-    var btn = document.getElementById("present-toggle");
-    if (btn) btn.textContent = on ? "Mode Normal" : "Presentasi";
+    if (window.syncPresentUI) window.syncPresentUI();
   } catch (err) { console.error(err); }
 };
 (function () {
@@ -5285,9 +5326,8 @@ window.togglePresentMode = function () {
     }
     if (localStorage.getItem("patatas_present") === "1") {
       document.body.classList.add("present-mode");
-      var p = document.getElementById("present-toggle");
-      if (p) p.textContent = "Mode Normal";
     }
+    if (window.syncPresentUI) window.syncPresentUI();
   } catch (e) {}
   function bind(id, fn) {
     var el = document.getElementById(id);
@@ -7878,7 +7918,7 @@ window.togglePresentMode = function () {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Patatas Group<br>Asset Control</h1>'+
+      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
@@ -8371,16 +8411,16 @@ input:focus, select:focus, textarea:focus {
   window.settingsSetPresent = function(on) {
     document.body.classList.toggle("present-mode", !!on);
     try { localStorage.setItem("patatas_present", on ? "1" : "0"); } catch(e) {}
-    var lab = document.getElementById("set-present-label");
-    if (lab) lab.textContent = on ? "On" : "Off";
-    var cb = document.getElementById("set-present-toggle");
-    if (cb) cb.checked = !!on;
-    var btn = document.getElementById("present-toggle");
-    if (btn) btn.textContent = on ? "Mode Normal" : "👁 Presentasi";
+    if (window.syncPresentUI) window.syncPresentUI();
+    else {
+      var lab = document.getElementById("set-present-label");
+      if (lab) lab.textContent = on ? "On" : "Off";
+      var cb = document.getElementById("set-present-toggle");
+      if (cb) cb.checked = !!on;
+    }
   };
 
-  // Sinkronkan toggle presentasi yang sudah ada
-  var _tp = window.togglePresentMode;
+  // Sinkronkan: toggle sidebar monyet + settings
   window.togglePresentMode = function() {
     var on = !document.body.classList.contains("present-mode");
     window.settingsSetPresent(on);
