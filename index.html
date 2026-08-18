@@ -859,21 +859,31 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
   }
   .so-ac-wrap {
     grid-column: 1 / -1;
+    position: relative;
+    z-index: 20;
   }
+  /* list menempel di BAWAH input, bukan menutupi */
   .so-ac-list.so-ac-open {
-    position: fixed !important;
-    left: 10px !important;
-    right: 10px !important;
-    width: auto !important;
-    max-height: 55vh !important;
-    z-index: 100000 !important;
+    position: absolute !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: calc(100% + 4px) !important;
+    width: 100% !important;
+    max-height: 42vh !important;
+    z-index: 30 !important;
     border-radius: 12px !important;
-    box-shadow: 0 12px 40px rgba(0,0,0,.25) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,.18) !important;
   }
   .so-ac-item {
     padding: 0.85rem 1rem !important;
     font-size: 0.95rem !important;
     line-height: 1.35 !important;
+  }
+  /* form tidak potong dropdown */
+  #lancar-panel-so,
+  #so-form,
+  #so-lines {
+    overflow: visible !important;
   }
 }
 </style></head>
@@ -8924,7 +8934,7 @@ input:focus, select:focus, textarea:focus {
     row.className = "so-line";
     row.style.cssText = "display:grid;grid-template-columns:1fr 90px 70px 40px;gap:0.4rem;align-items:start;position:relative";
     row.innerHTML =
-      '<div class="so-ac-wrap" style="position:relative;min-width:0">' +
+      '<div class="so-ac-wrap" style="position:relative;min-width:0;z-index:5">' +
         '<input type="text" class="so-product" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Ketik Product ID / Code / Name..." required style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"/>' +
         '<div class="so-ac-list" hidden style="position:absolute;left:0;right:0;top:100%;z-index:9999;max-height:280px;overflow:auto;background:var(--card,#fff);border:1px solid var(--border,#e2e8f0);border-radius:10px;box-shadow:0 10px 28px rgba(0,0,0,.18);margin-top:4px"></div>' +
       '</div>' +
@@ -8938,24 +8948,20 @@ input:focus, select:focus, textarea:focus {
 
     function positionSOAcList() {
       listEl.classList.add("so-ac-open");
+      // SELALU di bawah input (tidak fixed / tidak nutupin search)
+      listEl.style.position = "absolute";
+      listEl.style.left = "0";
+      listEl.style.right = "0";
+      listEl.style.top = "calc(100% + 4px)";
+      listEl.style.bottom = "auto";
+      listEl.style.width = "100%";
+      listEl.style.maxHeight = window.innerWidth <= 768 ? "42vh" : "280px";
+      listEl.style.zIndex = "30";
       try {
-        if (window.innerWidth <= 768) {
-          var rect = inp.getBoundingClientRect();
-          listEl.style.position = "fixed";
-          listEl.style.left = "10px";
-          listEl.style.right = "10px";
-          listEl.style.width = "auto";
-          listEl.style.top = (rect.bottom + 4) + "px";
-          listEl.style.maxHeight = Math.max(180, window.innerHeight - rect.bottom - 20) + "px";
-          listEl.style.zIndex = "100000";
-        } else {
-          listEl.style.position = "absolute";
-          listEl.style.left = "0";
-          listEl.style.right = "0";
-          listEl.style.top = "100%";
-          listEl.style.width = "";
-          listEl.style.maxHeight = "280px";
-        }
+        // pastikan input & list terlihat di atas keyboard
+        setTimeout(function() {
+          inp.scrollIntoView({ block: "center", behavior: "smooth" });
+        }, 50);
       } catch (e) {}
     }
 
