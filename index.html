@@ -1044,6 +1044,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
             <div class="tw-search-actions">
               <button type="button" class="btn btn-teal" onclick="applyFilter()">🔍 Search</button>
               <button type="button" class="btn btn-success" onclick="exportExcel()">📥 Export Data</button>
+              <button type="button" class="btn btn-outline" onclick="window.exportAssetPdf&&exportAssetPdf()">📄 Export PDF</button>
               <button type="button" class="btn btn-primary" onclick="resetFilter()">↺ Clear Filter</button>
               <button type="button" class="btn btn-teal" onclick="openScanner()">📷 Scan QR</button>
               <button type="button" class="btn btn-accent btn-edit-only" onclick="document.getElementById('import-file').click()">📤 Import</button>
@@ -1471,6 +1472,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
           <h3 style="margin:0 0 0.75rem;color:var(--navy)">Asset List Report</h3>
           <p style="font-size:0.82rem;color:#64748b;margin:0 0 0.85rem">Export seluruh daftar aset (mengikuti filter outlet login).</p>
           <button class="btn btn-success" onclick="exportExcel()">📥 Download Excel Aset (.xlsx)</button>
+          <button class="btn btn-outline" onclick="window.exportAssetPdf&&exportAssetPdf()" style="margin-left:0.5rem">📄 Download PDF Aset</button>
         </div>
 
         <!-- Valuation -->
@@ -2975,16 +2977,100 @@ function deleteItem(idx){
   applyFilter(); populateFilters();
 }
 
+function resolveAssetPhotoSrc(u){
+  u = String(u || "").trim();
+  if (!u) return "";
+  if (u.indexOf("data:image") === 0) return u;
+  var m = u.match(/\/file\/d\/([^\/]+)/);
+  if (m) return "https://lh3.googleusercontent.com/d/" + m[1];
+  m = u.match(/[?&]id=([^&]+)/);
+  if (m) return "https://lh3.googleusercontent.com/d/" + decodeURIComponent(m[1]);
+  if (/^https?:\/\//i.test(u)) return u;
+  return "";
+}
+
+function getAssetPhotoForExport(item){
+  if (!item) return "";
+  var u = item.foto || item.photo || item.image || item.Foto || "";
+  if (!u && typeof window.lookupPhoto === "function") {
+    try { u = window.lookupPhoto(item.sku) || ""; } catch (e) {}
+  }
+  if (!u) {
+    try {
+      var map = JSON.parse(localStorage.getItem("patatas_item_photos") || "{}");
+      u = map[item.sku] || "";
+      if (!u && item.sku) {
+        var n = String(item.sku).toUpperCase().replace(/\s+/g, "");
+        Object.keys(map).forEach(function(k){
+          if (!u && String(k).toUpperCase().replace(/\s+/g, "") === n) u = map[k];
+        });
+      }
+    } catch (e) {}
+  }
+  return String(u || "").trim();
+}
+
 function exportExcel(){
   const rows=(filtered.length?filtered:uniqueData).map(i=>({
     SKU:i.sku,"Product Name":i.name,Category:i.category,"Sub Category":i.subCategory,
-    Loc:i.location,"Penanggung Jawab":i.penanggungJawab,Kondisi:i.kondisi,Uom:i.uom||"Unit",QTY:i.qty
+    Loc:i.location,"Penanggung Jawab":i.penanggungJawab,Kondisi:i.kondisi,Uom:i.uom||"Unit",QTY:i.qty,
+    Foto: getAssetPhotoForExport(i)
   }));
   const ws=XLSX.utils.json_to_sheet(rows);
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,"Aset");
   XLSX.writeFile(wb,"ASET_PATATAS_"+new Date().toISOString().slice(0,10)+".xlsx");
 }
+
+/** Export PDF Item Asset + foto (pola sama BA / Transfer) */
+window.exportAssetPdf = function(){
+  var list = (filtered && filtered.length) ? filtered : (uniqueData || []);
+  if (!list.length) { alert("Tidak ada data aset untuk di-export"); return; }
+  function esc(s){
+    return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+  function fotoCell(item){
+    var raw = getAssetPhotoForExport(item);
+    var src = resolveAssetPhotoSrc(raw);
+    if (!src) return "-";
+    if (src.indexOf("data:image") === 0)
+      return '<img src="'+src.replace(/"/g,"&quot;")+'" style="max-width:72px;max-height:54px;object-fit:cover;border-radius:4px"/>';
+    return '<img src="'+esc(src)+'" style="max-width:72px;max-height:54px;object-fit:cover;border-radius:4px" onerror="this.style.display=\'none\';this.parentNode.innerHTML=\'<a href=&quot;'+esc(raw)+'&quot; target=_blank>Link</a>\'"/>';
+  }
+  var body = list.map(function(r, idx){
+    return "<tr>"+
+      "<td>"+(idx+1)+"</td>"+
+      "<td>"+esc(r.sku)+"</td>"+
+      "<td>"+esc(r.name)+"</td>"+
+      "<td>"+esc(r.category)+"</td>"+
+      "<td>"+esc(r.subCategory)+"</td>"+
+      "<td>"+esc(r.location)+"</td>"+
+      "<td>"+esc(r.kondisi)+"</td>"+
+      "<td>"+esc(r.uom||"Unit")+"</td>"+
+      "<td style='text-align:center'>"+esc(r.qty)+"</td>"+
+      "<td style='text-align:center'>"+fotoCell(r)+"</td>"+
+      "</tr>";
+  }).join("");
+  var htmlDoc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Item Asset</title>"+
+    "<style>body{font-family:Arial,sans-serif;padding:16px;font-size:11px;color:#0f172a}"+
+    "h2{margin:0 0 6px;color:#0b4f37}p{margin:0 0 12px;color:#64748b}"+
+    "table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:5px 6px;text-align:left;vertical-align:middle}"+
+    "th{background:#0b4f37;color:#fff;font-size:10px}@media print{.no-print{display:none}body{padding:0}}</style></head><body>"+
+    "<h2>Laporan Item Asset — PATATAS GROUP</h2>"+
+    "<p>"+esc(new Date().toLocaleString("id-ID"))+" · Total: "+list.length+" item</p>"+
+    "<table><thead><tr>"+
+    "<th>#</th><th>SKU</th><th>Nama</th><th>Category</th><th>Sub Category</th>"+
+    "<th>Loc</th><th>Kondisi</th><th>Uom</th><th>Qty</th><th>Foto</th>"+
+    "</tr></thead><tbody>"+body+"</tbody></table>"+
+    "<p class='no-print' style='margin-top:16px'><button onclick='window.print()' style='padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;cursor:pointer'>Cetak / Save as PDF</button></p>"+
+    "<script>setTimeout(function(){try{window.print()}catch(e){}},600)<\\/script>"+
+    "</body></html>";
+  var w = window.open("", "_blank");
+  if (!w) { alert("Izinkan popup untuk Export PDF"); return; }
+  w.document.write(htmlDoc);
+  w.document.close();
+};
+
 
 function importExcel(ev){
   if(!window.USER_CAN_EDIT){ alert("Hanya editor yang boleh import."); return; }
@@ -8097,7 +8183,7 @@ window.getSOOutletValue = function() {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Patatas Group<br>Asset Control</h1>'+
+      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
