@@ -1560,15 +1560,16 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
               <thead>
                 <tr style="text-align:left;color:#64748b;border-bottom:1px solid var(--border)">
                   <th style="padding:0.4rem">Tanggal</th>
-                  <th style="padding:0.4rem">SKU</th>
                   <th style="padding:0.4rem">Nama</th>
                   <th style="padding:0.4rem">Loc</th>
                   <th style="padding:0.4rem">Qty</th>
+                  <th style="padding:0.4rem">Price</th>
+                  <th style="padding:0.4rem">Total</th>
                   <th style="padding:0.4rem">Keterangan</th>
                   <th style="padding:0.4rem">Foto</th>
                 </tr>
               </thead>
-              <tbody id="ba-rp-tbody"><tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
+              <tbody id="ba-rp-tbody"><tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -4075,7 +4076,7 @@ window.addEventListener("DOMContentLoaded", function() {
     el=document.getElementById("rp-stat-pending"); if(el) el.textContent=list.filter(function(t){return t.status==="pending";}).length;
     var tb=document.getElementById("rp-tbody");
     if(!tb) return;
-    if(!f.length){ tb.innerHTML='<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>'; return; }
+    if(!f.length){ tb.innerHTML='<tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>'; return; }
     var rows=[];
     f.forEach(function(t){
       var items=(t.items&&t.items.length)?t.items:[{sku:t.sku,qty:t.qty,name:t.name}];
@@ -5136,8 +5137,8 @@ window.saveItemPhotoLink = function() {
         Uom: t.uom||"",
         Keterangan: t.keterangan||"",
         Price: Number(t.price)||0,
-        Total: Number(t.total)||0,
-        Foto: t.foto||""
+        Total: (Number(t.total)||0) || ((Number(t.price)||0) * (Number(t.qty)||0)),
+        Foto: t.foto||t.photo||""
       };
     });
   };
@@ -5163,12 +5164,15 @@ window.saveItemPhotoLink = function() {
           foto="<img src=\""+src.replace(/"/g,"&quot;")+"\" style=\"max-width:72px;max-height:56px;object-fit:cover;border-radius:4px\" onerror=\"this.outerHTML='-'\"/>";
         } else foto=String(rawFoto).substring(0,24)+"...";
       }
+      function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+      var tot = Number(r.Total)||((Number(r.Price)||0)*(Number(r.Qty)||0));
       return "<tr style='border-bottom:1px solid #f1f5f9'>"+
         "<td style='padding:0.4rem'>"+r.Tanggal+"</td>"+
-        "<td style='padding:0.4rem;font-family:monospace;font-size:0.72rem'>"+r.SKU+"</td>"+
         "<td style='padding:0.4rem'>"+r.Nama+"</td>"+
         "<td style='padding:0.4rem'>"+r.Loc+"</td>"+
         "<td style='padding:0.4rem;text-align:center'>"+r.Qty+"</td>"+
+        "<td style='padding:0.4rem;text-align:right'>"+fmtRp(r.Price)+"</td>"+
+        "<td style='padding:0.4rem;text-align:right'>"+fmtRp(tot)+"</td>"+
         "<td style='padding:0.4rem'>"+r.Keterangan+"</td>"+
         "<td style='padding:0.4rem'>"+foto+"</td></tr>";
     }).join("");
@@ -5197,38 +5201,41 @@ window.saveItemPhotoLink = function() {
     if(!rows.length){ alert("Tidak ada data Berita Acara"); return; }
     window.exportAsExcelTable("report-berita-acara.xlsx", cols, rows);
   };
-  window.baExportPdf=function(){
-    var rows=window.baCollectReportRows();
-    if(!rows.length){ alert("Tidak ada data BA"); return; }
-    function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
-    function fotoCell(url){
-      url=String(url||"").trim();
-      if(!url) return "-";
-      if(url.indexOf("data:image")===0 || url.indexOf("http")===0){
-        return "<img src='"+url.replace(/'/g,"%27")+"' style='max-width:90px;max-height:70px;object-fit:cover;border-radius:4px' onerror=\"this.outerHTML='(foto)'\"/>";
-      }
-      return esc(url).substring(0,40);
+  window.baExportPdf = function(){
+    var rows = (window.baCollectReportRows && window.baCollectReportRows()) || [];
+    if (!rows.length) { alert("Tidak ada data BA"); return; }
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+    function fotoCell(u){
+      u = String(u||"").trim();
+      if (!u) return "-";
+      if (u.indexOf("data:application/pdf")===0) return "PDF";
+      if (u.indexOf("data:image")===0) return '<img src="'+u.replace(/"/g,"&quot;")+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px"/>';
+      var m = u.match(/\/file\/d\/([^/]+)/) || u.match(/[?&]id=([^&]+)/);
+      var src = u;
+      if (m) src = "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w240";
+      if (src.indexOf("http")===0) return '<img src="'+esc(src)+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px" onerror="this.parentNode.textContent=\'-\'"/>';
+      return "-";
     }
-    var rowsHtml=rows.map(function(r){
-      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.SKU)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
+    var body = rows.map(function(r){
+      var tot = Number(r.Total) || ((Number(r.Price)||0)*(Number(r.Qty)||0));
+      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td style='text-align:right'>"+fmtRp(r.Price)+"</td><td style='text-align:right'>"+fmtRp(tot)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
-    var htmlDoc="<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Berita Acara</title>"+
-      "<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px}h2{margin:0 0 4px;font-size:18px}.sub{color:#64748b;font-size:12px;margin-bottom:14px}"+
-      "table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #94a3b8;padding:6px 8px;vertical-align:top}"+
+    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Berita Acara</title>"+
+      "<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px;font-size:12px}h2{margin:0 0 8px;color:#0b4f37}"+
+      "table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #94a3b8;padding:6px 8px;vertical-align:middle}"+
       "th{background:#0b4f37;color:#fff}@media print{.no-print{display:none!important}}</style></head><body>"+
       "<h2>Laporan Berita Acara — PATATAS GROUP</h2>"+
-      "<div class='sub'>"+new Date().toLocaleString("id-ID")+"</div>"+
-      "<table><thead><tr><th>Tanggal</th><th>SKU</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Keterangan</th><th>Foto</th></tr></thead>"+
-      "<tbody>"+rowsHtml+"</tbody></table>"+
+      "<div style='color:#64748b;font-size:12px;margin-bottom:12px'>"+esc(new Date().toLocaleString("id-ID"))+"</div>"+
+      "<table><thead><tr><th>Tanggal</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Foto</th></tr></thead><tbody>"+
+      body+"</tbody></table>"+
       "<p class='no-print' style='margin-top:16px'><button onclick='window.print()' style='padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600'>Cetak / Save as PDF</button></p>"+
-      "</body>
-</html>";
-    var w=window.open("","_blank");
-    if(!w){ alert("Izinkan popup"); return; }
-    w.document.write(htmlDoc);
+      "<script>setTimeout(function(){try{window.print()}catch(e){}},600)<\\/script></body></html>";
+    var w = window.open("", "_blank");
+    if (!w) { alert("Izinkan popup"); return; }
+    w.document.write(doc);
     w.document.close();
-    setTimeout(function(){ try{ w.print(); }catch(e){} }, 600);
-  };
+  }
   // hook report page
   var prev=window.navTo;
   if(typeof prev==="function" && !prev._baRpHook){
@@ -6157,7 +6164,7 @@ window.getSOOutletValue = function() {
   window.baExportExcel = function(){
     var rows = (window.baCollectReportRows && window.baCollectReportRows()) || [];
     if (!rows.length) { alert("Tidak ada data BA"); return; }
-    var cols = ["Tanggal","SKU","Nama","Loc","Qty","Keterangan","Foto"];
+    var cols = ["Tanggal","Nama","Loc","Qty","Price","Total","Keterangan","Foto"];
     if (window.exportAsExcelTable) window.exportAsExcelTable("laporan-ba.xls", cols, rows.map(function(r){
       var o={}; cols.forEach(function(c){ o[c]=r[c]; if(String(o[c]||"").indexOf("data:")===0) o[c]="[FOTO]"; });
       return o;
@@ -6167,26 +6174,38 @@ window.getSOOutletValue = function() {
   window.baExportPdf = function(){
     var rows = (window.baCollectReportRows && window.baCollectReportRows()) || [];
     if (!rows.length) { alert("Tidak ada data BA"); return; }
-    function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function fotoCell(u){
-      u=String(u||"").trim();
-      if(!u) return "-";
-      if(u.indexOf("data:image")===0) return '<img src="'+u.replace(/"/g,"&quot;")+'" style="max-width:48px;max-height:36px"/>';
-      if(u.indexOf("http")===0) return '<img src="'+esc(u)+'" style="max-width:48px;max-height:36px"/>';
+      u = String(u||"").trim();
+      if (!u) return "-";
+      if (u.indexOf("data:application/pdf")===0) return "PDF";
+      if (u.indexOf("data:image")===0) return '<img src="'+u.replace(/"/g,"&quot;")+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px"/>';
+      var m = u.match(/\/file\/d\/([^/]+)/) || u.match(/[?&]id=([^&]+)/);
+      var src = u;
+      if (m) src = "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w240";
+      if (src.indexOf("http")===0) return '<img src="'+esc(src)+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px" onerror="this.parentNode.textContent=\'-\'"/>';
       return "-";
     }
     var body = rows.map(function(r){
-      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.SKU)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td>"+esc(r.Qty)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
+      var tot = Number(r.Total) || ((Number(r.Price)||0)*(Number(r.Qty)||0));
+      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td style='text-align:right'>"+fmtRp(r.Price)+"</td><td style='text-align:right'>"+fmtRp(tot)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
-    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan BA</title>"+
-      "<style>body{font-family:Arial;padding:16px;font-size:12px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:4px}th{background:#0b4f37;color:#fff}</style></head><body>"+
-      "<h2>Laporan Berita Acara — PATATAS GROUP</h2><table><thead><tr><th>Tanggal</th><th>SKU</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Keterangan</th><th>Foto</th></tr></thead><tbody>"+
-      body+"</tbody></table><script>setTimeout(function(){window.print()},400)<\\/script></body></html>";
+    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Berita Acara</title>"+
+      "<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px;font-size:12px}h2{margin:0 0 8px;color:#0b4f37}"+
+      "table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #94a3b8;padding:6px 8px;vertical-align:middle}"+
+      "th{background:#0b4f37;color:#fff}@media print{.no-print{display:none!important}}</style></head><body>"+
+      "<h2>Laporan Berita Acara — PATATAS GROUP</h2>"+
+      "<div style='color:#64748b;font-size:12px;margin-bottom:12px'>"+esc(new Date().toLocaleString("id-ID"))+"</div>"+
+      "<table><thead><tr><th>Tanggal</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Foto</th></tr></thead><tbody>"+
+      body+"</tbody></table>"+
+      "<p class='no-print' style='margin-top:16px'><button onclick='window.print()' style='padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600'>Cetak / Save as PDF</button></p>"+
+      "<script>setTimeout(function(){try{window.print()}catch(e){}},600)<\\/script></body></html>";
     var w = window.open("", "_blank");
     if (!w) { alert("Izinkan popup"); return; }
     w.document.write(doc);
     w.document.close();
-  };
+  }
 
   function boot(){
     window.fillSkuDatalists();
@@ -6985,33 +7004,41 @@ window.getSOOutletValue = function() {
   };
 
   // BA PDF juga
-  window.baExportPdf = async function(){
+  window.baExportPdf = function(){
     var rows = (window.baCollectReportRows && window.baCollectReportRows()) || [];
     if (!rows.length) { alert("Tidak ada data BA"); return; }
-    function esc(s){
-      return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-    }
+    function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+    function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
     function fotoCell(u){
       u = String(u||"").trim();
       if (!u) return "-";
       if (u.indexOf("data:application/pdf")===0) return "PDF";
-      var src = toImgSrc(u);
-      if (src) return '<img src="'+src.replace(/"/g,"&quot;")+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px" onerror="this.parentNode.textContent=\'-\'"/>';
+      if (u.indexOf("data:image")===0) return '<img src="'+u.replace(/"/g,"&quot;")+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px"/>';
+      var m = u.match(/\/file\/d\/([^/]+)/) || u.match(/[?&]id=([^&]+)/);
+      var src = u;
+      if (m) src = "https://drive.google.com/thumbnail?id="+m[1]+"&sz=w240";
+      if (src.indexOf("http")===0) return '<img src="'+esc(src)+'" style="max-width:90px;max-height:70px;object-fit:cover;border-radius:4px" onerror="this.parentNode.textContent=\'-\'"/>';
       return "-";
     }
     var body = rows.map(function(r){
-      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.SKU)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td>"+esc(r.Qty)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
+      var tot = Number(r.Total) || ((Number(r.Price)||0)*(Number(r.Qty)||0));
+      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Loc)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td style='text-align:right'>"+fmtRp(r.Price)+"</td><td style='text-align:right'>"+fmtRp(tot)+"</td><td>"+esc(r.Keterangan)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
-    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan BA</title>"+
-      "<style>body{font-family:Arial;padding:20px;font-size:12px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ccc;padding:6px;vertical-align:middle}th{background:#0b4f37;color:#fff}</style></head><body>"+
+    var doc = "<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Berita Acara</title>"+
+      "<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px;font-size:12px}h2{margin:0 0 8px;color:#0b4f37}"+
+      "table{border-collapse:collapse;width:100%;font-size:11px}th,td{border:1px solid #94a3b8;padding:6px 8px;vertical-align:middle}"+
+      "th{background:#0b4f37;color:#fff}@media print{.no-print{display:none!important}}</style></head><body>"+
       "<h2>Laporan Berita Acara — PATATAS GROUP</h2>"+
-      "<table><thead><tr><th>Tanggal</th><th>SKU</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Keterangan</th><th>Foto</th></tr></thead><tbody>"+
-      body+"</tbody></table><p><button onclick='window.print()'>Cetak / Save as PDF</button></p></body></html>";
+      "<div style='color:#64748b;font-size:12px;margin-bottom:12px'>"+esc(new Date().toLocaleString("id-ID"))+"</div>"+
+      "<table><thead><tr><th>Tanggal</th><th>Nama</th><th>Loc</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Foto</th></tr></thead><tbody>"+
+      body+"</tbody></table>"+
+      "<p class='no-print' style='margin-top:16px'><button onclick='window.print()' style='padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600'>Cetak / Save as PDF</button></p>"+
+      "<script>setTimeout(function(){try{window.print()}catch(e){}},600)<\\/script></body></html>";
     var w = window.open("", "_blank");
     if (!w) { alert("Izinkan popup"); return; }
     w.document.write(doc);
     w.document.close();
-  };
+  }
 })();
 </script>
 
