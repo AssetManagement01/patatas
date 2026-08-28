@@ -1532,7 +1532,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
                   <th style="padding:0.4rem">Status</th>
                 </tr>
               </thead>
-              <tbody id="rp-tbody"><tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
+              <tbody id="rp-tbody"><tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1560,6 +1560,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
               <thead>
                 <tr style="text-align:left;color:#64748b;border-bottom:1px solid var(--border)">
                   <th style="padding:0.4rem">Tanggal</th>
+                  <th style="padding:0.4rem">SKU</th>
                   <th style="padding:0.4rem">Nama</th>
                   <th style="padding:0.4rem">Loc</th>
                   <th style="padding:0.4rem">Qty</th>
@@ -1569,7 +1570,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
                   <th style="padding:0.4rem">Foto</th>
                 </tr>
               </thead>
-              <tbody id="ba-rp-tbody"><tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
+              <tbody id="ba-rp-tbody"><tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -4076,7 +4077,7 @@ window.addEventListener("DOMContentLoaded", function() {
     el=document.getElementById("rp-stat-pending"); if(el) el.textContent=list.filter(function(t){return t.status==="pending";}).length;
     var tb=document.getElementById("rp-tbody");
     if(!tb) return;
-    if(!f.length){ tb.innerHTML='<tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>'; return; }
+    if(!f.length){ tb.innerHTML='<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>'; return; }
     var rows=[];
     f.forEach(function(t){
       var items=(t.items&&t.items.length)?t.items:[{sku:t.sku,qty:t.qty,name:t.name}];
@@ -4260,7 +4261,7 @@ window.tfExportExcel=function(){
       return esc(url).substring(0,40);
     }
     var rowsHtml=rows.map(function(r){
-      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.SKU)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Dari)+"</td><td>"+esc(r.Ke)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td>"+esc(r.Status)+"</td><td>"+esc(r["Approved By (Outlet Penerimaan)"])+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
+      return "<tr><td>"+esc(r.Tanggal)+"</td><td>"+esc(r.Nama)+"</td><td>"+esc(r.Dari)+"</td><td>"+esc(r.Ke)+"</td><td style='text-align:center'>"+esc(r.Qty)+"</td><td>"+esc(r.Status)+"</td><td>"+esc(r["Approved By (Outlet Penerimaan)"])+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
     var htmlDoc="<!DOCTYPE html><html><head><meta charset='utf-8'><title>Laporan Transfer PDF</title>"+
       "<style>"+
@@ -5150,7 +5151,7 @@ window.saveItemPhotoLink = function() {
     var tb=document.getElementById("ba-rp-tbody");
     if(!tb) return;
     if(!rows.length){
-      tb.innerHTML='<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+      tb.innerHTML='<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
       return;
     }
     tb.innerHTML=rows.map(function(r){
@@ -5167,13 +5168,14 @@ window.saveItemPhotoLink = function() {
       function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
       var tot = Number(r.Total)||((Number(r.Price)||0)*(Number(r.Qty)||0));
       return "<tr style='border-bottom:1px solid #f1f5f9'>"+
-        "<td style='padding:0.4rem'>"+r.Tanggal+"</td>"+
-        "<td style='padding:0.4rem'>"+r.Nama+"</td>"+
-        "<td style='padding:0.4rem'>"+r.Loc+"</td>"+
-        "<td style='padding:0.4rem;text-align:center'>"+r.Qty+"</td>"+
-        "<td style='padding:0.4rem;text-align:right'>"+fmtRp(r.Price)+"</td>"+
-        "<td style='padding:0.4rem;text-align:right'>"+fmtRp(tot)+"</td>"+
-        "<td style='padding:0.4rem'>"+r.Keterangan+"</td>"+
+        "<td style='padding:0.4rem;white-space:nowrap'>"+(r.Tanggal||"")+"</td>"+
+        "<td style='padding:0.4rem;font-family:ui-monospace,monospace;font-size:0.72rem;white-space:nowrap'>"+(r.SKU||"")+"</td>"+
+        "<td style='padding:0.4rem'>"+(r.Nama||"")+"</td>"+
+        "<td style='padding:0.4rem'>"+(r.Loc||"")+"</td>"+
+        "<td style='padding:0.4rem;text-align:center'>"+(r.Qty||"")+"</td>"+
+        "<td style='padding:0.4rem;text-align:right;white-space:nowrap'>"+fmtRp(r.Price)+"</td>"+
+        "<td style='padding:0.4rem;text-align:right;white-space:nowrap'>"+fmtRp(tot)+"</td>"+
+        "<td style='padding:0.4rem'>"+(r.Keterangan||"")+"</td>"+
         "<td style='padding:0.4rem'>"+foto+"</td></tr>";
     }).join("");
   };
@@ -5187,7 +5189,7 @@ window.saveItemPhotoLink = function() {
       if(to && (t.date||"") > to) return false;
       return true;
     });
-    var cols=["Tanggal","SKU","Nama","Uom","Qty","Price","Total","Keterangan","Foto","Loc"];
+    var cols=["Tanggal","SKU","Nama","Loc","Uom","Qty","Price","Total","Keterangan","Foto"];
     var rows=f.map(function(t){
       var qty=Number(t.qty)||0, price=Number(t.price)||0;
       var foto=t.foto||"";
@@ -5467,9 +5469,11 @@ window.saveItemPhotoLink = function() {
         var tb=document.getElementById("ba-rp-tbody");
         if(tb){
           var rowsR=window.baCollectReportRows();
-          if(!rowsR.length) tb.innerHTML='<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+          if(!rowsR.length) tb.innerHTML='<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
           else tb.innerHTML=rowsR.map(function(r){
-            return "<tr style=\"border-bottom:1px solid #f1f5f9\"><td style=\"padding:0.4rem\">"+ (r.Tanggal||"") +"</td><td style=\"padding:0.4rem\">"+ (r.SKU||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Nama||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Loc||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Qty||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Keterangan||"") +"</td><td style=\"padding:0.4rem\">-</td></tr>";
+            var tot = Number(r.Total)||((Number(r.Price)||0)*(Number(r.Qty)||0));
+            function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
+            return "<tr style=\"border-bottom:1px solid #f1f5f9\"><td style=\"padding:0.4rem\">"+ (r.Tanggal||"") +"</td><td style=\"padding:0.4rem;font-family:monospace;font-size:0.72rem;white-space:nowrap\">"+ (r.SKU||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Nama||"") +"</td><td style=\"padding:0.4rem\">"+ (r.Loc||"") +"</td><td style=\"padding:0.4rem;text-align:center\">"+ (r.Qty||"") +"</td><td style=\"padding:0.4rem;text-align:right\">"+ fmtRp(r.Price) +"</td><td style=\"padding:0.4rem;text-align:right\">"+ fmtRp(tot) +"</td><td style=\"padding:0.4rem\">"+ (r.Keterangan||"") +"</td><td style=\"padding:0.4rem\">-</td></tr>";
           }).join("");
         }
       }
@@ -5947,7 +5951,7 @@ window.getSOOutletValue = function() {
     var tb = document.getElementById("ba-rp-tbody");
     if (!tb) return;
     if (!rows.length) {
-      tb.innerHTML = '<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+      tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
       return;
     }
     function fotoCell(u){
@@ -5965,12 +5969,16 @@ window.getSOOutletValue = function() {
       return "-";
     }
     tb.innerHTML = rows.map(function(r){
+      var tot = Number(r.Total)||((Number(r.Price)||0)*(Number(r.Qty)||0));
+      function fmtRp(n){ n=Number(n)||0; return n.toLocaleString("id-ID",{minimumFractionDigits:2,maximumFractionDigits:2}); }
       return "<tr style='border-bottom:1px solid #1e293b'>"+
-        "<td style='padding:0.45rem'>"+(r.Tanggal||"")+"</td>"+
-        "<td style='padding:0.45rem;font-size:0.78rem'>"+(r.SKU||"")+"</td>"+
+        "<td style='padding:0.45rem;white-space:nowrap'>"+(r.Tanggal||"")+"</td>"+
+        "<td style='padding:0.45rem;font-family:ui-monospace,monospace;font-size:0.72rem;white-space:nowrap'>"+(r.SKU||"")+"</td>"+
         "<td style='padding:0.45rem'>"+(r.Nama||"")+"</td>"+
         "<td style='padding:0.45rem'>"+(r.Loc||"")+"</td>"+
-        "<td style='padding:0.45rem'>"+(r.Qty||"")+"</td>"+
+        "<td style='padding:0.45rem;text-align:center'>"+(r.Qty||"")+"</td>"+
+        "<td style='padding:0.45rem;text-align:right'>"+fmtRp(r.Price)+"</td>"+
+        "<td style='padding:0.45rem;text-align:right'>"+fmtRp(tot)+"</td>"+
         "<td style='padding:0.45rem'>"+(r.Keterangan||"")+"</td>"+
         "<td style='padding:0.45rem'>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
@@ -6140,7 +6148,7 @@ window.getSOOutletValue = function() {
     }
     var body = rows.map(function(r){
       return "<tr>"+
-        "<td>"+esc(r.Tanggal)+"</td><td>"+esc(r.SKU)+"</td><td>"+esc(r.Nama)+"</td>"+
+        "<td>"+esc(r.Tanggal)+"</td><td>"+esc(r.Nama)+"</td>"+
         "<td>"+esc(r.Dari)+"</td><td>"+esc(r.Ke)+"</td><td>"+esc(r.Qty)+"</td>"+
         "<td>"+esc(r.Status)+"</td><td>"+fotoCell(r.Foto)+"</td></tr>";
     }).join("");
@@ -6164,7 +6172,7 @@ window.getSOOutletValue = function() {
   window.baExportExcel = function(){
     var rows = (window.baCollectReportRows && window.baCollectReportRows()) || [];
     if (!rows.length) { alert("Tidak ada data BA"); return; }
-    var cols = ["Tanggal","Nama","Loc","Qty","Price","Total","Keterangan","Foto"];
+    var cols = ["Tanggal","SKU","Nama","Loc","Qty","Price","Total","Keterangan","Foto"];
     if (window.exportAsExcelTable) window.exportAsExcelTable("laporan-ba.xls", cols, rows.map(function(r){
       var o={}; cols.forEach(function(c){ o[c]=r[c]; if(String(o[c]||"").indexOf("data:")===0) o[c]="[FOTO]"; });
       return o;
@@ -6431,7 +6439,7 @@ window.getSOOutletValue = function() {
     }
     if (!rows.length) { alert("Tidak ada data BA untuk di-export"); return; }
     // Header mengikuti sheet BA
-    var cols = ["Tanggal","SKU","Nama","Uom","Qty","Price","Total","Keterangan","Foto","Loc"];
+    var cols = ["Tanggal","SKU","Nama","Loc","Uom","Qty","Price","Total","Keterangan","Foto"];
     var clean = rows.map(function(r){
       var o = {};
       cols.forEach(function(c){
@@ -9467,17 +9475,26 @@ function soEnsureLines() {
     if (!rows.length) { alert("Tidak ada data untuk diexport"); return; }
     if (typeof XLSX === "undefined") { alert("Library Excel belum termuat"); return; }
     var data = rows.map(function(r) {
+      var qtyIn = Number(r.qty) || 0;
+      var konversi = Number(r.konversi) || 0;
+      var qtyMaster = r.qtyMaster;
+      if (qtyMaster === "" || qtyMaster == null) {
+        qtyMaster = konversi ? (qtyIn / konversi) : "";
+      }
       return {
         "Tanggal": formatSODate(r.date || ""),
-        "Outlet": r.loc || r.outlet || "",
         "Product ID": r.productId || "",
         "Category": r.category || "",
         "Subcategory": r.subcategory || "",
         "Product Code": r.productCode || "",
         "Product Name": r.productName || "",
         "Unit": r.unit || "",
-        "Qty": Number(r.qty) || 0,
-        "Catatan": r.note || ""
+        "Qty": qtyIn,
+        "Outlet": r.loc || r.outlet || "",
+        "Catatan": r.note || r.catatan || "",
+        "Oleh": r.oleh || "",
+        "Unit Master": r.unitMaster || "",
+        "QTY": qtyMaster
       };
     });
     var ws = XLSX.utils.json_to_sheet(data);
