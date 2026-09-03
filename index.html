@@ -1894,7 +1894,8 @@ async function loadLiveData() {
     try { if (window.mergeItemPhotosFromAPI) window.mergeItemPhotosFromAPI(list); } catch(e){}
     if (typeof applyOutletScopeToUI === "function") {
       applyOutletScopeToUI();
-    } else {
+    }
+    setTimeout(function(){ if (window.baReload) window.baReload(); else if (window.baRenderTable) window.baRenderTable(); }, 200); else {
       uniqueData = list;
       window.uniqueData = uniqueData;
       filtered = uniqueData.slice();
@@ -4949,15 +4950,30 @@ window.saveItemPhotoLink = function() {
     if (btn && btn.getAttribute("data-ba-id")) window.baDelete(btn.getAttribute("data-ba-id"));
   });
   window.baIsAdmin = function(){
-    return !window.USER_OUTLET && !!(window.USER_CAN_EDIT || window.USER_ROLE==="admin" || String(window.USER_EMAIL||"").toLowerCase().indexOf("seno")>=0);
+    var role = String(window.USER_ROLE||"").toLowerCase();
+    if (role === "outlet") return false;
+    var scope = (typeof getSessionOutletScope === "function") ? getSessionOutletScope() : {active:false};
+    if (scope && scope.active) return false;
+    return !!(window.USER_CAN_EDIT || role==="admin" || String(window.USER_EMAIL||"").toLowerCase().indexOf("seno")>=0);
   };
   window.baFilterOutlet = function(list){
-    var kw = String(window.USER_OUTLET||"").toLowerCase().trim();
-    if(!kw) return list||[];
-    var head = kw.split(" - ")[0];
-    return (list||[]).filter(function(r){
+    list = list || [];
+    var scope = (typeof getSessionOutletScope === "function") ? getSessionOutletScope() : {active:false};
+    if (!scope.active) {
+      // fallback dari USER_OUTLET / kode BBM
+      var kw = String(window.USER_OUTLET||"").trim();
+      if (!kw) return list;
+      var map = {bbm:"Boemi", cba:"Chop Buntut", tbm:"Thirty Bumbu"};
+      var low = kw.toLowerCase();
+      scope = { active:true, keyword: map[low] || kw, name: map[low] || kw };
+    }
+    return list.filter(function(r){
+      if (typeof locationMatchesOutlet === "function") {
+        return locationMatchesOutlet(r.loc || r.location || "", scope);
+      }
       var loc = String(r.loc||"").toLowerCase();
-      return loc.indexOf(kw)>=0 || kw.indexOf(loc)>=0 || (head && loc.indexOf(head)>=0);
+      var kw = String(scope.keyword||scope.name||"").toLowerCase();
+      return kw && loc.indexOf(kw) >= 0;
     });
   };
   window.baStatusBadge = function(st){
@@ -4974,7 +4990,7 @@ window.saveItemPhotoLink = function() {
     var st = String(r.status||"Permintaan");
     var id = String(r.id||"").replace(/"/g,"");
     function btn(label, next, extra){
-      return '<button type="button" onclick="window.baUpdateStatus(''+id+'',''+next+'')" style="font-size:0.68rem;padding:0.18rem 0.4rem;margin:0 0.15rem 0.15rem 0;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">'+label+'</button>';
+      return '<button type="button" class="ba-st-btn" data-ba-id="'+id+'" data-ba-next="'+next+'" style="font-size:0.68rem;padding:0.18rem 0.4rem;margin:0 0.15rem 0.15rem 0;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">'+label+'</button>';
     }
     var html = "";
     if(st==="Permintaan") html += btn("Penawaran","Tahap Penawaran");
@@ -8297,7 +8313,7 @@ window.getSOOutletValue = function() {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Patatas Group<br>Asset Control</h1>'+
+      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
@@ -9933,3 +9949,44 @@ body.dark-mode #filter-subcategory {
 </style>
 </html>
 
+
+<script>
+(function(){
+  document.addEventListener("click", function(ev){
+    var b = ev.target && ev.target.closest && ev.target.closest(".ba-st-btn");
+    if (!b) return;
+    ev.preventDefault();
+    if (window.baUpdateStatus) window.baUpdateStatus(b.getAttribute("data-ba-id"), b.getAttribute("data-ba-next"));
+  });
+  var prev = window.baRenderTable;
+  window.baRenderTable = function(list){
+    if (typeof prev === "function") {
+      try { prev(list); } catch(e){ console.warn("baRender", e); }
+    }
+    var tb = document.getElementById("ba-table-body");
+    if (!tb) return;
+    var KEY = "patatas_ba_v1";
+    if (!list) {
+      try { list = JSON.parse(localStorage.getItem(KEY)||"[]"); } catch(e){ list = []; }
+    }
+    if (window.baFilterOutlet) list = window.baFilterOutlet(list);
+    if (!list || !list.length) {
+      tb.innerHTML = '<tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data untuk outlet ini</td></tr>';
+      return;
+    }
+    tb.innerHTML = list.map(function(r){
+      var badge = window.baStatusBadge ? window.baStatusBadge(r.status||"Permintaan") : (r.status||"Permintaan");
+      var acts = window.baAdminButtons ? window.baAdminButtons(r) : "";
+      return "<tr>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.date||"")+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:0.72rem'>"+(r.sku||"")+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.name||"")+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.loc||"")+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;text-align:center'>"+(r.qty||0)+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.keterangan||"")+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+badge+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;white-space:nowrap'>"+acts+"</td></tr>";
+    }).join("");
+  };
+})();
+</script>
