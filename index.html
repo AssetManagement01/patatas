@@ -1894,8 +1894,7 @@ async function loadLiveData() {
     try { if (window.mergeItemPhotosFromAPI) window.mergeItemPhotosFromAPI(list); } catch(e){}
     if (typeof applyOutletScopeToUI === "function") {
       applyOutletScopeToUI();
-    }
-    setTimeout(function(){ if (window.baReload) window.baReload(); else if (window.baRenderTable) window.baRenderTable(); }, 200); else {
+    } else {
       uniqueData = list;
       window.uniqueData = uniqueData;
       filtered = uniqueData.slice();
@@ -1904,6 +1903,7 @@ async function loadLiveData() {
       if (typeof renderTable === "function") renderTable();
       if (typeof renderDash === "function") renderDash();
     }
+    setTimeout(function(){ if (window.baReload) window.baReload(); else if (window.baRenderTable) window.baRenderTable(); }, 200);
     setStatus(label + " (" + (uniqueData ? uniqueData.length : list.length) + " item)", true);
   }
 
@@ -4855,6 +4855,7 @@ window.saveItemPhotoLink = function() {
         loc.appendChild(o);
       });
       if (cur) loc.value = cur;
+      if (window.lockBAOutlet) window.lockBAOutlet();
     }
     var d = document.getElementById("ba-date");
     if (d && !d.value) d.value = new Date().toISOString().slice(0,10);
@@ -5019,7 +5020,8 @@ window.saveItemPhotoLink = function() {
     var url = apiUrl();
     if(url){
       try{
-        var res = await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"updateBAStatus",id:id,status:status,catatanStatus:catatan,by:window.USER_EMAIL||""})});
+        var cur = (function(){ try { return JSON.parse(localStorage.getItem("patatas_ba_v1")||"[]").find(function(x){return String(x.id)===String(id);}); } catch(e){ return null; } })() || {};
+        var res = await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"updateBAStatus",id:id,status:status,catatanStatus:catatan,by:window.USER_EMAIL||"",sku:cur.sku||"",name:cur.name||"",date:cur.date||"",qty:cur.qty||"",loc:cur.loc||""})});
         var data = await res.json();
         if(!data || !data.ok) alert("Gagal update sheet: "+((data&&data.error)||""));
       }catch(e){ console.warn(e); }
@@ -9988,5 +9990,187 @@ body.dark-mode #filter-subcategory {
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;white-space:nowrap'>"+acts+"</td></tr>";
     }).join("");
   };
+})();
+</script>
+
+<div id="patatas-loading" style="display:none;pointer-events:none;position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:99999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:14px;padding:1.1rem 1.35rem;min-width:240px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,.25)">
+    <div style="width:36px;height:36px;border:3px solid #d1fae5;border-top-color:#0b4f37;border-radius:50%;margin:0 auto .75rem;animation:patatasSpin .8s linear infinite"></div>
+    <div id="patatas-loading-text" style="font-weight:700;color:#0f172a;font-size:.95rem">Menyimpan...</div>
+    <div style="font-size:.75rem;color:#64748b;margin-top:.25rem">Jangan tutup halaman</div>
+  </div>
+</div>
+<style>@keyframes patatasSpin{to{transform:rotate(360deg)}}</style>
+<script>
+(function(){
+  function box(){ return document.getElementById("patatas-loading"); }
+  window.showSaving = function(msg){
+    var el = box();
+    var tx = document.getElementById("patatas-loading-text");
+    if (tx) tx.textContent = msg || "Menyimpan...";
+    if (el){ el.style.display = "flex"; el.style.pointerEvents = "auto"; }
+    document.querySelectorAll("#tf-form button[type=submit], #ba-form button[type=submit]").forEach(function(b){
+      b.dataset._old = b.textContent;
+      b.disabled = true;
+      b.textContent = "Menyimpan...";
+    });
+  };
+  window.hideSaving = function(){
+    var el = box();
+    if (el){ el.style.display = "none"; el.style.pointerEvents = "none"; }
+    document.querySelectorAll("#tf-form button[type=submit], #ba-form button[type=submit]").forEach(function(b){
+      b.disabled = false;
+      if (b.dataset._old) b.textContent = b.dataset._old;
+    });
+  };
+  function wrap(name, label){
+    var prev = window[name];
+    if (typeof prev !== "function" || prev._savingWrap) return;
+    window[name] = function(e){
+      try { if (e && e.preventDefault) e.preventDefault(); } catch(err){}
+      window.showSaving(label);
+      var done = false;
+      function finish(){
+        if (done) return;
+        done = true;
+        window.hideSaving();
+      }
+      setTimeout(finish, 12000);
+      try {
+        var ret = prev.apply(this, arguments);
+        if (ret && typeof ret.then === "function") {
+          ret.then(finish).catch(finish);
+          return ret;
+        }
+        setTimeout(finish, 1600);
+        return ret;
+      } catch (err) {
+        finish();
+        throw err;
+      }
+    };
+    window[name]._savingWrap = true;
+  }
+  function attach(){
+    wrap("baSubmit", "Menyimpan Berita Acara...");
+    wrap("tfSubmit", "Menyimpan Transfer...");
+  }
+  attach();
+  setTimeout(attach, 800);
+  setTimeout(attach, 2000);
+})();
+</script>
+
+<script>
+(function(){
+  function sessObj(){
+    try { return JSON.parse(localStorage.getItem("patatas_asset_session")||"null"); } catch(e){ return null; }
+  }
+  function outletName(){
+    var s = sessObj() || {};
+    var name = String(s.outletName || s.outlet || "").trim();
+    var kw = String(s.outletKeyword || window.USER_OUTLET || "").trim();
+    var role = String(s.role || window.USER_ROLE || "").toLowerCase();
+    var map = {
+      bbm: "Boemi - Blok M",
+      cba: "Chop Buntut AKD",
+      tbm: "Thirty Bumbu - Taman Anggrek",
+      "kh cp": "Kota Hainan - Central Park",
+      khcp: "Kota Hainan - Central Park"
+    };
+    var email = String(s.email || window.USER_EMAIL || "").toLowerCase();
+    var code = email.split("·")[0].trim();
+    if (!name) name = map[code] || map[kw.toLowerCase()] || "";
+    if (!name && kw) name = kw;
+    return { role: role, name: name, kw: kw, isOutlet: role === "outlet" };
+  }
+  window.lockBAOutlet = function(){
+    var el = document.getElementById("ba-loc");
+    if (!el) return;
+    var info = outletName();
+    if (!info.isOutlet) {
+      el.disabled = false;
+      el.style.background = "";
+      return;
+    }
+    var target = info.name || info.kw;
+    if (!target) return;
+    var found = false;
+    for (var i=0;i<el.options.length;i++){
+      if (String(el.options[i].value).toLowerCase().indexOf(String(target).toLowerCase().split(" - ")[0])>=0) {
+        el.value = el.options[i].value;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      var opt = document.createElement("option");
+      opt.value = target; opt.textContent = target;
+      el.appendChild(opt);
+      el.value = target;
+    }
+    el.disabled = true;
+    el.style.background = "#f1f5f9";
+    el.style.cursor = "not-allowed";
+  };
+  var _so = window.lockSOOutlet;
+  window.lockSOOutlet = function(){
+    if (typeof _so === "function") try { _so(); } catch(e){}
+    window.lockBAOutlet();
+  };
+  function bindFoto(){
+    var inp = document.getElementById("ba-foto-file");
+    var dest = document.getElementById("ba-foto");
+    if (!inp || inp._boundFix) return;
+    inp._boundFix = true;
+    inp.addEventListener("change", function(){
+      var f = inp.files && inp.files[0];
+      if (!f) return;
+      if (f.size > 6*1024*1024) { alert("File max 6MB"); inp.value=""; return; }
+      var reader = new FileReader();
+      reader.onload = function(ev){
+        var data = ev.target.result;
+        if (f.type.indexOf("image/")===0) {
+          var im = new Image();
+          im.onload = function(){
+            var maxW=1280,w=im.width,h=im.height;
+            if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+            var c=document.createElement("canvas"); c.width=w;c.height=h;
+            c.getContext("2d").drawImage(im,0,0,w,h);
+            var out=c.toDataURL("image/jpeg",0.72);
+            if (dest) dest.value = out;
+            var p=document.getElementById("ba-foto-preview");
+            if(p){p.src=out;p.style.display="block";}
+            dest && dest.setAttribute("data-filename", f.name);
+          };
+          im.onerror = function(){ if (dest) dest.value = data; };
+          im.src = data;
+        } else {
+          if (dest) dest.value = data;
+          dest && dest.setAttribute("data-filename", f.name);
+          var p=document.getElementById("ba-foto-preview");
+          if(p) p.style.display="none";
+          alert("File terpasang: " + f.name);
+        }
+      };
+      reader.onerror = function(){ alert("Gagal baca file"); };
+      reader.readAsDataURL(f);
+    });
+  }
+  bindFoto();
+  document.addEventListener("DOMContentLoaded", function(){
+    bindFoto();
+    window.lockBAOutlet();
+  });
+  setTimeout(function(){ bindFoto(); window.lockBAOutlet(); }, 400);
+  setTimeout(function(){ window.lockBAOutlet(); }, 1200);
+  var prev = window.navTo;
+  if (typeof prev === "function" && !prev._baLock) {
+    window.navTo = function(page, el){
+      prev.apply(this, arguments);
+      if (page==="ba" || page==="berita") setTimeout(window.lockBAOutlet, 50);
+    };
+    window.navTo._baLock = true;
+  }
 })();
 </script>
