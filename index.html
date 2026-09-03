@@ -1310,7 +1310,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
                 </div>
               </div>
               <div>
-                <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU) *</label>
+                <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU atau nama manual)</label>
                 <div id="tf-data-hint" style="display:none;font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
                 <div id="tf-lines"></div>
                 <button type="button" onclick="window.tfAddLine && window.tfAddLine()" style="margin-top:0.4rem;padding:0.4rem 0.75rem;border:1px dashed #0d9488;background:#f0fdfa;color:#0f766e;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem">+ Tambah SKU</button>
@@ -1359,7 +1359,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
         <div id="ba-api-status" style="display:none;font-size:0.75rem;color:#64748b;margin-bottom:0.5rem">—</div>
         <div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1rem">
           <h3 style="margin:0 0 0.25rem;font-size:1.05rem">Form Berita Acara</h3>
-          <p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b">Catat pengurangan aset (rusak / hilang / write-off). Data masuk sheet <b>BA</b>.</p>
+          <p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b">Catat permintaan perbaikan / write-off. Item boleh dari Aset Tetap atau diketik manual. Status awal: <b>Permintaan</b>.</p>
           <form id="ba-form" onsubmit="event.preventDefault(); if(window.baSubmit) window.baSubmit(event); return false;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">
               <div>
@@ -1374,7 +1374,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
               </div>
             </div>
             <div style="margin-top:0.75rem">
-              <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU) *</label>
+              <label style="font-size:0.72rem;font-weight:600;color:#64748b">Item (SKU atau nama manual)</label>
               <div id="ba-data-hint" style="display:none;font-size:0.72rem;color:#0d9488;margin-bottom:0.35rem"></div>
               <div id="ba-lines"></div>
               <button type="button" id="ba-add-sku" onclick="window.baAddLine&&baAddLine()" style="margin-top:0.4rem;padding:0.4rem 0.75rem;border:1px dashed #0d9488;background:#f0fdfa;color:#0f766e;border-radius:8px;cursor:pointer;font-weight:600;font-size:0.8rem">+ Tambah SKU</button>
@@ -1413,6 +1413,7 @@ body.dark-mode .so-ac-item:hover, body.dark-mode .so-ac-item:active { background
                   <th style="padding:0.5rem;border-bottom:1px solid var(--border)">Loc</th>
                   <th style="padding:0.5rem;border-bottom:1px solid var(--border)">Qty</th>
                   <th style="padding:0.5rem;border-bottom:1px solid var(--border)">Keterangan</th>
+                  <th style="padding:0.5rem;border-bottom:1px solid var(--border)">Status</th>
                   <th style="padding:0.5rem;border-bottom:1px solid var(--border)">Aksi</th>
                 </tr>
               </thead>
@@ -4947,19 +4948,87 @@ window.saveItemPhotoLink = function() {
     var btn = ev.target.closest && ev.target.closest(".ba-del-btn");
     if (btn && btn.getAttribute("data-ba-id")) window.baDelete(btn.getAttribute("data-ba-id"));
   });
+  window.baIsAdmin = function(){
+    return !window.USER_OUTLET && !!(window.USER_CAN_EDIT || window.USER_ROLE==="admin" || String(window.USER_EMAIL||"").toLowerCase().indexOf("seno")>=0);
+  };
+  window.baFilterOutlet = function(list){
+    var kw = String(window.USER_OUTLET||"").toLowerCase().trim();
+    if(!kw) return list||[];
+    var head = kw.split(" - ")[0];
+    return (list||[]).filter(function(r){
+      var loc = String(r.loc||"").toLowerCase();
+      return loc.indexOf(kw)>=0 || kw.indexOf(loc)>=0 || (head && loc.indexOf(head)>=0);
+    });
+  };
+  window.baStatusBadge = function(st){
+    st = String(st||"Permintaan");
+    var bg="#fef3c7", fg="#92400e";
+    if(st.indexOf("Penawaran")>=0){ bg="#ffedd5"; fg="#9a3412"; }
+    if(st==="Sedang Proses"){ bg="#dbeafe"; fg="#1e40af"; }
+    if(st==="Done"||st==="Selesai"){ bg="#d1fae5"; fg="#065f46"; }
+    if(st==="Tolak"){ bg="#fee2e2"; fg="#991b1b"; }
+    return '<span style="display:inline-block;padding:0.15rem 0.45rem;border-radius:999px;font-size:0.68rem;font-weight:700;background:'+bg+';color:'+fg+'">'+st+'</span>';
+  };
+  window.baAdminButtons = function(r){
+    if(!window.baIsAdmin()) return "";
+    var st = String(r.status||"Permintaan");
+    var id = String(r.id||"").replace(/"/g,"");
+    function btn(label, next, extra){
+      return '<button type="button" onclick="window.baUpdateStatus(''+id+'',''+next+'')" style="font-size:0.68rem;padding:0.18rem 0.4rem;margin:0 0.15rem 0.15rem 0;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">'+label+'</button>';
+    }
+    var html = "";
+    if(st==="Permintaan") html += btn("Penawaran","Tahap Penawaran");
+    else if(st.indexOf("Tahap Penawaran")===0) html += btn("Proses","Sedang Proses") + btn("Tolak","Tolak");
+    else if(st==="Sedang Proses") html += btn("Done","Done") + btn("Tolak","Tolak");
+    else if(st==="Tolak"){
+      var n = (Number(r.revisi)||1)+1;
+      html += btn("Penawaran "+n, "Tahap Penawaran "+n);
+    }
+    if(window.USER_CAN_EDIT) html += ' <button type="button" data-ba-id="'+id+'" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
+    return html;
+  };
+  window.baUpdateStatus = async function(id, status){
+    if(!window.baIsAdmin()){ alert("Hanya admin yang mengubah status"); return; }
+    var catatan = "";
+    if(status==="Tolak"){
+      var pick = confirm("OK = Tetap Tolak\nCancel = lanjut Tahap Penawaran berikutnya");
+      if(!pick){
+        var list0 = localLoad();
+        var cur = list0.find(function(x){ return String(x.id)===String(id); });
+        var n = (cur && Number(cur.revisi)||1)+1;
+        status = "Tahap Penawaran " + n;
+      }
+      catatan = prompt("Catatan status (opsional):","") || "";
+    }
+    var url = apiUrl();
+    if(url){
+      try{
+        var res = await fetch(url,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify({action:"updateBAStatus",id:id,status:status,catatanStatus:catatan,by:window.USER_EMAIL||""})});
+        var data = await res.json();
+        if(!data || !data.ok) alert("Gagal update sheet: "+((data&&data.error)||""));
+      }catch(e){ console.warn(e); }
+    }
+    var list = localLoad().map(function(r){
+      if(String(r.id)!==String(id)) return r;
+      r.status = status;
+      r.catatanStatus = catatan;
+      r.diubahOleh = window.USER_EMAIL||"";
+      if(status.indexOf("Penawaran")>=0) r.revisi = Number(String(status).replace(/\D/g,""))||r.revisi||1;
+      return r;
+    });
+    localSave(list);
+    window.baRenderTable(list);
+    if(typeof window.baReload==="function") window.baReload();
+  };
   window.baRenderTable = function(list){
     var tb = document.getElementById("ba-table-body");
     if (!tb) return;
-    list = list || localLoad();
+    list = window.baFilterOutlet(list || localLoad());
     if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+      tb.innerHTML = '<tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
       return;
     }
     tb.innerHTML = list.map(function(r){
-      var del = "";
-      if (window.USER_CAN_EDIT) {
-        del = '<button type="button" data-ba-id="'+String(r.id).replace(/"/g,"")+'" class="ba-del-btn" style="font-size:0.7rem;padding:0.2rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
-      }
       return "<tr>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.date||"")+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;font-family:monospace;font-size:0.72rem'>"+(r.sku||"")+"</td>" +
@@ -4967,7 +5036,8 @@ window.saveItemPhotoLink = function() {
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.loc||"")+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;text-align:center'>"+(r.qty||0)+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.keterangan||"")+"</td>" +
-        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+del+"</td></tr>";
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+window.baStatusBadge(r.status)+"</td>" +
+        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;white-space:nowrap'>"+window.baAdminButtons(r)+"</td></tr>";
     }).join("");
   };
 
@@ -5340,8 +5410,8 @@ window.saveItemPhotoLink = function() {
           if(v){ img.style.display="block"; img.src=v; }
         }
       } else {
-        nameEl.textContent = skuInp.value ? "Tidak ketemu" : "";
-        nameEl.style.color = "#b91c1c";
+        nameEl.textContent = skuInp.value ? "Item manual (bukan Aset Tetap)" : "";
+        nameEl.style.color = "#b45309";
       }
     }
     skuInp.addEventListener("change", sync);
@@ -5431,8 +5501,14 @@ window.saveItemPhotoLink = function() {
       var skuRaw = (line.querySelector(".ba-line-sku").value||"").trim();
       if(!skuRaw) continue;
       var item = findItem(skuRaw);
-      var sku = item ? item.sku : (skuRaw.indexOf(" — ")>=0 ? skuRaw.split(" — ")[0].trim() : skuRaw);
-      var name = item ? item.name : (line.querySelector(".ba-line-name").textContent||"");
+      var sku, name;
+      if(item){
+        sku = item.sku;
+        name = item.name;
+      } else {
+        sku = "MANUAL";
+        name = skuRaw;
+      }
       var qty = parseFloat(line.querySelector(".ba-line-qty").value)||1;
       var uom = line.querySelector(".ba-line-uom").value||"PCS";
       var price = parseFloat(line.querySelector(".ba-line-price").value)||0;
@@ -5450,10 +5526,13 @@ window.saveItemPhotoLink = function() {
         foto: fotoBukti || fotoItem,
         fotoItem: fotoItem,
         loc: loc,
+        status: "Permintaan",
+        tglPermintaan: date,
+        revisi: 1,
         by: window.USER_EMAIL||""
       });
     }
-    if(!rows.length){ alert("Isi minimal 1 SKU valid"); return false; }
+    if(!rows.length){ alert("Isi minimal 1 item (SKU atau nama manual)"); return false; }
 
     var KEY = "patatas_ba_v1";
     function localLoad(){ try{return JSON.parse(localStorage.getItem(KEY)||"[]");}catch(e){return[];} }
@@ -7192,7 +7271,7 @@ window.getSOOutletValue = function() {
     list = dedupeBA(list);
     saveBA(list);
     if (typeof _br === "function") {
-      try { return _br(list); } catch(e){}
+      try { return _br(list); } catch(e){ console.warn(e); }
     }
     // fallback render ke tbody riwayat BA
     var tb = document.querySelector("#page-ba table tbody") ||
@@ -8218,7 +8297,7 @@ window.getSOOutletValue = function() {
     panel.className = "login-brand-panel";
     panel.innerHTML =
       '<div class="login-brand-badge">✓ Asset Management System</div>'+
-      '<h1>Empowering Patatas Group<br>Asset Control</h1>'+
+      '<h1>Patatas Group<br>Asset Control</h1>'+
       '<p>Manage inventory, outlet transfers, valuation, and write-off reports in one integrated system.</p>';
     screen.insertBefore(panel, card);
   }
