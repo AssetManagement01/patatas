@@ -3455,7 +3455,8 @@ window.addEventListener("DOMContentLoaded", function() {
   // Outlet: password = kode. outletKeyword = string yang dicari di kolom Location
   var OUTLETS = {
     "bbm":     { name: "Boemi - Blok M", keyword: "Boemi" },
-    "cba":     { name: "Chop Buntut AKD", keyword: "Chop Buntut" },
+    "cba":     { name: "Chop Buntut AKD", keyword: "Chop Buntut AKD" },
+    "cbs":     { name: "Chop Buntut Semarang", keyword: "Chop Buntut Semarang" },
     "ho mdn":  { name: "HEAD OFFICE KEJAKSAAN MEDAN", keyword: "KEJAKSAAN MEDAN" },
     "homdn":   { name: "HEAD OFFICE KEJAKSAAN MEDAN", keyword: "KEJAKSAAN MEDAN" },
     "kh cp":   { name: "Kota Hainan - Central Park", keyword: "Kota Hainan" },
@@ -3473,8 +3474,7 @@ window.addEventListener("DOMContentLoaded", function() {
     "hakd":    { name: "HIJO - AKD", keyword: "HIJO - AKD" },
     "hevent":  { name: "HIJO - Event", keyword: "HIJO - Event" },
     "bda":     { name: "Bao Darling - AKD", keyword: "Bao Darling" },
-    "hhq":     { name: "HIJO - HQ", keyword: "HIJO - HQ" } 
-    "cbs":     { name: "Chop Buntut Semarang", keyword: "Chop Buntut Semarang" }
+    "hhq":     { name: "HIJO - HQ", keyword: "HIJO - HQ" }
   };
 
   function normKey(s) {
@@ -3637,7 +3637,7 @@ window.addEventListener("DOMContentLoaded", function() {
       return;
     }
 
-    alert("Kode tidak dikenali.\nGunakan: user, HO JKT, atau kode outlet (BBM, CBA, HTA, dll).\nPassword = kode yang sama.");
+    alert("Kode tidak dikenali.\nGunakan: user, HO JKT, atau kode outlet (BBM, CBA, CBS, HTA, dll).\nPassword = kode yang sama.");
   };
 
   window.doLogout = function() {
@@ -3821,10 +3821,10 @@ window.addEventListener("DOMContentLoaded", function() {
   }
 
   var FALLBACK_OUTLETS = [
-    "CK - WH JAKARTA (HO)","Boemi - Blok M","Chop Buntut AKD","HEAD OFFICE KEJAKSAAN MEDAN",
+    "CK - WH JAKARTA (HO)","Boemi - Blok M","Chop Buntut AKD","Chop Buntut Semarang","HEAD OFFICE KEJAKSAAN MEDAN",
     "Kota Hainan - Central Park","Nanyang Roastery - Kejaksaan Medan","Nanyang Roastery - Sun Plaza Medan",
     "Thirty Bumbu - Taman Anggrek","XO Suki - Sun Plaza Medan","HIJO - Taman Anggrek","HIJO - Gading Serpong",
-    "HIJO - Karmaja","HIJO - AKD","HIJO - Event","Bao Darling - AKD","HIJO - HQ","Chop Buntut Semarang"
+    "HIJO - Karmaja","HIJO - AKD","HIJO - Event","Bao Darling - AKD","HIJO - HQ"
   ];
 
   function outlets(){
@@ -4965,7 +4965,7 @@ window.saveItemPhotoLink = function() {
       // fallback dari USER_OUTLET / kode BBM
       var kw = String(window.USER_OUTLET||"").trim();
       if (!kw) return list;
-      var map = {bbm:"Boemi", cba:"Chop Buntut", tbm:"Thirty Bumbu"};
+      var map = {bbm:"Boemi", cba:"Chop Buntut AKD", cbs:"Chop Buntut Semarang", tbm:"Thirty Bumbu"};
       var low = kw.toLowerCase();
       scope = { active:true, keyword: map[low] || kw, name: map[low] || kw };
     }
@@ -5757,7 +5757,7 @@ window.togglePresentMode = function () {
 (function(){
   /* ===== OUTLETS Transfer Dari/Ke ===== */
   var FALLBACK_OUTLETS = [
-    "CK - WH JAKARTA (HO)","Boemi - Blok M","Chop Buntut AKD","HEAD OFFICE KEJAKSAAN MEDAN",
+    "CK - WH JAKARTA (HO)","Boemi - Blok M","Chop Buntut AKD","Chop Buntut Semarang","HEAD OFFICE KEJAKSAAN MEDAN",
     "Kota Hainan - Central Park","Nanyang Roastery - Kejaksaan Medan","Nanyang Roastery - Sun Plaza Medan",
     "Thirty Bumbu - Taman Anggrek","XO Suki - Sun Plaza Medan","HIJO - Taman Anggrek","HIJO - Gading Serpong",
     "HIJO - Karmaja","HIJO - AKD","HIJO - Event","Bao Darling - AKD","HIJO - HQ"
@@ -10075,6 +10075,7 @@ body.dark-mode #filter-subcategory {
     var map = {
       bbm: "Boemi - Blok M",
       cba: "Chop Buntut AKD",
+      cbs: "Chop Buntut Semarang",
       tbm: "Thirty Bumbu - Taman Anggrek",
       "kh cp": "Kota Hainan - Central Park",
       khcp: "Kota Hainan - Central Park"
