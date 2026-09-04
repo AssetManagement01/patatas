@@ -5375,13 +5375,17 @@ window.saveItemPhotoLink = function() {
     row.className = "ba-line";
     row.style.cssText = "margin-bottom:0.65rem;padding:0.65rem;border:1px solid var(--border);border-radius:10px;background:#fafafa";
     row.innerHTML =
-      '<div style="display:grid;grid-template-columns:1fr 70px 70px 90px 36px;gap:0.4rem;align-items:start">'+
-      '<div><input list="ba-sku-list" class="ba-line-sku" placeholder="SKU atau nama..." style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:8px;font-size:0.85rem"/>'+
-      '<div class="ba-line-name" style="font-size:0.7rem;color:#0d9488;margin-top:0.15rem"></div></div>'+
-      '<div><label style="font-size:0.65rem;color:#64748b">Qty</label><input type="number" class="ba-line-qty" min="1" value="1" style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:8px"/></div>'+
-      '<div><label style="font-size:0.65rem;color:#64748b">Uom</label><input type="text" class="ba-line-uom" value="PCS" style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:8px"/></div>'+
-      '<div><label style="font-size:0.65rem;color:#64748b">Price</label><input type="number" class="ba-line-price" min="0" step="any" value="0" style="width:100%;padding:0.4rem;border:1px solid var(--border);border-radius:8px"/></div>'+
-      '<button type="button" class="ba-line-del" title="Hapus" style="margin-top:1.1rem;border:none;background:#fee2e2;color:#b91c1c;border-radius:8px;cursor:pointer;height:32px">×</button>'+
+      '<div style="display:flex;gap:0.4rem;align-items:flex-start">'+
+      '<div style="flex:1;min-width:0">'+
+      '<label style="font-size:0.65rem;color:#64748b">SKU / Nama barang</label>'+
+      '<input list="ba-sku-list" class="ba-line-sku" placeholder="Ketik SKU atau nama item..." style="width:100%;box-sizing:border-box;padding:0.5rem;border:1px solid var(--border);border-radius:8px;font-size:1rem"/>'+
+      '<div class="ba-line-name" style="font-size:0.7rem;color:#0d9488;margin-top:0.15rem;min-height:1em"></div></div>'+
+      '<button type="button" class="ba-line-del" title="Hapus" style="margin-top:1.15rem;border:none;background:#fee2e2;color:#b91c1c;border-radius:8px;cursor:pointer;height:38px;width:38px;flex-shrink:0;font-size:1.1rem">×</button>'+
+      '</div>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.35rem">'+
+      '<div><label style="font-size:0.65rem;color:#64748b">Qty</label><input type="number" class="ba-line-qty" min="1" value="1" style="width:100%;box-sizing:border-box;padding:0.45rem;border:1px solid var(--border);border-radius:8px;font-size:1rem"/></div>'+
+      '<div><label style="font-size:0.65rem;color:#64748b">Uom</label><input type="text" class="ba-line-uom" value="PCS" style="width:100%;box-sizing:border-box;padding:0.45rem;border:1px solid var(--border);border-radius:8px;font-size:1rem"/></div>'+
+      '<div><label style="font-size:0.65rem;color:#64748b">Price</label><input type="number" class="ba-line-price" min="0" step="any" value="0" style="width:100%;box-sizing:border-box;padding:0.45rem;border:1px solid var(--border);border-radius:8px;font-size:1rem"/></div>'+
       '</div>'+
       '<div style="margin-top:0.45rem;display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap">'+
       '<label style="font-size:0.65rem;color:#64748b;font-weight:600">Bukti foto/PDF (opsional)</label>'+
@@ -10176,3 +10180,13 @@ body.dark-mode #filter-subcategory {
   }
 })();
 </script>
+
+<style>
+@media (max-width: 700px) {
+  #ba-form > div[style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+  #page-ba { padding-left: 0.5rem; padding-right: 0.5rem; }
+  .ba-line-sku { font-size: 16px !important; }
+}
+</style>
