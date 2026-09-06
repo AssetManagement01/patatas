@@ -15,16 +15,13 @@
       }
     });
   }
-  function hideLogoSpeck() {
+  function applyLogo() {
     if (!document.getElementById('patatas-logo-clean')) {
       var s = document.createElement('style');
       s.id = 'patatas-logo-clean';
-      s.textContent = '#login-screen .brand{overflow:hidden;background:#eef8f4;}#login-screen .brand img,.sidebar .logo img{display:block;margin:0 auto;max-width:100%;clip-path:inset(0 22px 28px 0);-webkit-clip-path:inset(0 22px 28px 0);}#login-screen .brand img{background:#eef8f4;}';
+      s.textContent = '#login-screen .brand{overflow:hidden;background:#eaf6f1;}#login-screen .brand img,.sidebar .logo img{display:block;margin:0 auto;max-width:92%;height:auto;background:#eaf6f1;clip-path:inset(2% 4% 8% 1%);-webkit-clip-path:inset(2% 4% 8% 1%);}';
       document.head.appendChild(s);
     }
-    document.querySelectorAll('#login-screen .brand img, .sidebar .logo img').forEach(function (img) {
-      img.style.clipPath = 'inset(0 22px 28px 0)';
-    });
   }
   var url = 'https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now();
   var html = await (await fetch(url)).text();
@@ -33,10 +30,10 @@
   document.write(html);
   document.close();
   applyHeadline();
-  hideLogoSpeck();
-  setTimeout(function(){ applyHeadline(); hideLogoSpeck(); }, 50);
-  setTimeout(function(){ applyHeadline(); hideLogoSpeck(); }, 300);
-  setTimeout(function(){ applyHeadline(); hideLogoSpeck(); }, 900);
+  applyLogo();
+  setTimeout(function(){ applyHeadline(); applyLogo(); }, 80);
+  setTimeout(function(){ applyHeadline(); applyLogo(); }, 400);
+  setTimeout(function(){ applyHeadline(); applyLogo(); }, 1200);
 })();
 </script>
 </body>
