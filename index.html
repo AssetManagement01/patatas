@@ -16,20 +16,21 @@
     });
   }
   function applySidebarLogo() {
+    var loginImg = document.querySelector('#login-screen .brand img, .brand img');
+    var sideImg = document.querySelector('.sidebar .logo img');
     var box = document.querySelector('.sidebar .logo');
-    if (box) {
-      box.style.background = 'transparent';
+    if (box) box.style.background = 'transparent';
+    if (sideImg) {
+      if (loginImg && loginImg.src) sideImg.src = loginImg.src;
+      sideImg.style.background = 'transparent';
+      sideImg.style.mixBlendMode = 'multiply';
+      sideImg.style.filter = 'none';
+      sideImg.style.opacity = '1';
+      sideImg.style.width = '100%';
+      sideImg.style.height = 'auto';
+      sideImg.style.display = 'block';
+      sideImg.style.objectFit = 'contain';
     }
-    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
-      img.style.background = 'transparent';
-      img.style.mixBlendMode = 'normal';
-      img.style.filter = 'brightness(0) invert(1)';
-      img.style.opacity = '0.95';
-      img.style.width = '100%';
-      img.style.height = 'auto';
-      img.style.display = 'block';
-      img.style.objectFit = 'contain';
-    });
   }
   var url = 'https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now();
   var html = await (await fetch(url)).text();
