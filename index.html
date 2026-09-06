@@ -22,7 +22,9 @@
     }
     document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
       img.style.background = 'transparent';
-      img.style.mixBlendMode = 'multiply';
+      img.style.mixBlendMode = 'normal';
+      img.style.filter = 'brightness(0) invert(1)';
+      img.style.opacity = '0.95';
       img.style.width = '100%';
       img.style.height = 'auto';
       img.style.display = 'block';
