@@ -15,6 +15,26 @@
       }
     });
   }
+  function applyLogo(src) {
+    if (!src) return;
+    document.querySelectorAll('#login-screen .brand img, .sidebar .logo img').forEach(function (img) {
+      img.src = src;
+      img.alt = 'PATATAS GROUP';
+      img.style.clipPath = 'none';
+      img.style.maxWidth = '100%';
+      img.style.height = 'auto';
+    });
+  }
+  var parts = [
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/c6e8bbb34838e7c0c371374e891f0171f20e5b89/logo_p0.txt',
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/5d9ceaf91b33801fb08f809c55f1d1ea0c58e0a4/logo_p1.txt',
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/0a12af7dbe4dd5faf65da3bfdec21ec957798771/logo_p2.txt',
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/dbef579687af07bbc4f4adef7a507ae2fc1b2dd8/logo_p3.txt',
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/be3c6c7f290a3d05029e884683431b4a1b7c4177/logo_p4.txt',
+    'https://raw.githubusercontent.com/AssetManagement01/patatas/b75d3194807af1ac7b4cb09b2cffde534e8b7af6/logo_p5.txt'
+  ];
+  var chunks = await Promise.all(parts.map(function (u) { return fetch(u).then(function (r) { return r.text(); }); }));
+  var src = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
   var url = 'https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now();
   var html = await (await fetch(url)).text();
   html = html.replace(/Empowering/g, 'Elevating');
@@ -22,9 +42,10 @@
   document.write(html);
   document.close();
   applyHeadline();
-  setTimeout(applyHeadline, 80);
-  setTimeout(applyHeadline, 400);
-  setTimeout(applyHeadline, 1200);
+  applyLogo(src);
+  setTimeout(function(){ applyHeadline(); applyLogo(src); }, 80);
+  setTimeout(function(){ applyHeadline(); applyLogo(src); }, 400);
+  setTimeout(function(){ applyHeadline(); applyLogo(src); }, 1200);
 })();
 </script>
 </body>
