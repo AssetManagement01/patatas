@@ -15,20 +15,28 @@
       }
     });
   }
-  function applySidebarLogo() {
-    var box = document.querySelector('.sidebar .logo');
-    if (box) box.style.background = 'transparent';
-    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
+  function applyNewLogo(src) {
+    document.querySelectorAll('.brand img, .sidebar .logo img').forEach(function (img) {
+      img.src = src;
+      img.alt = 'PATATAS GROUP';
       img.style.background = 'transparent';
-      img.style.mixBlendMode = 'normal';
-      img.style.filter = 'brightness(0) invert(1)';
-      img.style.opacity = '0.95';
-      img.style.width = '100%';
+      img.style.maxWidth = '100%';
       img.style.height = 'auto';
-      img.style.display = 'block';
       img.style.objectFit = 'contain';
+      img.style.display = 'block';
+    });
+    var side = document.querySelector('.sidebar .logo');
+    if (side) side.style.background = 'transparent';
+    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
+      img.style.mixBlendMode = 'multiply';
+      img.style.filter = 'none';
     });
   }
+  var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
+  var chunks = await Promise.all(files.map(function (f) {
+    return fetch(f + '?v=3').then(function (r) { return r.text(); });
+  }));
+  var src = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
   var url = 'https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now();
   var html = await (await fetch(url)).text();
   html = html.replace(/Empowering/g, 'Elevating');
@@ -36,10 +44,10 @@
   document.write(html);
   document.close();
   applyHeadline();
-  applySidebarLogo();
-  setTimeout(function () { applyHeadline(); applySidebarLogo(); }, 80);
-  setTimeout(function () { applyHeadline(); applySidebarLogo(); }, 400);
-  setTimeout(function () { applyHeadline(); applySidebarLogo(); }, 1200);
+  applyNewLogo(src);
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); }, 80);
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); }, 400);
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); }, 1200);
 })();
 </script>
 </body>
