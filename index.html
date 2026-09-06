@@ -1,1 +1,20 @@
-PLACEHOLDER_WILL_FAIL
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ASSET PATATAS GROUP — Enterprise</title>
+</head>
+<body>
+<script>
+(async function () {
+  var url = "https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html";
+  var html = await (await fetch(url)).text();
+  html = html.replace("'<h1>Empowering Patatas Group<br>Asset Control</h1>'+", "'<h1>Elevating Patatas Group<br>Asset Control</h1>'+");
+  document.open();
+  document.write(html);
+  document.close();
+})();
+</script>
+</body>
+</html>
