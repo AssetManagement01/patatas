@@ -8,12 +8,25 @@
 <body>
 <script>
 (async function () {
-  var url = "https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html";
+  function apply() {
+    document.querySelectorAll('h1').forEach(function (h) {
+      if (h && /Empowering/i.test(h.innerHTML)) {
+        h.innerHTML = h.innerHTML.replace(/Empowering/gi, 'Elevating');
+      }
+    });
+  }
+  var url = 'https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now();
   var html = await (await fetch(url)).text();
-  html = html.replace("'<h1>Empowering Patatas Group<br>Asset Control</h1>'+", "'<h1>Elevating Patatas Group<br>Asset Control</h1>'+");
+  html = html.replace(/Empowering/g, 'Elevating');
   document.open();
   document.write(html);
   document.close();
+  apply();
+  setTimeout(apply, 50);
+  setTimeout(apply, 250);
+  setTimeout(apply, 800);
+  setTimeout(apply, 1600);
+  setInterval(apply, 400);
 })();
 </script>
 </body>
