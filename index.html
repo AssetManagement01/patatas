@@ -29,8 +29,12 @@
     var side = document.querySelector('.sidebar .logo');
     if (side) side.style.background = 'transparent';
     document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
-      img.style.mixBlendMode = 'multiply';
+      img.style.filter = 'invert(1)';
+      img.style.mixBlendMode = 'screen';
+    });
+    document.querySelectorAll('.brand img').forEach(function (img) {
       img.style.filter = 'none';
+      img.style.mixBlendMode = 'multiply';
     });
   }
   function injectBaStyle() {
