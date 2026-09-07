@@ -63,6 +63,49 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
+  function dedupe(list) {
+    var seen = {};
+    var out = [];
+    (list || []).forEach(function (it) {
+      var k = String(it.id || '') + '|' + String(it.date || '') + '|' + String(it.sku || '') + '|' + String(it.name || '') + '|' + String(it.loc || '') + '|' + String(it.qty || '') + '|' + String(it.keterangan || '');
+      if (seen[k]) return;
+      seen[k] = 1;
+      out.push(it);
+    });
+    return out;
+  }
+  function hookSheetFirst() {
+    if (window.__baSheetFirst) return;
+    window.__baSheetFirst = true;
+    window.baSyncFromSheet = async function () {
+      var url = String(window.API_URL || '').replace(/\/$/, '');
+      if (!url) {
+        try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { return []; }
+      }
+      try {
+        var res = await fetch(url + '?action=listBA&_=' + Date.now());
+        var data = await res.json();
+        if (data && data.ok && Array.isArray(data.items)) {
+          var items = dedupe(data.items);
+          try { localStorage.setItem('patatas_ba_v1', JSON.stringify(items)); } catch (e) {}
+          return items;
+        }
+      } catch (e) {}
+      try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
+    };
+    if (typeof window.baRenderTable === 'function' && !window.baRenderTable._dedupe) {
+      var prev = window.baRenderTable;
+      window.baRenderTable = function (list) {
+        if (!list) {
+          try { list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { list = []; }
+        }
+        prev(dedupe(list));
+      };
+      window.baRenderTable._dedupe = true;
+    }
+    if (window.baReload) window.baReload();
+    else if (window.baRenderTable) window.baRenderTable();
+  }
   function fixBa2Table() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -74,7 +117,9 @@
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
   function loadBa2() {
+    hookSheetFirst();
     function after() {
+      hookSheetFirst();
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
         window.ba2Render = function (list) { prev(list); fixBa2Table(); };
