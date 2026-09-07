@@ -63,7 +63,42 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
+  function ensureSpinCss() {
+    if (document.getElementById('ba-load-css')) return;
+    var s = document.createElement('style');
+    s.id = 'ba-load-css';
+    s.textContent = '@keyframes baSpin{to{transform:rotate(360deg)}}.ba-aksi-spin{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:12px;color:#0f766e;font-weight:600;white-space:nowrap}.ba-aksi-spin i{width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;border-radius:50%;display:inline-block;animation:baSpin .7s linear infinite}';
+    document.head.appendChild(s);
+  }
+  function showLoad(el) {
+    ensureSpinCss();
+    if (!el) return;
+    var box = el.closest ? (el.closest('td') || el.parentNode) : el;
+    if (!box) return;
+    if (box.querySelector && box.querySelector('.ba-aksi-spin')) return;
+    var spin = document.createElement('span');
+    spin.className = 'ba-aksi-spin';
+    spin.innerHTML = '<i></i>Loading';
+    if (el.tagName === 'BUTTON') {
+      el.disabled = true;
+      el.dataset._old = el.textContent;
+      el.textContent = 'Loading';
+    } else {
+      box.appendChild(spin);
+    }
+  }
+  function hookLoading() {
+    if (window.__baLoadHook) return;
+    window.__baLoadHook = true;
+    document.addEventListener('click', function (ev) {
+      var t = ev.target && ev.target.closest && ev.target.closest('.ba-st-btn, .ba-del-btn, .ba2-del-btn');
+      if (t) showLoad(t);
+      var r = ev.target && ev.target.closest && ev.target.closest('button');
+      if (r && /Refresh/i.test(r.textContent || '')) showLoad(r);
+    }, true);
+  }
   function hookSheetFirst() {
+    hookLoading();
     if (window.__baSheetFirst) return;
     window.__baSheetFirst = true;
     window.baSyncFromSheet = async function () {
@@ -82,6 +117,20 @@
     if (window.baReload) window.baReload();
   }
   function hookBa2Sheet() {
+    var _fetch = window.fetch;
+    if (!_fetch._ba2done) {
+      window.fetch = function (url, opt) {
+        try {
+          if (opt && opt.body && String(opt.body).indexOf('saveBA2') >= 0) {
+            var o = JSON.parse(opt.body);
+            o.status = 'Done';
+            opt.body = JSON.stringify(o);
+          }
+        } catch (e) {}
+        return _fetch.call(this, url, opt);
+      };
+      window.fetch._ba2done = true;
+    }
     window.ba2Reload = async function () {
       var url = String(window.API_URL || '').replace(/\/$/, '');
       var items = [];
@@ -125,7 +174,7 @@
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=9';
+    s.src = 'ba2.js?v=10';
     s.onload = after;
     document.body.appendChild(s);
   }
