@@ -73,19 +73,13 @@
   function showLoad(el) {
     ensureSpinCss();
     if (!el) return;
-    var box = el.closest ? (el.closest('td') || el.parentNode) : el;
-    if (!box) return;
-    if (box.querySelector && box.querySelector('.ba-aksi-spin')) return;
+    if (el.tagName === 'BUTTON') { el.disabled = true; el.textContent = 'Loading'; return; }
+    var box = el.closest ? el.closest('td') : null;
+    if (!box || box.querySelector('.ba-aksi-spin')) return;
     var spin = document.createElement('span');
     spin.className = 'ba-aksi-spin';
     spin.innerHTML = '<i></i>Loading';
-    if (el.tagName === 'BUTTON') {
-      el.disabled = true;
-      el.dataset._old = el.textContent;
-      el.textContent = 'Loading';
-    } else {
-      box.appendChild(spin);
-    }
+    box.appendChild(spin);
   }
   function hookLoading() {
     if (window.__baLoadHook) return;
@@ -116,15 +110,24 @@
     };
     if (window.baReload) window.baReload();
   }
+  function markDone(list) {
+    return (list || []).map(function (r) {
+      var x = {};
+      for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) x[k] = r[k];
+      x.status = 'Done';
+      return x;
+    });
+  }
   function hookBa2Sheet() {
     var _fetch = window.fetch;
     if (!_fetch._ba2done) {
       window.fetch = function (url, opt) {
         try {
-          if (opt && opt.body && String(opt.body).indexOf('saveBA2') >= 0) {
+          if (opt && opt.body && String(opt.body).indexOf('"saveBA2"') >= 0) {
             var o = JSON.parse(opt.body);
             o.status = 'Done';
-            opt.body = JSON.stringify(o);
+            o.tglSelesai = o.tglSelesai || o.date || '';
+            opt = Object.assign({}, opt, { body: JSON.stringify(o) });
           }
         } catch (e) {}
         return _fetch.call(this, url, opt);
@@ -140,7 +143,17 @@
           var data = await res.json();
           if (data && data.ok && Array.isArray(data.items)) items = data.items;
         } catch (e) {}
+        items.forEach(function (it) {
+          if (it && it.id && String(it.status) !== 'Done') {
+            fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+              body: JSON.stringify({ action: 'updateBA2Status', id: it.id, status: 'Done', by: window.USER_EMAIL || '' })
+            }).catch(function () {});
+          }
+        });
       }
+      items = markDone(items);
       try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(items)); } catch (e) {}
       if (window.ba2Render) window.ba2Render(items);
       return items;
@@ -164,7 +177,7 @@
       hookBa2Sheet();
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
-        window.ba2Render = function (list) { prev(list); fixBa2Table(); };
+        window.ba2Render = function (list) { prev(markDone(list)); fixBa2Table(); };
         window.ba2Render._fixedHead = true;
       }
       if (window.ba2Init) window.ba2Init();
@@ -174,7 +187,7 @@
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=10';
+    s.src = 'ba2.js?v=11';
     s.onload = after;
     document.body.appendChild(s);
   }
