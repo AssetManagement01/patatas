@@ -63,32 +63,44 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
-  function onlyHapus() {
+  function fixBa2Table() {
+    var tb = document.getElementById('ba2-table-body');
+    if (!tb) return;
+    var table = tb.closest('table');
+    if (!table) return;
+    var tr = table.querySelector('thead tr');
+    if (tr) {
+      tr.innerHTML =
+        '<th style="padding:0.5rem">Tanggal</th>' +
+        '<th style="padding:0.5rem">Nama</th>' +
+        '<th style="padding:0.5rem">Loc</th>' +
+        '<th style="padding:0.5rem">Qty</th>' +
+        '<th style="padding:0.5rem">Price</th>' +
+        '<th style="padding:0.5rem">Total</th>' +
+        '<th style="padding:0.5rem">Keterangan</th>' +
+        '<th style="padding:0.5rem">Status</th>' +
+        '<th style="padding:0.5rem">Aksi</th>';
+    }
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
-    document.querySelectorAll('#ba2-table-body td:last-child').forEach(function (td) {
-      if (td.querySelector('.ba2-del-btn')) return;
-      var id = '';
-      var st = td.querySelector('[data-ba-id]');
-      if (st) id = st.getAttribute('data-ba-id') || '';
-    });
   }
   function loadBa2() {
     function after() {
-      if (typeof window.ba2Render === 'function' && !window.ba2Render._hapusOnly) {
+      if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
         window.ba2Render = function (list) {
           prev(list);
-          document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
+          fixBa2Table();
         };
-        window.ba2Render._hapusOnly = true;
+        window.ba2Render._fixedHead = true;
         try { window.ba2Render(); } catch (e) {}
       }
       if (window.ba2Init) window.ba2Init();
+      fixBa2Table();
     }
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=6';
+    s.src = 'ba2.js?v=7';
     s.onload = after;
     document.body.appendChild(s);
   }
