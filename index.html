@@ -65,6 +65,79 @@
       showAksiLoading(b);
     }, true);
   }
+  function formatRp(n) {
+    n = Number(n) || 0;
+    try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); }
+  }
+  function lookupPrice(r) {
+    var p = Number(r && (r.price != null ? r.price : r.harga));
+    if (p) return p;
+    try {
+      var data = window.uniqueData || [];
+      var sku = String((r && r.sku) || '').toLowerCase();
+      var name = String((r && r.name) || '').toLowerCase();
+      var it = data.find(function (x) { return String(x.sku || '').toLowerCase() === sku && sku; })
+            || data.find(function (x) { return String(x.name || '').toLowerCase() === name && name; });
+      if (it) return Number(it.price || it.harga || 0) || 0;
+    } catch (e) {}
+    return 0;
+  }
+  function patchBaHeader() {
+    var tb = document.getElementById('ba-table-body');
+    if (!tb) return;
+    var table = tb.closest('table');
+    if (!table) return;
+    var tr = table.querySelector('thead tr');
+    if (!tr) return;
+    tr.innerHTML =
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Tanggal</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Nama</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Loc</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Qty</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Price</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Total</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Keterangan</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Status</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Aksi</th>';
+  }
+  function hookBaColumns() {
+    patchBaHeader();
+    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._priceWrap) return;
+    window.baRenderTable = function (list) {
+      patchBaHeader();
+      var tb = document.getElementById('ba-table-body');
+      if (!tb) return;
+      try {
+        if (!list) list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]');
+      } catch (e) { list = list || []; }
+      if (window.baFilterOutlet) list = window.baFilterOutlet(list);
+      if (!list || !list.length) {
+        tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+        return;
+      }
+      var td = "padding:0.45rem;border-bottom:1px solid #f1f5f9";
+      tb.innerHTML = list.map(function (r) {
+        var qty = Number(r.qty) || 0;
+        var price = lookupPrice(r);
+        var total = Number(r.total);
+        if (!total) total = price * qty;
+        var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
+        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
+        return '<tr>' +
+          '<td style="' + td + '">' + (r.date || '') + '</td>' +
+          '<td style="' + td + '">' + (r.name || '') + '</td>' +
+          '<td style="' + td + '">' + (r.loc || '') + '</td>' +
+          '<td style="' + td + 'text-align:center">' + qty + '</td>' +
+          '<td style="' + td + 'text-align:right;white-space:nowrap">' + formatRp(price) + '</td>' +
+          '<td style="' + td + 'text-align:right;white-space:nowrap;font-weight:600">' + formatRp(total) + '</td>' +
+          '<td style="' + td + '">' + (r.keterangan || '') + '</td>' +
+          '<td style="' + td + '">' + badge + '</td>' +
+          '<td style="' + td + 'white-space:nowrap">' + aksi + '</td></tr>';
+      }).join('');
+    };
+    window.baRenderTable._priceWrap = true;
+    try { window.baRenderTable(); } catch (e) {}
+  }
   var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
   var chunks = await Promise.all(files.map(function (f) {
     return fetch(f + '?v=3').then(function (r) { return r.text(); });
@@ -79,9 +152,10 @@
   applyHeadline();
   applyNewLogo(src);
   hookBaLoading();
-  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); }, 80);
-  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); }, 400);
-  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); }, 1200);
+  hookBaColumns();
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); hookBaColumns(); }, 80);
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); hookBaColumns(); }, 400);
+  setTimeout(function () { applyHeadline(); applyNewLogo(src); hookBaLoading(); hookBaColumns(); }, 1200);
 })();
 </script>
 </body>
