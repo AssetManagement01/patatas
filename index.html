@@ -63,12 +63,22 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
+  function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
+  function priceOf(r) {
+    var p = Number(r.price || r.Price || 0) || 0;
+    if (p) return p;
+    var sku = String(r.sku || '').trim();
+    try {
+      (window.uniqueData || []).some(function (it) {
+        if (String(it.sku || '') === sku) { p = Number(it.price || it.Price || 0) || 0; return true; }
+        return false;
+      });
+    } catch (e) {}
+    return p;
+  }
   function resetBtns() {
     document.querySelectorAll('button').forEach(function (b) {
-      if (b.textContent === 'Loading') {
-        b.disabled = false;
-        b.textContent = 'Refresh';
-      }
+      if (b.textContent === 'Loading') { b.disabled = false; b.textContent = 'Refresh'; }
     });
     document.querySelectorAll('.ba-aksi-spin').forEach(function (x) { x.remove(); });
   }
@@ -89,9 +99,7 @@
       }
       var r = ev.target && ev.target.closest && ev.target.closest('button');
       if (r && /^Refresh$/i.test((r.textContent || '').trim())) {
-        r.disabled = true;
-        r.textContent = 'Loading';
-        setTimeout(resetBtns, 8000);
+        r.disabled = true; r.textContent = 'Loading'; setTimeout(resetBtns, 8000);
       }
     }, true);
   }
@@ -114,11 +122,37 @@
       try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
     };
     if (prevRel && !window.baReload._wrapped) {
-      window.baReload = async function () {
-        try { await prevRel(); } finally { resetBtns(); }
-      };
+      window.baReload = async function () { try { await prevRel(); } finally { resetBtns(); } };
       window.baReload._wrapped = true;
     }
+  }
+  function hookBaKeluarCols() {
+    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
+    window.baRenderTable = function (list) {
+      var tb = document.getElementById('ba-table-body');
+      if (!tb) return;
+      try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { list = list || []; }
+      if (window.baFilterOutlet) list = window.baFilterOutlet(list);
+      var table = tb.closest('table');
+      if (table) {
+        var head = table.querySelector('thead tr');
+        if (head) head.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+      }
+      if (!list.length) {
+        tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+        return;
+      }
+      var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+      tb.innerHTML = list.map(function (r) {
+        var pr = priceOf(r);
+        var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
+        var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
+        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
+        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+      }).join('');
+    };
+    window.baRenderTable._price = true;
+    try { window.baRenderTable(); } catch (e) {}
   }
   function markDone(list) {
     return (list || []).map(function (r) {
@@ -173,9 +207,11 @@
   function loadBa2() {
     hookSheetFirst();
     hookBa2Sheet();
+    hookBaKeluarCols();
     function after() {
       hookSheetFirst();
       hookBa2Sheet();
+      hookBaKeluarCols();
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
         window.ba2Render = function (list) { prev(markDone(list)); fixBa2Table(); };
