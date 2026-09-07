@@ -67,19 +67,9 @@
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
     var table = tb.closest('table');
-    if (!table) return;
-    var tr = table.querySelector('thead tr');
-    if (tr) {
-      tr.innerHTML =
-        '<th style="padding:0.5rem">Tanggal</th>' +
-        '<th style="padding:0.5rem">Nama</th>' +
-        '<th style="padding:0.5rem">Loc</th>' +
-        '<th style="padding:0.5rem">Qty</th>' +
-        '<th style="padding:0.5rem">Price</th>' +
-        '<th style="padding:0.5rem">Total</th>' +
-        '<th style="padding:0.5rem">Keterangan</th>' +
-        '<th style="padding:0.5rem">Status</th>' +
-        '<th style="padding:0.5rem">Aksi</th>';
+    if (table) {
+      var tr = table.querySelector('thead tr');
+      if (tr) tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
     }
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
@@ -87,20 +77,18 @@
     function after() {
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
-        window.ba2Render = function (list) {
-          prev(list);
-          fixBa2Table();
-        };
+        window.ba2Render = function (list) { prev(list); fixBa2Table(); };
         window.ba2Render._fixedHead = true;
         try { window.ba2Render(); } catch (e) {}
       }
       if (window.ba2Init) window.ba2Init();
+      if (window.ba2Reload) window.ba2Reload();
       fixBa2Table();
     }
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=7';
+    s.src = 'ba2.js?v=8';
     s.onload = after;
     document.body.appendChild(s);
   }
