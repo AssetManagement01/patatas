@@ -17,6 +17,9 @@
   }
   function applyNewLogo(src) {
     if (!src) return;
+    document.querySelectorAll('.brand, .sidebar .logo').forEach(function (box) {
+      box.style.background = 'transparent';
+    });
     document.querySelectorAll('.brand img, .sidebar .logo img').forEach(function (img) {
       img.src = src;
       img.alt = 'PATATAS GROUP';
@@ -25,16 +28,16 @@
       img.style.height = 'auto';
       img.style.objectFit = 'contain';
       img.style.display = 'block';
-    });
-    var side = document.querySelector('.sidebar .logo');
-    if (side) side.style.background = 'transparent';
-    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
-      img.style.filter = 'invert(1)';
-      img.style.mixBlendMode = 'screen';
+      img.style.border = 'none';
+      img.style.boxShadow = 'none';
     });
     document.querySelectorAll('.brand img').forEach(function (img) {
       img.style.filter = 'none';
       img.style.mixBlendMode = 'multiply';
+    });
+    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
+      img.style.filter = 'invert(1)';
+      img.style.mixBlendMode = 'screen';
     });
   }
   function injectBaStyle() {
@@ -55,7 +58,8 @@
       'table:has(#ba-table-body) thead th:nth-child(9),#ba-table-body td:nth-child(9){width:230px;min-width:230px}' +
       '#ba-table-body td:nth-child(8) span{white-space:nowrap;display:inline-block}' +
       '.ba-aksi-wrap{display:inline-flex;flex-wrap:nowrap;align-items:center;gap:4px}' +
-      '.ba-aksi-wrap button{margin:0 !important}';
+      '.ba-aksi-wrap button{margin:0 !important}' +
+      '.brand,.sidebar .logo,.brand img,.sidebar .logo img{background:transparent!important}';
     document.head.appendChild(s);
   }
   function showAksiLoading(btn) {
