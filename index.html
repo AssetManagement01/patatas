@@ -4,17 +4,6 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ASSET PATATAS GROUP — Enterprise</title>
-<style>
-@keyframes baSpin{to{transform:rotate(360deg)}}
-.ba-aksi-spin{
-  display:inline-flex;align-items:center;gap:6px;margin-left:8px;
-  font-size:12px;color:#0f766e;font-weight:600;white-space:nowrap;vertical-align:middle;
-}
-.ba-aksi-spin i{
-  width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;
-  border-radius:50%;display:inline-block;animation:baSpin .7s linear infinite;
-}
-</style>
 </head>
 <body>
 <script>
@@ -44,19 +33,30 @@
       img.style.filter = 'none';
     });
   }
+  function injectBaStyle() {
+    if (document.getElementById('ba-aksi-style')) return;
+    var s = document.createElement('style');
+    s.id = 'ba-aksi-style';
+    s.textContent = '@keyframes baSpin{to{transform:rotate(360deg)}}.ba-aksi-spin{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:12px;color:#0f766e;font-weight:600;white-space:nowrap;vertical-align:middle}.ba-aksi-spin i{width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;border-radius:50%;display:inline-block;animation:baSpin .7s linear infinite}';
+    document.head.appendChild(s);
+  }
   function showAksiLoading(btn) {
     var td = btn && btn.closest ? btn.closest('td') : null;
-    if (!td) return null;
+    if (!td) return;
     td.style.whiteSpace = 'nowrap';
     td.querySelectorAll('.ba-aksi-spin').forEach(function (el) { el.remove(); });
     var spin = document.createElement('span');
     spin.className = 'ba-aksi-spin';
     spin.innerHTML = '<i></i><span>Loading</span>';
     td.appendChild(spin);
-    td.querySelectorAll('button').forEach(function (b) { b.disabled = true; b.style.opacity = '0.55'; b.style.pointerEvents = 'none'; });
-    return td;
+    td.querySelectorAll('button').forEach(function (b) {
+      b.disabled = true;
+      b.style.opacity = '0.55';
+      b.style.pointerEvents = 'none';
+    });
   }
   function hookBaLoading() {
+    injectBaStyle();
     if (window.__baLoadHooked) return;
     window.__baLoadHooked = true;
     document.addEventListener('click', function (ev) {
@@ -64,24 +64,6 @@
       if (!b) return;
       showAksiLoading(b);
     }, true);
-    var prevUp = window.baUpdateStatus;
-    if (typeof prevUp === 'function' && !prevUp._loadWrap) {
-      window.baUpdateStatus = async function (id, status) {
-        try { return await prevUp.apply(this, arguments); }
-        finally {
-          /* table usually re-renders; if not, leave spinner until render */
-        }
-      };
-      window.baUpdateStatus._loadWrap = true;
-    }
-    var prevDel = window.baDelete;
-    if (typeof prevDel === 'function' && !prevDel._loadWrap) {
-      window.baDelete = async function (id) {
-        try { return await prevDel.apply(this, arguments); }
-        finally {}
-      };
-      window.baDelete._loadWrap = true;
-    }
   }
   var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
   var chunks = await Promise.all(files.map(function (f) {
