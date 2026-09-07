@@ -34,10 +34,24 @@
     });
   }
   function injectBaStyle() {
-    if (document.getElementById('ba-aksi-style')) return;
+    var old = document.getElementById('ba-aksi-style');
+    if (old) old.remove();
     var s = document.createElement('style');
     s.id = 'ba-aksi-style';
-    s.textContent = '@keyframes baSpin{to{transform:rotate(360deg)}}.ba-aksi-spin{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:12px;color:#0f766e;font-weight:600;white-space:nowrap;vertical-align:middle}.ba-aksi-spin i{width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;border-radius:50%;display:inline-block;animation:baSpin .7s linear infinite}';
+    s.textContent =
+      '@keyframes baSpin{to{transform:rotate(360deg)}}' +
+      '.ba-aksi-spin{display:inline-flex;align-items:center;gap:6px;margin-left:8px;font-size:12px;color:#0f766e;font-weight:600;white-space:nowrap;vertical-align:middle}' +
+      '.ba-aksi-spin i{width:14px;height:14px;border:2px solid #99f6e4;border-top-color:#0f766e;border-radius:50%;display:inline-block;animation:baSpin .7s linear infinite}' +
+      'table:has(#ba-table-body){table-layout:auto}' +
+      'table:has(#ba-table-body) thead th:nth-child(8),' +
+      'table:has(#ba-table-body) thead th:nth-child(9),' +
+      '#ba-table-body td:nth-child(8),' +
+      '#ba-table-body td:nth-child(9){vertical-align:middle;white-space:nowrap}' +
+      'table:has(#ba-table-body) thead th:nth-child(8),#ba-table-body td:nth-child(8){width:150px;min-width:150px}' +
+      'table:has(#ba-table-body) thead th:nth-child(9),#ba-table-body td:nth-child(9){width:230px;min-width:230px}' +
+      '#ba-table-body td:nth-child(8) span{white-space:nowrap;display:inline-block}' +
+      '.ba-aksi-wrap{display:inline-flex;flex-wrap:nowrap;align-items:center;gap:4px}' +
+      '.ba-aksi-wrap button{margin:0 !important}';
     document.head.appendChild(s);
   }
   function showAksiLoading(btn) {
@@ -97,12 +111,13 @@
       '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Price</th>' +
       '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Total</th>' +
       '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Keterangan</th>' +
-      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Status</th>' +
-      '<th style="padding:0.5rem;border-bottom:1px solid var(--border)">Aksi</th>';
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border);width:150px">Status</th>' +
+      '<th style="padding:0.5rem;border-bottom:1px solid var(--border);width:230px">Aksi</th>';
   }
   function hookBaColumns() {
     patchBaHeader();
-    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._priceWrap) return;
+    injectBaStyle();
+    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._alignWrap) return;
     window.baRenderTable = function (list) {
       patchBaHeader();
       var tb = document.getElementById('ba-table-body');
@@ -115,7 +130,7 @@
         tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
         return;
       }
-      var td = "padding:0.45rem;border-bottom:1px solid #f1f5f9";
+      var td = 'padding:0.55rem 0.5rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
       tb.innerHTML = list.map(function (r) {
         var qty = Number(r.qty) || 0;
         var price = lookupPrice(r);
@@ -127,15 +142,15 @@
           '<td style="' + td + '">' + (r.date || '') + '</td>' +
           '<td style="' + td + '">' + (r.name || '') + '</td>' +
           '<td style="' + td + '">' + (r.loc || '') + '</td>' +
-          '<td style="' + td + 'text-align:center">' + qty + '</td>' +
-          '<td style="' + td + 'text-align:right;white-space:nowrap">' + formatRp(price) + '</td>' +
-          '<td style="' + td + 'text-align:right;white-space:nowrap;font-weight:600">' + formatRp(total) + '</td>' +
+          '<td style="' + td + ';text-align:center">' + qty + '</td>' +
+          '<td style="' + td + ';text-align:right;white-space:nowrap">' + formatRp(price) + '</td>' +
+          '<td style="' + td + ';text-align:right;white-space:nowrap;font-weight:600">' + formatRp(total) + '</td>' +
           '<td style="' + td + '">' + (r.keterangan || '') + '</td>' +
-          '<td style="' + td + '">' + badge + '</td>' +
-          '<td style="' + td + 'white-space:nowrap">' + aksi + '</td></tr>';
+          '<td style="' + td + ';white-space:nowrap">' + badge + '</td>' +
+          '<td style="' + td + ';white-space:nowrap"><div class="ba-aksi-wrap">' + aksi + '</div></td></tr>';
       }).join('');
     };
-    window.baRenderTable._priceWrap = true;
+    window.baRenderTable._alignWrap = true;
     try { window.baRenderTable(); } catch (e) {}
   }
   var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
