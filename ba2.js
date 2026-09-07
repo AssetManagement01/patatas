@@ -19,8 +19,10 @@ window.switchBaKas = function (which) {
   function localLoad() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
   function localSave(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-  function today() { var d = new Date(); return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0'); }
-
+  function today() {
+    var d = new Date();
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
   function namesList() {
     var arr = [];
     try {
@@ -32,77 +34,111 @@ window.switchBaKas = function (which) {
     return arr.sort();
   }
 
-  function locOptions() {
-    var sel = document.getElementById('ba-loc');
-    if (sel) return sel.innerHTML;
-    return '<option value="">— Pilih —</option>';
-  }
-
   function inject() {
     var page = document.getElementById('page-ba');
     if (!page || document.getElementById('ba-kas-tabs')) return;
+
     var tabs = document.createElement('div');
     tabs.id = 'ba-kas-tabs';
     tabs.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem';
     tabs.innerHTML =
       '<button type="button" id="tab-kas-keluar" class="btn btn-primary" style="font-size:0.85rem" onclick="window.switchBaKas(\'keluar\')">Kas Keluar</button>' +
       '<button type="button" id="tab-kas-masuk" class="btn btn-outline" style="font-size:0.85rem" onclick="window.switchBaKas(\'masuk\')">Kas Masuk</button>';
+
     var keluar = document.createElement('div');
     keluar.id = 'ba-panel-keluar';
     while (page.firstChild) keluar.appendChild(page.firstChild);
+
     var h = keluar.querySelector('h3');
-    if (h && /Form Berita Acara/i.test(h.textContent)) h.textContent = 'Kas Keluar — Maintenance / pengeluaran';
-    var masuk = document.createElement('div');
+    if (h) h.textContent = 'Form Kas Keluar';
+    var p = keluar.querySelector('p');
+    if (p && /Catat permintaan/i.test(p.textContent || '')) {
+      p.innerHTML = 'Pengeluaran untuk maintenance / perbaikan. Item dari Aset Tetap atau ketik manual. Status awal: <b>Permintaan</b>.';
+    }
+
+    var masuk = keluar.cloneNode(true);
     masuk.id = 'ba-panel-masuk';
     masuk.style.display = 'none';
-    masuk.innerHTML =
-      '<div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1rem">' +
-      '<h3 style="margin:0 0 0.25rem;font-size:1.05rem">Kas Masuk — Penjualan barang bekas</h3>' +
-      '<p style="margin:0 0 1rem;font-size:0.8rem;color:#64748b">Minyak goreng bekas, galon bekas, dll. Nama dari Aset Tetap atau ketik manual. Status awal: <b>Permintaan</b>.</p>' +
-      '<form id="ba2-form">' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem">' +
-      '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Tanggal *</label>' +
-      '<input type="date" id="ba2-date" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-      '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Lokasi *</label>' +
-      '<select id="ba2-loc" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px">' + locOptions() + '</select></div></div>' +
-      '<div style="margin-top:0.75rem"><label style="font-size:0.72rem;font-weight:600;color:#64748b">Nama *</label>' +
-      '<input list="ba2-name-list" id="ba2-name" required placeholder="Dari Aset Tetap atau ketik manual" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/>' +
-      '<datalist id="ba2-name-list"></datalist></div>' +
-      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:0.75rem">' +
-      '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">UOM</label>' +
-      '<input id="ba2-uom" value="PCS" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-      '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Qty *</label>' +
-      '<input type="number" id="ba2-qty" min="0" step="any" value="1" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-      '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Price *</label>' +
-      '<input type="number" id="ba2-price" min="0" step="any" value="0" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div></div>' +
-      '<div style="margin-top:0.75rem"><label style="font-size:0.72rem;font-weight:600;color:#64748b">Keterangan *</label>' +
-      '<textarea id="ba2-note" rows="2" required placeholder="Contoh: Jual minyak goreng bekas" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"></textarea></div>' +
-      '<div style="margin-top:0.75rem"><label style="font-size:0.72rem;font-weight:600;color:#64748b">Foto</label>' +
-      '<input type="file" id="ba2-foto-file" accept="image/*" style="width:100%;font-size:0.8rem"/>' +
-      '<input type="hidden" id="ba2-foto"/>' +
-      '<img id="ba2-foto-preview" style="display:none;max-width:160px;margin-top:0.4rem;border-radius:8px"/></div>' +
-      '<div style="margin-top:1rem"><button type="submit" class="btn btn-primary" style="padding:0.55rem 1.1rem;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">Simpan Kas Masuk</button></div>' +
-      '</form></div>' +
-      '<div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border)">' +
-      '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;flex-wrap:wrap;gap:0.5rem">' +
-      '<h3 style="margin:0;font-size:1.05rem">Riwayat Kas Masuk</h3>' +
-      '<button type="button" onclick="window.ba2Reload&&ba2Reload()" style="padding:0.35rem 0.7rem;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;font-size:0.78rem">Refresh</button></div>' +
-      '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:0.8rem">' +
-      '<thead><tr style="background:#0b4f37;color:#fff;text-align:left">' +
-      '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th>' +
-      '<th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th>' +
-      '<th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>' +
-      '</tr></thead><tbody id="ba2-table-body"></tbody></table></div></div>';
+    masuk.querySelectorAll('[id]').forEach(function (el) {
+      el.id = 'm-' + el.id;
+    });
+
+    var h2 = masuk.querySelector('h3');
+    if (h2) h2.textContent = 'Form Kas Masuk';
+    var p2 = masuk.querySelector('p');
+    if (p2) p2.innerHTML = 'Penjualan barang bekas (minyak goreng bekas, galon bekas, dll). Nama dari Aset Tetap atau ketik manual. Status awal: <b>Permintaan</b>.';
+
+    var form = masuk.querySelector('form');
+    if (form) {
+      form.id = 'ba2-form';
+      form.removeAttribute('onsubmit');
+    }
+    var btn = masuk.querySelector('button[type="submit"]');
+    if (btn) btn.textContent = 'Simpan Kas Masuk';
+
+    var itemLab = null;
+    masuk.querySelectorAll('label').forEach(function (lb) {
+      if (/Item \(SKU/i.test(lb.textContent || '')) itemLab = lb;
+    });
+    if (itemLab) {
+      itemLab.textContent = 'Nama *';
+      var wrap = itemLab.parentNode;
+      var keep = itemLab;
+      wrap.innerHTML = '';
+      wrap.appendChild(keep);
+      var inp = document.createElement('input');
+      inp.id = 'ba2-name';
+      inp.setAttribute('list', 'ba2-name-list');
+      inp.required = true;
+      inp.placeholder = 'Dari Aset Tetap atau ketik manual';
+      inp.style.cssText = 'width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px';
+      var dl = document.createElement('datalist');
+      dl.id = 'ba2-name-list';
+      wrap.appendChild(inp);
+      wrap.appendChild(dl);
+      var extra = document.createElement('div');
+      extra.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.75rem;margin-top:0.75rem';
+      extra.innerHTML =
+        '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">UOM</label><input id="ba2-uom" value="PCS" style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
+        '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Qty *</label><input type="number" id="ba2-qty" min="0" step="any" value="1" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
+        '<div><label style="font-size:0.72rem;font-weight:600;color:#64748b">Price *</label><input type="number" id="ba2-price" min="0" step="any" value="0" required style="width:100%;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>';
+      wrap.appendChild(extra);
+    }
+
+    var date = masuk.querySelector('#m-ba-date');
+    if (date) date.id = 'ba2-date';
+    var loc = masuk.querySelector('#m-ba-loc');
+    if (loc) loc.id = 'ba2-loc';
+    var note = masuk.querySelector('#m-ba-note');
+    if (note) { note.id = 'ba2-note'; note.placeholder = 'Contoh: Jual minyak goreng bekas'; }
+    var foto = masuk.querySelector('#m-ba-foto');
+    if (foto) foto.id = 'ba2-foto';
+    var ff = masuk.querySelector('#m-ba-foto-file');
+    if (ff) ff.id = 'ba2-foto-file';
+    var prev = masuk.querySelector('#m-ba-foto-preview');
+    if (prev) prev.id = 'ba2-foto-preview';
+
+    var hist = masuk.querySelectorAll('h3')[1];
+    if (hist) hist.textContent = 'Riwayat Kas Masuk';
+    var tb = masuk.querySelector('tbody');
+    if (tb) tb.id = 'ba2-table-body';
+    var ref = masuk.querySelector('button[onclick*="baReload"]');
+    if (ref) {
+      ref.removeAttribute('onclick');
+      ref.onclick = function () { if (window.ba2Reload) window.ba2Reload(); };
+    }
+
     page.appendChild(tabs);
     page.appendChild(keluar);
     page.appendChild(masuk);
+
     fillNames();
     var dt = document.getElementById('ba2-date');
     if (dt && !dt.value) dt.value = today();
-    var form = document.getElementById('ba2-form');
-    if (form) form.addEventListener('submit', onSubmit);
-    var ff = document.getElementById('ba2-foto-file');
-    if (ff) ff.addEventListener('change', onFoto);
+    var f = document.getElementById('ba2-form');
+    if (f) f.addEventListener('submit', onSubmit);
+    var file = document.getElementById('ba2-foto-file');
+    if (file) file.addEventListener('change', onFoto);
     document.addEventListener('click', onAksi, true);
     window.ba2Render();
   }
@@ -111,7 +147,7 @@ window.switchBaKas = function (which) {
     var dl = document.getElementById('ba2-name-list');
     if (!dl) return;
     dl.innerHTML = namesList().map(function (n) {
-      return '<option value="' + n.replace(/"/g, '"') + '">';
+      return '<option value="' + String(n).replace(/"/g, '"') + '">';
     }).join('');
   }
 
@@ -139,55 +175,53 @@ window.switchBaKas = function (which) {
 
   function onSubmit(e) {
     e.preventDefault();
-    var name = (document.getElementById('ba2-name').value || '').trim();
-    var loc = (document.getElementById('ba2-loc').value || '').trim();
-    var note = (document.getElementById('ba2-note').value || '').trim();
-    var date = document.getElementById('ba2-date').value || today();
-    var qty = parseFloat(document.getElementById('ba2-qty').value) || 0;
-    var price = parseFloat(document.getElementById('ba2-price').value) || 0;
+    var nameEl = document.getElementById('ba2-name');
+    var locEl = document.getElementById('ba2-loc');
+    var noteEl = document.getElementById('ba2-note');
+    var dateEl = document.getElementById('ba2-date');
+    var qtyEl = document.getElementById('ba2-qty');
+    var priceEl = document.getElementById('ba2-price');
+    var name = nameEl ? (nameEl.value || '').trim() : '';
+    var loc = locEl ? (locEl.value || '').trim() : '';
+    var note = noteEl ? (noteEl.value || '').trim() : '';
+    var date = dateEl && dateEl.value ? dateEl.value : today();
+    var qty = qtyEl ? parseFloat(qtyEl.value) || 0 : 0;
+    var price = priceEl ? parseFloat(priceEl.value) || 0 : 0;
     if (!name || !loc || !note) { alert('Lengkapi Nama, Lokasi, dan Keterangan'); return false; }
     var row = {
-      id: 'BA2' + Date.now(),
-      sheet: 'BA2',
-      jenis: 'Kas Masuk',
+      id: 'BA2' + Date.now(), sheet: 'BA2', jenis: 'Kas Masuk',
       date: date, nama: name, name: name,
-      uom: (document.getElementById('ba2-uom').value || 'PCS'),
+      uom: ((document.getElementById('ba2-uom') || {}).value || 'PCS'),
       qty: qty, price: price, total: price * qty,
-      keterangan: note,
-      foto: (document.getElementById('ba2-foto').value || ''),
-      loc: loc,
-      status: 'Permintaan',
-      tglPermintaan: date,
+      keterangan: note, foto: ((document.getElementById('ba2-foto') || {}).value || ''),
+      loc: loc, status: 'Permintaan', tglPermintaan: date,
       tglPenawaran: '', tglProses: '', tglSelesai: '', tglTolak: '',
-      revisi: 1, diubahOleh: window.USER_EMAIL || '', catatanStatus: '',
-      by: window.USER_EMAIL || ''
+      revisi: 1, diubahOleh: window.USER_EMAIL || '', catatanStatus: '', by: window.USER_EMAIL || ''
     };
-    var list = localLoad();
-    list.unshift(row);
-    localSave(list);
+    var list = localLoad(); list.unshift(row); localSave(list);
     window.ba2Render(list);
     pushSheet(row);
-    document.getElementById('ba2-form').reset();
-    var dt = document.getElementById('ba2-date'); if (dt) dt.value = today();
+    var form = document.getElementById('ba2-form');
+    if (form) form.reset();
+    if (dateEl) dateEl.value = today();
     var pv = document.getElementById('ba2-foto-preview'); if (pv) pv.style.display = 'none';
     var hid = document.getElementById('ba2-foto'); if (hid) hid.value = '';
     return false;
   }
 
   async function pushSheet(row) {
-    var url = apiUrl();
-    if (!url) return;
-    var payload = {
-      action: 'saveBA2',
-      id: row.id, date: row.date, name: row.name, nama: row.nama,
-      uom: row.uom, qty: row.qty, price: row.price, total: row.total,
-      keterangan: row.keterangan, foto: row.foto ? 'ada' : '',
-      loc: row.loc, status: row.status,
-      tglPermintaan: row.tglPermintaan, revisi: row.revisi,
-      diubahOleh: row.diubahOleh, by: row.by, sheet: 'BA2'
-    };
+    var url = apiUrl(); if (!url) return;
     try {
-      await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(payload) });
+      await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          action: 'saveBA2', id: row.id, date: row.date, name: row.name, nama: row.nama,
+          uom: row.uom, qty: row.qty, price: row.price, total: row.total,
+          keterangan: row.keterangan, foto: row.foto, loc: row.loc, status: row.status,
+          tglPermintaan: row.tglPermintaan, revisi: row.revisi, by: row.by, sheet: 'BA2'
+        })
+      });
     } catch (e) {}
   }
 
@@ -197,14 +231,14 @@ window.switchBaKas = function (which) {
     list = list || localLoad();
     if (window.baFilterOutlet) list = window.baFilterOutlet(list);
     if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data Kas Masuk</td></tr>';
+      tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
       return;
     }
-    var td = 'padding:0.55rem 0.5rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+    var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
     tb.innerHTML = list.map(function (r) {
       var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
       var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-      aksi = aksi.replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
+      aksi = String(aksi).replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
       return '<tr>' +
         '<td style="' + td + '">' + (r.date || '') + '</td>' +
         '<td style="' + td + '">' + (r.name || r.nama || '') + '</td>' +
@@ -214,7 +248,7 @@ window.switchBaKas = function (which) {
         '<td style="' + td + ';text-align:right;font-weight:600">' + fmt(r.total || (r.price * r.qty)) + '</td>' +
         '<td style="' + td + '">' + (r.keterangan || '') + '</td>' +
         '<td style="' + td + ';white-space:nowrap">' + badge + '</td>' +
-        '<td style="' + td + ';white-space:nowrap"><div class="ba-aksi-wrap">' + aksi + '</div></td></tr>';
+        '<td style="' + td + ';white-space:nowrap">' + aksi + '</td></tr>';
     }).join('');
   };
 
@@ -244,33 +278,25 @@ window.switchBaKas = function (which) {
       var pick = confirm('OK = Tetap Tolak\nCancel = lanjut Tahap Penawaran berikutnya');
       if (!pick) {
         var cur0 = localLoad().find(function (x) { return String(x.id) === String(id); });
-        var n = (cur0 && Number(cur0.revisi) || 1) + 1;
-        status = 'Tahap Penawaran ' + n;
+        status = 'Tahap Penawaran ' + ((cur0 && Number(cur0.revisi) || 1) + 1);
       }
       catatan = prompt('Catatan status (opsional):', '') || '';
     }
     var now = today();
     var list = localLoad().map(function (r) {
       if (String(r.id) !== String(id)) return r;
-      r.status = status;
-      r.catatanStatus = catatan;
-      r.diubahOleh = window.USER_EMAIL || '';
+      r.status = status; r.catatanStatus = catatan; r.diubahOleh = window.USER_EMAIL || '';
       if (String(status).indexOf('Penawaran') >= 0) { r.tglPenawaran = now; r.revisi = Number(String(status).replace(/\D/g, '')) || r.revisi || 1; }
       if (status === 'Sedang Proses') r.tglProses = now;
       if (status === 'Done' || status === 'Selesai') r.tglSelesai = now;
       if (status === 'Tolak') r.tglTolak = now;
       return r;
     });
-    localSave(list);
-    window.ba2Render(list);
+    localSave(list); window.ba2Render(list);
     var url = apiUrl();
     if (url) {
       try {
-        await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'updateBA2Status', id: id, status: status, catatanStatus: catatan, by: window.USER_EMAIL || '' })
-        });
+        await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'updateBA2Status', id: id, status: status, catatanStatus: catatan, by: window.USER_EMAIL || '' }) });
       } catch (e) {}
     }
   }
@@ -279,39 +305,21 @@ window.switchBaKas = function (which) {
     if (!window.USER_CAN_EDIT) { alert('Hanya Admin yang bisa hapus'); return; }
     if (!confirm('Hapus Kas Masuk ini?')) return;
     var list = localLoad().filter(function (x) { return String(x.id) !== String(id); });
-    localSave(list);
-    window.ba2Render(list);
+    localSave(list); window.ba2Render(list);
     var url = apiUrl();
     if (url) {
-      try {
-        await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'deleteBA2', id: id })
-        });
-      } catch (e) {}
+      try { await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action: 'deleteBA2', id: id }) }); } catch (e) {}
     }
   }
 
   function onAksi(ev) {
     var st = ev.target && ev.target.closest && ev.target.closest('.ba2-st-btn');
-    if (st) {
-      ev.preventDefault();
-      ba2UpdateStatus(st.getAttribute('data-ba-id'), st.getAttribute('data-ba-next'));
-      return;
-    }
+    if (st) { ev.preventDefault(); ba2UpdateStatus(st.getAttribute('data-ba-id'), st.getAttribute('data-ba-next')); return; }
     var del = ev.target && ev.target.closest && ev.target.closest('.ba2-del-btn');
-    if (del) {
-      ev.preventDefault();
-      ba2Delete(del.getAttribute('data-ba-id'));
-    }
+    if (del) { ev.preventDefault(); ba2Delete(del.getAttribute('data-ba-id')); }
   }
 
-  window.ba2Init = function () {
-    inject();
-    fillNames();
-  };
-
+  window.ba2Init = function () { inject(); fillNames(); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
   else inject();
   setTimeout(inject, 400);
