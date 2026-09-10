@@ -82,6 +82,59 @@
     });
     document.querySelectorAll('.ba-aksi-spin').forEach(function (x) { x.remove(); });
   }
+  function clearKeluar() {
+    var box = document.getElementById('ba-lines');
+    if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
+    ['ba-note','ba-foto','ba-sku','ba-name'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = '';
+      else el.textContent = '';
+    });
+    var q = document.getElementById('ba-qty'); if (q) q.value = 1;
+    var p = document.getElementById('ba-price'); if (p) p.value = 0;
+    var pv = document.getElementById('ba-foto-preview'); if (pv) { pv.style.display = 'none'; pv.removeAttribute('src'); }
+    var ff = document.getElementById('ba-foto-file'); if (ff) ff.value = '';
+  }
+  function clearMasuk() {
+    var box = document.getElementById('ba2-lines');
+    if (box) {
+      box.innerHTML = '';
+      box.insertAdjacentHTML('beforeend',
+        '<div class="ba2-line" style="margin-bottom:0.65rem;padding:0.65rem;border:1px solid var(--border);border-radius:10px;background:#fafafa">' +
+        '<div style="display:flex;gap:0.4rem;align-items:flex-start"><div style="flex:1;min-width:0">' +
+        '<label style="font-size:0.65rem;color:#64748b">Nama barang</label>' +
+        '<input list="ba2-name-list" class="ba2-line-name" placeholder="Ketik nama item..." style="width:100%;box-sizing:border-box;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
+        '<button type="button" class="ba2-line-del" style="margin-top:1.15rem;border:none;background:#fee2e2;color:#b91c1c;border-radius:8px;height:38px;width:38px">×</button></div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.35rem">' +
+        '<div><label style="font-size:0.65rem;color:#64748b">Qty</label><input type="number" class="ba2-line-qty" min="1" value="1" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div>' +
+        '<div><label style="font-size:0.65rem;color:#64748b">Uom</label><input type="text" class="ba2-line-uom" value="PCS" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div>' +
+        '<div><label style="font-size:0.65rem;color:#64748b">Price</label><input type="number" class="ba2-line-price" min="0" value="0" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div></div></div>');
+    }
+    var n = document.getElementById('ba2-note'); if (n) n.value = '';
+    var f = document.getElementById('ba2-foto'); if (f) f.value = '';
+    var pv = document.getElementById('ba2-foto-preview'); if (pv) { pv.style.display = 'none'; pv.removeAttribute('src'); }
+    var ff = document.getElementById('ba2-foto-file'); if (ff) ff.value = '';
+  }
+  function hookClearForms() {
+    if (window.__baClearHook) return;
+    window.__baClearHook = true;
+    if (typeof window.baSubmit === 'function' && !window.baSubmit._clr) {
+      var prev = window.baSubmit;
+      window.baSubmit = function (e) {
+        var ret = prev.apply(this, arguments);
+        setTimeout(clearKeluar, 30);
+        setTimeout(clearKeluar, 400);
+        return ret;
+      };
+      window.baSubmit._clr = true;
+    }
+    document.addEventListener('submit', function (ev) {
+      var id = ev.target && ev.target.id;
+      if (id === 'ba-form') setTimeout(clearKeluar, 30);
+      if (id === 'ba2-form') setTimeout(clearMasuk, 30);
+    }, true);
+  }
   function hookLoading() {
     if (window.__baLoadHook) return;
     window.__baLoadHook = true;
@@ -105,6 +158,7 @@
   }
   function hookSheetFirst() {
     hookLoading();
+    hookClearForms();
     if (window.__baSheetFirst) return;
     window.__baSheetFirst = true;
     var prevRel = window.baReload;
@@ -208,10 +262,12 @@
     hookSheetFirst();
     hookBa2Sheet();
     hookBaKeluarCols();
+    hookClearForms();
     function after() {
       hookSheetFirst();
       hookBa2Sheet();
       hookBaKeluarCols();
+      hookClearForms();
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
         window.ba2Render = function (list) { prev(markDone(list)); fixBa2Table(); };
@@ -223,7 +279,7 @@
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=11';
+    s.src = 'ba2.js?v=12';
     s.onload = after;
     document.body.appendChild(s);
   }
