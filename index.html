@@ -63,105 +63,61 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
-  function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-  function priceOf(r) {
-    var p = Number(r.price || r.Price || 0) || 0;
-    if (p) return p;
-    var sku = String(r.sku || '').trim();
-    try {
-      (window.uniqueData || []).some(function (it) {
-        if (String(it.sku || '') === sku) { p = Number(it.price || it.Price || 0) || 0; return true; }
-        return false;
-      });
-    } catch (e) {}
-    return p;
-  }
-  function resetBtns() {
-    document.querySelectorAll('button').forEach(function (b) {
-      if (b.textContent === 'Loading') { b.disabled = false; b.textContent = 'Refresh'; }
-    });
-    document.querySelectorAll('.ba-aksi-spin').forEach(function (x) { x.remove(); });
-  }
-  function clearKeluar() {
-    var box = document.getElementById('ba-lines');
-    if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
-    ['ba-note','ba-foto','ba-sku','ba-name'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el) return;
-      if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') el.value = '';
-      else el.textContent = '';
-    });
-    var q = document.getElementById('ba-qty'); if (q) q.value = 1;
-    var p = document.getElementById('ba-price'); if (p) p.value = 0;
-    var pv = document.getElementById('ba-foto-preview'); if (pv) { pv.style.display = 'none'; pv.removeAttribute('src'); }
-    var ff = document.getElementById('ba-foto-file'); if (ff) ff.value = '';
-  }
-  function clearMasuk() {
-    var box = document.getElementById('ba2-lines');
-    if (box) {
-      box.innerHTML = '';
-      box.insertAdjacentHTML('beforeend',
-        '<div class="ba2-line" style="margin-bottom:0.65rem;padding:0.65rem;border:1px solid var(--border);border-radius:10px;background:#fafafa">' +
-        '<div style="display:flex;gap:0.4rem;align-items:flex-start"><div style="flex:1;min-width:0">' +
-        '<label style="font-size:0.65rem;color:#64748b">Nama barang</label>' +
-        '<input list="ba2-name-list" class="ba2-line-name" placeholder="Ketik nama item..." style="width:100%;box-sizing:border-box;padding:0.5rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-        '<button type="button" class="ba2-line-del" style="margin-top:1.15rem;border:none;background:#fee2e2;color:#b91c1c;border-radius:8px;height:38px;width:38px">×</button></div>' +
-        '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem;margin-top:0.35rem">' +
-        '<div><label style="font-size:0.65rem;color:#64748b">Qty</label><input type="number" class="ba2-line-qty" min="1" value="1" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-        '<div><label style="font-size:0.65rem;color:#64748b">Uom</label><input type="text" class="ba2-line-uom" value="PCS" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div>' +
-        '<div><label style="font-size:0.65rem;color:#64748b">Price</label><input type="number" class="ba2-line-price" min="0" value="0" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"/></div></div></div>');
-    }
-    var n = document.getElementById('ba2-note'); if (n) n.value = '';
-    var f = document.getElementById('ba2-foto'); if (f) f.value = '';
-    var pv = document.getElementById('ba2-foto-preview'); if (pv) { pv.style.display = 'none'; pv.removeAttribute('src'); }
-    var ff = document.getElementById('ba2-foto-file'); if (ff) ff.value = '';
+  function loadExtra(src, id) {
+    if (document.getElementById(id)) return;
+    var s = document.createElement('script');
+    s.id = id;
+    s.src = src;
+    document.body.appendChild(s);
   }
   function hookClearForms() {
     if (window.__baClearHook) return;
     window.__baClearHook = true;
-    if (typeof window.baSubmit === 'function' && !window.baSubmit._clr) {
-      var prev = window.baSubmit;
-      window.baSubmit = function (e) {
-        var ret = prev.apply(this, arguments);
-        setTimeout(clearKeluar, 30);
-        setTimeout(clearKeluar, 400);
-        return ret;
-      };
-      window.baSubmit._clr = true;
-    }
     document.addEventListener('submit', function (ev) {
       var id = ev.target && ev.target.id;
-      if (id === 'ba-form') setTimeout(clearKeluar, 30);
-      if (id === 'ba2-form') setTimeout(clearMasuk, 30);
+      if (id === 'ba-form') {
+        setTimeout(function () {
+          var box = document.getElementById('ba-lines');
+          if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
+          var n = document.getElementById('ba-note'); if (n) n.value = '';
+          var f = document.getElementById('ba-foto'); if (f) f.value = '';
+        }, 40);
+      }
+      if (id === 'ba2-form') {
+        setTimeout(function () {
+          var box = document.getElementById('ba2-lines');
+          if (box) {
+            var first = box.querySelector('.ba2-line');
+            box.querySelectorAll('.ba2-line').forEach(function (el, i) { if (i) el.remove(); });
+            if (first) {
+              first.querySelectorAll('input').forEach(function (inp) {
+                if (inp.classList.contains('ba2-line-qty')) inp.value = 1;
+                else if (inp.classList.contains('ba2-line-uom')) inp.value = 'PCS';
+                else if (inp.classList.contains('ba2-line-price')) inp.value = 0;
+                else inp.value = '';
+              });
+            }
+          }
+          var n = document.getElementById('ba2-note'); if (n) n.value = '';
+        }, 40);
+      }
     }, true);
   }
   function hookLoading() {
     if (window.__baLoadHook) return;
     window.__baLoadHook = true;
     document.addEventListener('click', function (ev) {
-      var t = ev.target && ev.target.closest && ev.target.closest('.ba-st-btn, .ba-del-btn, .ba2-del-btn');
-      if (t) {
-        var td = t.closest('td');
-        if (td && !td.querySelector('.ba-aksi-spin')) {
-          var s = document.createElement('span');
-          s.className = 'ba-aksi-spin';
-          s.textContent = ' ...';
-          td.appendChild(s);
-        }
-        setTimeout(resetBtns, 8000);
-      }
       var r = ev.target && ev.target.closest && ev.target.closest('button');
       if (r && /^Refresh$/i.test((r.textContent || '').trim())) {
-        r.disabled = true; r.textContent = 'Loading'; setTimeout(resetBtns, 8000);
+        r.disabled = true; r.textContent = 'Loading';
+        setTimeout(function () { r.disabled = false; r.textContent = 'Refresh'; }, 8000);
       }
     }, true);
   }
   function hookSheetFirst() {
-    hookLoading();
-    hookClearForms();
+    hookLoading(); hookClearForms();
     if (window.__baSheetFirst) return;
     window.__baSheetFirst = true;
-    var prevRel = window.baReload;
     window.baSyncFromSheet = async function () {
       var url = String(window.API_URL || '').replace(/\/$/, '');
       if (!url) { try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { return []; } }
@@ -175,11 +131,8 @@
       } catch (e) {}
       try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
     };
-    if (prevRel && !window.baReload._wrapped) {
-      window.baReload = async function () { try { await prevRel(); } finally { resetBtns(); } };
-      window.baReload._wrapped = true;
-    }
   }
+  function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   function hookBaKeluarCols() {
     if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
     window.baRenderTable = function (list) {
@@ -198,7 +151,7 @@
       }
       var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
       tb.innerHTML = list.map(function (r) {
-        var pr = priceOf(r);
+        var pr = Number(r.price || 0) || 0;
         var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
         var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
         var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
@@ -244,7 +197,6 @@
       items = markDone(items);
       try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(items)); } catch (e) {}
       if (window.ba2Render) window.ba2Render(items);
-      resetBtns();
       return items;
     };
   }
@@ -259,15 +211,10 @@
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
   function loadBa2() {
-    hookSheetFirst();
-    hookBa2Sheet();
-    hookBaKeluarCols();
-    hookClearForms();
+    hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
+    loadExtra('ba-report.js?v=1', 'ba-report-script');
     function after() {
-      hookSheetFirst();
-      hookBa2Sheet();
-      hookBaKeluarCols();
-      hookClearForms();
+      hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
       if (typeof window.ba2Render === 'function' && !window.ba2Render._fixedHead) {
         var prev = window.ba2Render;
         window.ba2Render = function (list) { prev(markDone(list)); fixBa2Table(); };
