@@ -304,3 +304,21 @@
 </script>
 </body>
 </html>
+<!-- Script Lainnya di bawah index.html -->
+    <script src="app.js"></script>
+
+    <!-- TAMBAHKAN KODE INI DI PALING BAWAH SEBELUM </body> -->
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        // Mengunci otomatis lokasi sesuai akun login aktif (NR SP)
+        var activeOutlet = "Nanyang Roastery - Sun Plaza Medan"; 
+        var selectLoc = document.getElementById("lokasi"); // Ganti ID jika id elemen select Anda berbeda
+        
+        if (selectLoc) {
+          selectLoc.value = activeOutlet;
+          selectLoc.disabled = true; // Membuatnya terkunci (tidak bisa diubah user lain)
+        }
+      });
+    </script>
+</body>
+</html>
