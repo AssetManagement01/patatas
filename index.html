@@ -70,38 +70,62 @@
     s.src = src;
     document.body.appendChild(s);
   }
+
+  // OVERRIDE FETCH UNTUK MEMASTIKAN VALUE DEFAULT 0 DAN LINK FOTO TERKIRIM DENGAN BENAR
+  var _origFetch = window.fetch;
+  window.fetch = function (url, opt) {
+    try {
+      if (opt && opt.body && typeof opt.body === 'string') {
+        var str = opt.body;
+        if (str.indexOf('saveBA') >= 0 || str.indexOf('action=saveBA') >= 0) {
+          var payload = JSON.parse(str);
+          if (Array.isArray(payload.items)) {
+            payload.items.forEach(function(item) {
+              if (item.price === undefined || item.price === null || item.price === '') item.price = 0;
+              if (item.total === undefined || item.total === null || item.total === '') item.total = 0;
+              if (!item.status) item.status = 'Permintaan';
+            });
+            opt = Object.assign({}, opt, { body: JSON.stringify(payload) });
+          }
+        }
+      }
+    } catch (e) {}
+    return _origFetch.call(this, url, opt);
+  };
+
   function hookClearForms() {
     if (window.__baClearHook) return;
     window.__baClearHook = true;
     document.addEventListener('submit', function (ev) {
       var id = ev.target && ev.target.id;
-      if (id === 'ba-form') {
+      if (id === 'ba-form' || id === 'ba2-form') {
         setTimeout(function () {
-          var box = document.getElementById('ba-lines');
-          if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
-          var n = document.getElementById('ba-note'); if (n) n.value = '';
-        }, 40);
-      }
-      if (id === 'ba2-form') {
-        setTimeout(function () {
-          var box = document.getElementById('ba2-lines');
-          if (box) {
-            var first = box.querySelector('.ba2-line');
-            box.querySelectorAll('.ba2-line').forEach(function (el, i) { if (i) el.remove(); });
-            if (first) {
-              first.querySelectorAll('input').forEach(function (inp) {
-                if (inp.classList.contains('ba2-line-qty')) inp.value = 1;
-                else if (inp.classList.contains('ba2-line-uom')) inp.value = 'PCS';
-                else if (inp.classList.contains('ba2-line-price')) inp.value = 0;
-                else inp.value = '';
-              });
+          if (id === 'ba-form') {
+            var box = document.getElementById('ba-lines');
+            if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
+            var n = document.getElementById('ba-note'); if (n) n.value = '';
+          } else if (id === 'ba2-form') {
+            var box2 = document.getElementById('ba2-lines');
+            if (box2) {
+              var first = box2.querySelector('.ba2-line');
+              box2.querySelectorAll('.ba2-line').forEach(function (el, i) { if (i) el.remove(); });
+              if (first) {
+                first.querySelectorAll('input').forEach(function (inp) {
+                  if (inp.classList.contains('ba2-line-qty')) inp.value = 1;
+                  else if (inp.classList.contains('ba2-line-uom')) inp.value = 'PCS';
+                  else if (inp.classList.contains('ba2-line-price')) inp.value = 0;
+                  else inp.value = '';
+                });
+              }
             }
+            var n2 = document.getElementById('ba2-note'); if (n2) n2.value = '';
           }
-          var n = document.getElementById('ba2-note'); if (n) n.value = '';
-        }, 40);
+          if (window.baSyncFromSheet) window.baSyncFromSheet();
+        }, 1200);
       }
     }, true);
   }
+
   function hookLoading() {
     if (window.__baLoadHook) return;
     window.__baLoadHook = true;
@@ -109,10 +133,12 @@
       var r = ev.target && ev.target.closest && ev.target.closest('button');
       if (r && /^Refresh$/i.test((r.textContent || '').trim())) {
         r.disabled = true; r.textContent = 'Loading';
-        setTimeout(function () { r.disabled = false; r.textContent = 'Refresh'; }, 8000);
+        if (window.baSyncFromSheet) window.baSyncFromSheet();
+        setTimeout(function () { r.disabled = false; r.textContent = 'Refresh'; }, 3000);
       }
     }, true);
   }
+
   function hookSheetFirst() {
     hookLoading(); hookClearForms();
     if (window.__baSheetFirst) return;
@@ -125,13 +151,16 @@
         var data = await res.json();
         if (data && data.ok && Array.isArray(data.items)) {
           try { localStorage.setItem('patatas_ba_v1', JSON.stringify(data.items)); } catch (e) {}
+          if (typeof window.baRenderTable === 'function') window.baRenderTable(data.items);
           return data.items;
         }
       } catch (e) {}
       try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
     };
   }
+
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
+
   function hookBaKeluarCols() {
     if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
     window.baRenderTable = function (list) {
@@ -160,6 +189,7 @@
     window.baRenderTable._price = true;
     try { window.baRenderTable(); } catch (e) {}
   }
+
   function markDone(list) {
     return (list || []).map(function (r) {
       var x = {};
@@ -168,6 +198,7 @@
       return x;
     });
   }
+
   function hookBa2Sheet() {
     var _fetch = window.fetch;
     if (!_fetch._ba2done) {
@@ -199,6 +230,7 @@
       return items;
     };
   }
+
   function fixBa2Table() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -209,6 +241,7 @@
     }
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
+
   function renderBa2WithUom(list) {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -231,6 +264,7 @@
     }).join('');
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
+
   function loadBa2() {
     hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
@@ -240,6 +274,7 @@
       window.ba2Render._fixedHead = true;
       if (window.ba2Init) window.ba2Init();
       renderBa2WithUom();
+      if (window.baSyncFromSheet) window.baSyncFromSheet();
     }
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
@@ -249,14 +284,12 @@
     document.body.appendChild(s);
   }
 
-  // Muat HTML utama terlebih dahulu secara langsung
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
       document.open(); document.write(html); document.close();
 
-      // Setelah HTML di-write, proses logo dan modul pendukung
       var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
       Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }))
         .then(async function (chunks) {
