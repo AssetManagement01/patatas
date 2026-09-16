@@ -94,7 +94,6 @@ window.switchBaKas = function (which) {
       if (/Item \(SKU/i.test(t)) lb.textContent = 'Item (nama manual atau Aset Tetap)';
       if (/Foto Bukti/i.test(t)) lb.textContent = 'Bukti foto/PDF (opsional)';
     });
-    var addBtn = masuk.querySelector('#m-ba-add-sku, button');
     masuk.querySelectorAll('button').forEach(function (b) {
       if (/Tambah SKU/i.test(b.textContent || '')) {
         b.textContent = '+ Tambah item';
@@ -124,6 +123,16 @@ window.switchBaKas = function (which) {
     var hist = masuk.querySelectorAll('h3')[1];
     if (hist) hist.textContent = 'Riwayat Kas Masuk';
     var tb = masuk.querySelector('tbody'); if (tb) tb.id = 'ba2-table-body';
+    
+    // Perbarui header tabel Kas Masuk agar urutannya konsisten
+    var tableEl = tb ? tb.closest('table') : null;
+    if (tableEl) {
+      var theadTr = tableEl.querySelector('thead tr');
+      if (theadTr) {
+        theadTr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+      }
+    }
+
     masuk.querySelectorAll('button').forEach(function (b) {
       if (/Refresh/i.test(b.textContent || '')) {
         b.removeAttribute('onclick');
@@ -247,15 +256,28 @@ window.switchBaKas = function (which) {
     list = list || localLoad();
     if (window.baFilterOutlet) list = window.baFilterOutlet(list);
     if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+      tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
       return;
     }
     var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
     tb.innerHTML = list.map(function (r) {
+      var pr = Number(r.price || 0) || 0;
+      var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
       var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
       var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
       aksi = String(aksi).replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(r.total||(r.price*r.qty))+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+      return '<tr>' +
+        '<td style="'+td+'">'+(r.date||'')+'</td>' +
+        '<td style="'+td+'">'+(r.name||r.nama||'')+'</td>' +
+        '<td style="'+td+'">'+(r.loc||'')+'</td>' +
+        '<td style="'+td+';text-align:center">'+(r.qty||0)+'</td>' +
+        '<td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td>' +
+        '<td style="'+td+';text-align:right">'+fmt(pr)+'</td>' +
+        '<td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td>' +
+        '<td style="'+td+'">'+(r.keterangan||'')+'</td>' +
+        '<td style="'+td+';white-space:nowrap">'+badge+'</td>' +
+        '<td style="'+td+';white-space:nowrap">'+aksi+'</td>' +
+      '</tr>';
     }).join('');
   };
 
@@ -302,6 +324,7 @@ window.switchBaKas = function (which) {
       try { await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'updateBA2Status', id:id, status:status, catatanStatus:catatan, by: window.USER_EMAIL||'' }) }); } catch (e) {}
     }
   }
+
   async function ba2Delete(id) {
     if (!window.USER_CAN_EDIT) { alert('Hanya Admin yang bisa hapus'); return; }
     if (!confirm('Hapus Kas Masuk ini?')) return;
@@ -310,6 +333,7 @@ window.switchBaKas = function (which) {
     var url = apiUrl();
     if (url) { try { await fetch(url, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify({ action:'deleteBA2', id:id }) }); } catch (e) {} }
   }
+
   function onAksi(ev) {
     var st = ev.target && ev.target.closest && ev.target.closest('.ba2-st-btn');
     if (st) { ev.preventDefault(); ba2UpdateStatus(st.getAttribute('data-ba-id'), st.getAttribute('data-ba-next')); return; }
