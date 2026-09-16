@@ -4,49 +4,302 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>ASSET PATATAS GROUP — Enterprise</title>
-<style>
-  /* Sembunyikan halaman sebentar agar tidak kedap-kedip saat penyesuaian */
-  body { opacity: 0; transition: opacity 0.2s ease; }
-</style>
 </head>
 <body>
-
-<!-- Muat file utama secara langsung atau struktur dasar aplikasi Anda di sini -->
-<script src="ba2.js?v=13"></script>
 <script>
-  // Sesuaikan otomatis judul
-  document.addEventListener("DOMContentLoaded", function() {
-    document.querySelectorAll('h1').forEach(function(h) {
-      if (/Empowering/i.test(h.innerHTML)) h.innerHTML = h.innerHTML.replace(/Empowering/gi, 'Elevating');
+(function () {
+  function applyHeadline() {
+    document.querySelectorAll('h1').forEach(function (h) {
+      if (h && /Empowering/i.test(h.innerHTML)) h.innerHTML = h.innerHTML.replace(/Empowering/gi, 'Elevating');
     });
-  });
+  }
+  function punchBg(src) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = im.width; c.height = im.height;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(im, 0, 0);
+        var imgd = ctx.getImageData(0, 0, c.width, c.height);
+        var d = imgd.data, br = d[0], bg = d[1], bb = d[2];
+        for (var i = 0; i < d.length; i += 4) {
+          var r = d[i], g = d[i+1], b = d[i+2];
+          var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
+          var luma = 0.299*r + 0.587*g + 0.114*b;
+          if (dist < 32 || luma > 228) d[i+3] = 0;
+          else if (dist < 55 || luma > 205) d[i+3] = Math.min(d[i+3], Math.floor(255 * ((dist-32)/23)));
+        }
+        ctx.putImageData(imgd, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      };
+      im.onerror = function () { resolve(src); };
+      im.src = src;
+    });
+  }
+  function makeWhite(src) {
+    return new Promise(function (resolve) {
+      var im = new Image();
+      im.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = im.width; c.height = im.height;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(im, 0, 0);
+        var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
+        for (var i = 0; i < d.length; i += 4) { if (d[i+3] > 0) { d[i]=255; d[i+1]=255; d[i+2]=255; } }
+        ctx.putImageData(imgd, 0, 0);
+        resolve(c.toDataURL('image/png'));
+      };
+      im.onerror = function () { resolve(src); };
+      im.src = src;
+    });
+  }
+  function applyNewLogo(src, srcWhite) {
+    if (!src) return;
+    document.querySelectorAll('.brand img').forEach(function (img) {
+      img.src = src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = 'none'; img.style.mixBlendMode = 'normal';
+    });
+    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
+      img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
+    });
+  }
+  function loadExtra(src, id) {
+    if (document.getElementById(id)) return;
+    var s = document.createElement('script');
+    s.id = id;
+    s.src = src;
+    document.body.appendChild(s);
+  }
 
-  // Pemantau tunggal yang langsung mengunci form begitu elemen 'ba-loc' terdeteksi
-  const lockInterval = setInterval(function() {
-    var selectLoc = document.getElementById("ba-loc");
-    if (!selectLoc) return;
-
-    var bodyText = document.body.innerText || "";
-    var targetOutlet = "";
-
-    // Cek teks sidebar dengan pasti
-    if (bodyText.indexOf("NR KJK") >= 0 || bodyText.indexOf("Kejaksaan Medan") >= 0) {
-      targetOutlet = "Nanyang Roastery - Kejaksaan Medan";
-    } else if (bodyText.indexOf("NR SP") >= 0 || bodyText.indexOf("Sun Plaza Medan") >= 0) {
-      targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
-    }
-
-    if (targetOutlet) {
-      if (selectLoc.value !== targetOutlet) {
-        selectLoc.value = targetOutlet;
-        selectLoc.dispatchEvent(new Event('change', { bubbles: true }));
+  var _origFetch = window.fetch;
+  window.fetch = function (url, opt) {
+    try {
+      if (opt && opt.body && typeof opt.body === 'string') {
+        var str = opt.body;
+        if (str.indexOf('saveBA') >= 0 || str.indexOf('action=saveBA') >= 0) {
+          var payload = JSON.parse(str);
+          if (Array.isArray(payload.items)) {
+            payload.items.forEach(function(item) {
+              if (item.price === undefined || item.price === null || item.price === '') item.price = 0;
+              if (item.total === undefined || item.total === null || item.total === '') item.total = 0;
+              if (!item.status) item.status = 'Permintaan';
+            });
+            opt = Object.assign({}, opt, { body: JSON.stringify(payload) });
+          }
+        }
       }
-      selectLoc.disabled = true;
-      selectLoc.style.backgroundColor = "#f1f5f9";
-      document.body.style.opacity = "1"; // Munculkan kembali setelah terkunci rapi
-      clearInterval(lockInterval); // Hentikan pemantau jika sudah berhasil terkunci
+    } catch (e) {}
+    return _origFetch.call(this, url, opt);
+  };
+
+  function hookClearForms() {
+    if (window.__baClearHook) return;
+    window.__baClearHook = true;
+    document.addEventListener('submit', function (ev) {
+      var id = ev.target && ev.target.id;
+      if (id === 'ba-form' || id === 'ba2-form') {
+        setTimeout(function () {
+          if (id === 'ba-form') {
+            var box = document.getElementById('ba-lines');
+            if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
+            var n = document.getElementById('ba-note'); if (n) n.value = '';
+          } else if (id === 'ba2-form') {
+            var box2 = document.getElementById('ba2-lines');
+            if (box2) {
+              var first = box2.querySelector('.ba2-line');
+              box2.querySelectorAll('.ba2-line').forEach(function (el, i) { if (i) el.remove(); });
+              if (first) {
+                first.querySelectorAll('input').forEach(function (inp) {
+                  if (inp.classList.contains('ba2-line-qty')) inp.value = 1;
+                  else if (inp.classList.contains('ba2-line-uom')) inp.value = 'PCS';
+                  else if (inp.classList.contains('ba2-line-price')) inp.value = 0;
+                  else inp.value = '';
+                });
+              }
+            }
+            var n2 = document.getElementById('ba2-note'); if (n2) n2.value = '';
+          }
+          if (window.baSyncFromSheet) window.baSyncFromSheet();
+        }, 1200);
+      }
+    }, true);
+  }
+
+  function hookLoading() {
+    if (window.__baLoadHook) return;
+    window.__baLoadHook = true;
+    document.addEventListener('click', function (ev) {
+      var r = ev.target && ev.target.closest && ev.target.closest('button');
+      if (r && /^Refresh$/i.test((r.textContent || '').trim())) {
+        r.disabled = true; r.textContent = 'Loading';
+        if (window.baSyncFromSheet) window.baSyncFromSheet();
+        setTimeout(function () { r.disabled = false; r.textContent = 'Refresh'; }, 3000);
+      }
+    }, true);
+  }
+
+  function hookSheetFirst() {
+    hookLoading(); hookClearForms();
+    if (window.__baSheetFirst) return;
+    window.__baSheetFirst = true;
+    window.baSyncFromSheet = async function () {
+      var url = String(window.API_URL || '').replace(/\/$/, '');
+      if (!url) { try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { return []; } }
+      try {
+        var res = await fetch(url + '?action=listBA&_=' + Date.now());
+        var data = await res.json();
+        if (data && data.ok && Array.isArray(data.items)) {
+          try { localStorage.setItem('patatas_ba_v1', JSON.stringify(data.items)); } catch (e) {}
+          if (typeof window.baRenderTable === 'function') window.baRenderTable(data.items);
+          return data.items;
+        }
+      } catch (e) {}
+      try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
+    };
+  }
+
+  function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
+
+  function hookBaKeluarCols() {
+    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
+    window.baRenderTable = function (list) {
+      var tb = document.getElementById('ba-table-body');
+      if (!tb) return;
+      try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { list = list || []; }
+      if (window.baFilterOutlet) list = window.baFilterOutlet(list);
+      var table = tb.closest('table');
+      if (table) {
+        var head = table.querySelector('thead tr');
+        if (head) head.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+      }
+      if (!list.length) {
+        tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+        return;
+      }
+      var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+      tb.innerHTML = list.map(function (r) {
+        var pr = Number(r.price || 0) || 0;
+        var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
+        var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
+        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
+        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+      }).join('');
+    };
+    window.baRenderTable._price = true;
+    try { window.baRenderTable(); } catch (e) {}
+  }
+
+  function markDone(list) {
+    return (list || []).map(function (r) {
+      var x = {};
+      for (var k in r) if (Object.prototype.hasOwnProperty.call(r, k)) x[k] = r[k];
+      x.status = 'Done';
+      return x;
+    });
+  }
+
+  function hookBa2Sheet() {
+    var _fetch = window.fetch;
+    if (!_fetch._ba2done) {
+      window.fetch = function (url, opt) {
+        try {
+          if (opt && opt.body && String(opt.body).indexOf('saveBA2') >= 0) {
+            var o = JSON.parse(opt.body);
+            o.status = 'Done';
+            opt = Object.assign({}, opt, { body: JSON.stringify(o) });
+          }
+        } catch (e) {}
+        return _fetch.call(this, url, opt);
+      };
+      window.fetch._ba2done = true;
     }
-  }, 50);
+    window.ba2Reload = async function () {
+      var url = String(window.API_URL || '').replace(/\/$/, '');
+      var items = [];
+      if (url) {
+        try {
+          var res = await fetch(url + '?action=listBA2&_=' + Date.now());
+          var data = await res.json();
+          if (data && data.ok && Array.isArray(data.items)) items = data.items;
+        } catch (e) {}
+      }
+      items = markDone(items);
+      try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(items)); } catch (e) {}
+      if (window.ba2Render) window.ba2Render(items);
+      return items;
+    };
+  }
+
+  function fixBa2Table() {
+    var tb = document.getElementById('ba2-table-body');
+    if (!tb) return;
+    var table = tb.closest('table');
+    if (table) {
+      var tr = table.querySelector('thead tr');
+      if (tr) tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+    }
+    document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
+  }
+
+  function renderBa2WithUom(list) {
+    var tb = document.getElementById('ba2-table-body');
+    if (!tb) return;
+    try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba2_v1') || '[]'); } catch (e) { list = list || []; }
+    list = markDone(list);
+    if (window.baFilterOutlet) list = window.baFilterOutlet(list);
+    fixBa2Table();
+    if (!list.length) {
+      tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+      return;
+    }
+    var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+    tb.innerHTML = list.map(function (r) {
+      var pr = Number(r.price || 0) || 0;
+      var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
+      var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
+      var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
+      aksi = String(aksi).replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+    }).join('');
+    document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
+  }
+
+  function loadBa2() {
+    hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
+    loadExtra('ba-report.js?v=2', 'ba-report-script');
+    function after() {
+      hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
+      window.ba2Render = renderBa2WithUom;
+      window.ba2Render._fixedHead = true;
+      if (window.ba2Init) window.ba2Init();
+      renderBa2WithUom();
+      if (window.baSyncFromSheet) window.baSyncFromSheet();
+    }
+    if (document.getElementById('ba2-script')) { after(); return; }
+    var s = document.createElement('script');
+    s.id = 'ba2-script';
+    s.src = 'ba2.js?v=13';
+    s.onload = after;
+    document.body.appendChild(s);
+  }
+
+  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      html = html.replace(/Empowering/g, 'Elevating');
+      document.open(); document.write(html); document.close();
+
+      var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
+      Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }))
+        .then(async function (chunks) {
+          var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
+          var src = await punchBg(raw);
+          var srcWhite = await makeWhite(src);
+          applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
+          setTimeout(function () { applyHeadline(); applyNewLogo(src, srcWhite); loadBa2(); }, 300);
+        });
+    });
+})();
 </script>
 </body>
 </html>
