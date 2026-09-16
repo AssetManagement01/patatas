@@ -71,7 +71,6 @@
     document.body.appendChild(s);
   }
 
-  // OVERRIDE FETCH UNTUK MEMASTIKAN VALUE DEFAULT 0 DAN LINK FOTO TERKIRIM DENGAN BENAR
   var _origFetch = window.fetch;
   window.fetch = function (url, opt) {
     try {
@@ -284,6 +283,7 @@
     document.body.appendChild(s);
   }
 
+  // Tarik file HTML utama dari GitHub
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
     .then(function (html) {
@@ -302,36 +302,31 @@
     });
 })();
 
-// PEMANTAU PERMANEN: Menjaga agar lokasi selalu terkunci ke Sun Plaza Medan secara real-time
+// PEMANTAU DINAMIS: Otomatis mendeteksi akun login (KJK atau SP) dan mengunci ke lokasi yang sesuai
 setInterval(function() {
-  var selectLoc = document.getElementById("lokasi");
-  var targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
-  
-  if (selectLoc && selectLoc.value !== targetOutlet) {
+  var selectLoc = document.getElementById("ba-loc");
+  if (!selectLoc) return;
+
+  // Baca teks info outlet di sidebar atau halaman untuk tahu akun mana yang sedang aktif
+  var bodyText = document.body.innerText || "";
+  var targetOutlet = "";
+
+  if (bodyText.indexOf("Kejaksaan") >= 0 || bodyText.indexOf("NR KJK") >= 0) {
+    targetOutlet = "Nanyang Roastery - Kejaksaan Medan";
+  } else if (bodyText.indexOf("Sun Plaza") >= 0 || bodyText.indexOf("NR SP") >= 0) {
+    targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
+  }
+
+  if (targetOutlet && selectLoc.value !== targetOutlet) {
     selectLoc.value = targetOutlet;
-    selectLoc.disabled = true; // Kunci permanen agar tidak bisa berubah ke Kejaksaan
     var event = new Event('change', { bubbles: true });
     selectLoc.dispatchEvent(event);
   }
+  
+  if (targetOutlet && !selectLoc.disabled) {
+    selectLoc.disabled = true;
+  }
 }, 200);
-</script>
-</body>
-</html>
-<script>
-  // PEMANTAU PERMANEN: Menjaga agar lokasi selalu terkunci ke Sun Plaza Medan secara real-time
-  setInterval(function() {
-    var selectLoc = document.getElementById("ba-loc"); // Menggunakan ID yang benar dari DevTools
-    var targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
-    
-    if (selectLoc) {
-      if (selectLoc.value !== targetOutlet) {
-        selectLoc.value = targetOutlet;
-      }
-      if (!selectLoc.disabled) {
-        selectLoc.disabled = true; // Kunci permanen agar tidak bisa diubah ke Kejaksaan
-      }
-    }
-  }, 200);
 </script>
 </body>
 </html>
