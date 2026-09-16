@@ -7,48 +7,12 @@
 </head>
 <body>
 <script>
-(async function () {
-  // 1. AMBIL TEMPLATE HTML DARI GITHUB UTAMA
-  var html = await (await fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())).text();
-  html = html.replace(/Empowering/g, 'Elevating');
-  
-  // RENDER STRUKTUR DOKUMEN PERTAMA KALI
-  document.open(); 
-  document.write(html); 
-  document.close();
-
-  // 2. HELPER UNTUK FILTER OUTLET KAS KELUAR & MASUK (NR SP / NR KJK)
-  window.baFilterOutlet = function(list) {
-    if (!Array.isArray(list)) return [];
-    var userBadge = document.querySelector('.sidebar, #user-info, .outlet-info, [class*="outlet"]');
-    var txt = userBadge ? (userBadge.innerText || userBadge.textContent) : '';
-    
-    var currentLoc = '';
-    if (txt.includes('NR SP') || txt.includes('Sun Plaza')) currentLoc = 'NR SP';
-    else if (txt.includes('NR KJK') || txt.includes('Kejaksaan')) currentLoc = 'NR KJK';
-    
-    if (!currentLoc) {
-      try {
-        var user = JSON.parse(localStorage.getItem('patatas_user') || '{}');
-        if (user.loc || user.outlet) currentLoc = String(user.loc || user.outlet).toUpperCase();
-      } catch (e) {}
-    }
-    
-    if (!currentLoc) return list; // Fallback jika tidak ada kriteria login
-    
-    return list.filter(function(r) {
-      var rLoc = String(r.loc || r.Loc || '').toUpperCase();
-      return rLoc.includes(currentLoc) || currentLoc.includes(rLoc);
-    });
-  };
-
-  // 3. SELEKSI & FUNGSI INTERNAL ASLI
+(function () {
   function applyHeadline() {
     document.querySelectorAll('h1').forEach(function (h) {
       if (h && /Empowering/i.test(h.innerHTML)) h.innerHTML = h.innerHTML.replace(/Empowering/gi, 'Elevating');
     });
   }
-
   function punchBg(src) {
     return new Promise(function (resolve) {
       var im = new Image();
@@ -73,7 +37,6 @@
       im.src = src;
     });
   }
-
   function makeWhite(src) {
     return new Promise(function (resolve) {
       var im = new Image();
@@ -91,7 +54,6 @@
       im.src = src;
     });
   }
-
   function applyNewLogo(src, srcWhite) {
     if (!src) return;
     document.querySelectorAll('.brand img').forEach(function (img) {
@@ -101,7 +63,6 @@
       img.src = srcWhite || src; img.style.background = 'transparent'; img.style.maxWidth = '100%'; img.style.height = 'auto'; img.style.filter = srcWhite ? 'none' : 'brightness(0) invert(1)'; img.style.mixBlendMode = 'normal';
     });
   }
-
   function loadExtra(src, id) {
     if (document.getElementById(id)) return;
     var s = document.createElement('script');
@@ -109,7 +70,6 @@
     s.src = src;
     document.body.appendChild(s);
   }
-
   function hookClearForms() {
     if (window.__baClearHook) return;
     window.__baClearHook = true;
@@ -142,7 +102,6 @@
       }
     }, true);
   }
-
   function hookLoading() {
     if (window.__baLoadHook) return;
     window.__baLoadHook = true;
@@ -154,7 +113,6 @@
       }
     }, true);
   }
-
   function hookSheetFirst() {
     hookLoading(); hookClearForms();
     if (window.__baSheetFirst) return;
@@ -173,9 +131,7 @@
       try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
     };
   }
-
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-
   function hookBaKeluarCols() {
     if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
     window.baRenderTable = function (list) {
@@ -204,7 +160,6 @@
     window.baRenderTable._price = true;
     try { window.baRenderTable(); } catch (e) {}
   }
-
   function markDone(list) {
     return (list || []).map(function (r) {
       var x = {};
@@ -213,7 +168,6 @@
       return x;
     });
   }
-
   function hookBa2Sheet() {
     var _fetch = window.fetch;
     if (!_fetch._ba2done) {
@@ -245,7 +199,6 @@
       return items;
     };
   }
-
   function fixBa2Table() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -256,7 +209,6 @@
     }
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
-
   function renderBa2WithUom(list) {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -279,7 +231,6 @@
     }).join('');
     document.querySelectorAll('#ba2-table-body .ba2-st-btn').forEach(function (b) { b.remove(); });
   }
-
   function loadBa2() {
     hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
@@ -298,15 +249,24 @@
     document.body.appendChild(s);
   }
 
-  // 4. EMBED LOGO & PROSES EKSEKUSI SETELAH DOM DI-WRITE
-  var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
-  var chunks = await Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }));
-  var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
+  // Muat HTML utama terlebih dahulu secara langsung
+  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      html = html.replace(/Empowering/g, 'Elevating');
+      document.open(); document.write(html); document.close();
 
-  var src = await punchBg(raw);
-  var srcWhite = await makeWhite(src);
-  applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-  setTimeout(function () { applyHeadline(); applyNewLogo(src, srcWhite); loadBa2(); }, 300);
+      // Setelah HTML di-write, proses logo dan modul pendukung
+      var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
+      Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }))
+        .then(async function (chunks) {
+          var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
+          var src = await punchBg(raw);
+          var srcWhite = await makeWhite(src);
+          applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
+          setTimeout(function () { applyHeadline(); applyNewLogo(src, srcWhite); loadBa2(); }, 300);
+        });
+    });
 })();
 </script>
 </body>
