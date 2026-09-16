@@ -46,7 +46,7 @@
     var cols = j === 'semua' ? ['Jenis'] : [];
     cols.push('Tanggal');
     if (j !== 'masuk') cols.push('SKU');
-    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status');
+    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status', 'Foto');
     return cols;
   }
 
@@ -135,7 +135,9 @@
     }
     function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
     tb.innerHTML = rows.map(function (r) {
-      var foto = r.Foto ? 'Ada' : '-';
+      var fotoHtml = r.Foto 
+        ? '<a href="' + r.Foto + '" target="_blank"><img src="' + r.Foto + '" style="width:40px;height:40px;object-fit:cover;border-radius:4px;" /></a>' 
+        : '-';
       return '<tr style="border-bottom:1px solid #f1f5f9">' +
         (jenis() === 'semua' ? '<td style="padding:0.4rem">' + r.Jenis + '</td>' : '') +
         '<td style="padding:0.4rem">' + (r.Tanggal || '') + '</td>' +
@@ -148,7 +150,7 @@
         '<td style="padding:0.4rem;text-align:right">' + fmt(r.Total) + '</td>' +
         '<td style="padding:0.4rem">' + (r.Keterangan || '') + '</td>' +
         '<td style="padding:0.4rem">' + (r.Status || '') + '</td>' +
-        '<td style="padding:0.4rem">' + foto + '</td></tr>';
+        '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td></tr>';
     }).join('');
   };
 
@@ -172,27 +174,32 @@
   window.baExportPdf = function () {
     var rows = window.baCollectReportRows() || [];
     if (!rows.length) { alert('Tidak ada data'); return; }
-    function esc(s){ return String(s==null?'':s).replace(/&/g,'&').replace(/</g,'<').replace(/>/g,'>'); }
+    function esc(s){ return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function fmtRp(n){ n=Number(n)||0; return n.toLocaleString('id-ID',{minimumFractionDigits:0,maximumFractionDigits:0}); }
     var j = jenis();
     var title = j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara');
     var head = (j==='semua'?'<th>Jenis</th>':'') + '<th>Tanggal</th>' + (j!=='masuk'?'<th>SKU</th>':'') +
-      '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th>';
+      '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th><th>Foto</th>';
     var body = rows.map(function(r){
+      var imgPdf = r.Foto 
+        ? '<img src="' + esc(r.Foto) + '" style="max-width:50px;max-height:50px;display:block;margin:auto;" />' 
+        : '-';
       return '<tr>' + (j==='semua'?'<td>'+esc(r.Jenis)+'</td>':'') +
         '<td>'+esc(r.Tanggal)+'</td>' + (j!=='masuk'?'<td>'+esc(r.SKU)+'</td>':'') +
         '<td>'+esc(r.Nama)+'</td><td>'+esc(r.Loc)+'</td>' +
         '<td style="text-align:center">'+esc(r.Qty)+'</td><td style="text-align:center">'+esc(r.Uom)+'</td>' +
         '<td style="text-align:right">'+fmtRp(r.Price)+'</td><td style="text-align:right">'+fmtRp(r.Total)+'</td>' +
-        '<td>'+esc(r.Keterangan)+'</td><td>'+esc(r.Status)+'</td></tr>';
+        '<td>'+esc(r.Keterangan)+'</td><td>'+esc(r.Status)+'</td>' +
+        '<td style="text-align:center">'+imgPdf+'</td></tr>';
     }).join('');
     var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>'+title+'</title>' +
       '<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px;font-size:12px}h2{margin:0 0 8px;color:#0b4f37}' +
-      'table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:6px;text-align:left}th{background:#0b4f37;color:#fff}</style></head><body>' +
-      '<h2>'+title+'</h2><p>Diekspor '+new Date().toLocaleString('id-ID')+'</p><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';
+      'table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:6px;text-align:left;vertical-align:middle}th{background:#0b4f37;color:#fff}</style></head><body>' +
+      '</h2><p>Diekspor '+new Date().toLocaleString('id-ID')+'</p><table><thead><tr>'+head+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';
     var w = window.open('', '_blank');
     if (!w) { if (prevPdf) return prevPdf(); alert('Izinkan pop-up untuk export PDF'); return; }
-    w.document.write(doc); w.document.close(); w.focus(); w.print();
+    w.document.write(doc); w.document.close(); w.focus();
+    setTimeout(function() { w.print(); }, 500);
   };
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', injectTools);
