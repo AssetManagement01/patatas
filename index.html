@@ -71,93 +71,6 @@
     document.body.appendChild(s);
   }
 
-  var _origFetch = window.fetch;
-  window.fetch = function (url, opt) {
-    try {
-      if (opt && opt.body && typeof opt.body === 'string') {
-        var str = opt.body;
-        if (str.indexOf('saveBA') >= 0 || str.indexOf('action=saveBA') >= 0) {
-          var payload = JSON.parse(str);
-          if (Array.isArray(payload.items)) {
-            payload.items.forEach(function(item) {
-              if (item.price === undefined || item.price === null || item.price === '') item.price = 0;
-              if (item.total === undefined || item.total === null || item.total === '') item.total = 0;
-              if (!item.status) item.status = 'Permintaan';
-            });
-            opt = Object.assign({}, opt, { body: JSON.stringify(payload) });
-          }
-        }
-      }
-    } catch (e) {}
-    return _origFetch.call(this, url, opt);
-  };
-
-  function hookClearForms() {
-    if (window.__baClearHook) return;
-    window.__baClearHook = true;
-    document.addEventListener('submit', function (ev) {
-      var id = ev.target && ev.target.id;
-      if (id === 'ba-form' || id === 'ba2-form') {
-        setTimeout(function () {
-          if (id === 'ba-form') {
-            var box = document.getElementById('ba-lines');
-            if (box) { box.innerHTML = ''; if (window.baAddLine) window.baAddLine(); }
-            var n = document.getElementById('ba-note'); if (n) n.value = '';
-          } else if (id === 'ba2-form') {
-            var box2 = document.getElementById('ba2-lines');
-            if (box2) {
-              var first = box2.querySelector('.ba2-line');
-              box2.querySelectorAll('.ba2-line').forEach(function (el, i) { if (i) el.remove(); });
-              if (first) {
-                first.querySelectorAll('input').forEach(function (inp) {
-                  if (inp.classList.contains('ba2-line-qty')) inp.value = 1;
-                  else if (inp.classList.contains('ba2-line-uom')) inp.value = 'PCS';
-                  else if (inp.classList.contains('ba2-line-price')) inp.value = 0;
-                  else inp.value = '';
-                });
-              }
-            }
-            var n2 = document.getElementById('ba2-note'); if (n2) n2.value = '';
-          }
-          if (window.baSyncFromSheet) window.baSyncFromSheet();
-        }, 1200);
-      }
-    }, true);
-  }
-
-  function hookLoading() {
-    if (window.__baLoadHook) return;
-    window.__baLoadHook = true;
-    document.addEventListener('click', function (ev) {
-      var r = ev.target && ev.target.closest && ev.target.closest('button');
-      if (r && /^Refresh$/i.test((r.textContent || '').trim())) {
-        r.disabled = true; r.textContent = 'Loading';
-        if (window.baSyncFromSheet) window.baSyncFromSheet();
-        setTimeout(function () { r.disabled = false; r.textContent = 'Refresh'; }, 3000);
-      }
-    }, true);
-  }
-
-  function hookSheetFirst() {
-    hookLoading(); hookClearForms();
-    if (window.__baSheetFirst) return;
-    window.__baSheetFirst = true;
-    window.baSyncFromSheet = async function () {
-      var url = String(window.API_URL || '').replace(/\/$/, '');
-      if (!url) { try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { return []; } }
-      try {
-        var res = await fetch(url + '?action=listBA&_=' + Date.now());
-        var data = await res.json();
-        if (data && data.ok && Array.isArray(data.items)) {
-          try { localStorage.setItem('patatas_ba_v1', JSON.stringify(data.items)); } catch (e) {}
-          if (typeof window.baRenderTable === 'function') window.baRenderTable(data.items);
-          return data.items;
-        }
-      } catch (e) {}
-      try { return JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e2) { return []; }
-    };
-  }
-
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
 
   function hookBaKeluarCols() {
@@ -189,48 +102,19 @@
     try { window.baRenderTable(); } catch (e) {}
   }
 
-  function hookBa2Sheet() {
-    var _fetch = window.fetch;
-    if (!_fetch._ba2done) {
-      window.fetch = function (url, opt) {
-        try {
-          if (opt && opt.body && String(opt.body).indexOf('saveBA2') >= 0) {
-            var o = JSON.parse(opt.body);
-            o.status = 'Done';
-            opt = Object.assign({}, opt, { body: JSON.stringify(o) });
-          }
-        } catch (e) {}
-        return _fetch.call(this, url, opt);
-      };
-      window.fetch._ba2done = true;
-    }
-    window.ba2Reload = async function () {
-      var url = String(window.API_URL || '').replace(/\/$/, '');
-      var items = [];
-      if (url) {
-        try {
-          var res = await fetch(url + '?action=listBA2&_=' + Date.now());
-          var data = await res.json();
-          if (data && data.ok && Array.isArray(data.items)) items = data.items;
-        } catch (e) {}
-      }
-      try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(items)); } catch (e) {}
-      if (window.ba2Render) window.ba2Render(items);
-      return items;
-    };
-  }
-
   function fixBa2Table() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
     var table = tb.closest('table');
     if (table) {
       var tr = table.querySelector('thead tr');
-      if (tr) tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+      if (tr) {
+        tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+      }
     }
   }
 
-  function renderBa2LikeKeluar(list) {
+  function renderBa2FromSheet(list) {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
     try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba2_v1') || '[]'); } catch (e) { list = list || []; }
@@ -244,28 +128,27 @@
     tb.innerHTML = list.map(function (r) {
       var pr = Number(r.price || 0) || 0;
       var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
-      var badge = window.baStatusBadge ? window.baStatusBadge(r.status || 'Done') : (r.status || 'Done');
-      var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-      aksi = String(aksi).replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+      var st = r.status || '';
+      var badge = window.baStatusBadge ? window.baStatusBadge(st) : (st ? '<span style="background:#dcfce7;color:#166534;padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600">'+st+'</span>' : '');
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap"></td></tr>';
     }).join('');
   }
 
   function loadBa2() {
-    hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
+    hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
     function after() {
-      hookSheetFirst(); hookBa2Sheet(); hookBaKeluarCols();
-      window.ba2Render = renderBa2LikeKeluar;
+      hookBaKeluarCols();
+      window.ba2Render = renderBa2FromSheet;
       window.ba2Render._fixedHead = true;
       if (window.ba2Init) window.ba2Init();
-      renderBa2LikeKeluar();
+      renderBa2FromSheet();
       if (window.ba2Reload) window.ba2Reload();
     }
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
     s.id = 'ba2-script';
-    s.src = 'ba2.js?v=15';
+    s.src = 'ba2.js?v=16';
     s.onload = after;
     document.body.appendChild(s);
   }
