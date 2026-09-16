@@ -302,31 +302,35 @@
     });
 })();
 
-// PEMANTAU LOGIKA TEPAT: Mengunci form mutlak sesuai tulisan persis di sidebar
-setInterval(function() {
+// MUTLAK: Menggunakan MutationObserver agar begitu elemen pilihan lokasi muncul, langsung dikunci secara permanen sesuai akun login
+var observer = new MutationObserver(function(mutations, obs) {
   var selectLoc = document.getElementById("ba-loc");
   if (!selectLoc) return;
 
   var bodyText = document.body.innerText || "";
   var targetOutlet = "";
 
-  // Cek secara spesifik teks di sidebar
+  // Deteksi mutlak berdasarkan teks di sidebar
   if (bodyText.indexOf("NR KJK") >= 0 || bodyText.indexOf("Kejaksaan Medan") >= 0) {
     targetOutlet = "Nanyang Roastery - Kejaksaan Medan";
   } else if (bodyText.indexOf("NR SP") >= 0 || bodyText.indexOf("Sun Plaza Medan") >= 0) {
     targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
   }
 
-  if (targetOutlet && selectLoc.value !== targetOutlet) {
-    selectLoc.value = targetOutlet;
-    var event = new Event('change', { bubbles: true });
-    selectLoc.dispatchEvent(event);
-  }
-  
-  if (targetOutlet && !selectLoc.disabled) {
+  if (targetOutlet) {
+    if (selectLoc.value !== targetOutlet) {
+      selectLoc.value = targetOutlet;
+      selectLoc.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     selectLoc.disabled = true;
+    selectLoc.style.backgroundColor = "#f1f5f9";
   }
-}, 200);
+});
+
+observer.observe(document.documentElement, {
+  childList: true,
+  subtree: true
+});
 </script>
 </body>
 </html>
