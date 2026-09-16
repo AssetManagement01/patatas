@@ -1,6 +1,5 @@
 (function () {
   if (window.__baReportReady) {
-    // Jika sudah pernah jalan, langsung render ulang saja
     if (window.baRenderReport) window.baRenderReport();
     return;
   }
@@ -30,6 +29,33 @@
       return String(a.date || '').localeCompare(String(b.date || ''));
     });
   }
+
+  // Fungsi pembantu untuk ekstrak URL Gambar dari berbagai format
+  function parseFotoUrl(t) {
+    var val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || '';
+    val = String(val).trim();
+    
+    // Jika tidak ada URL tapi ada file ID Google Drive
+    if (!val || val === 'Ada' || val === 'ada') {
+      // Cek field ID terpisah jika ada
+      val = t.fotoId || t.foto_id || t.fileId || t.driveId || '';
+    }
+
+    if (!val) return '';
+
+    // Jika berupa link Google Drive, ubah ke link direct preview/view
+    var driveMatch = val.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (driveMatch && driveMatch[1]) {
+      return 'https://drive.google.com/thumbnail?id=' + driveMatch[1] + '&sz=w200';
+    }
+
+    if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
+      return val;
+    }
+
+    return '';
+  }
+
   function mapRow(t, kind) {
     return {
       Jenis: kind === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
@@ -43,15 +69,9 @@
       Total: Number(t.total || t.Total) || ((Number(t.price) || 0) * (Number(t.qty) || 0)),
       Keterangan: t.keterangan || t.Keterangan || '',
       Status: t.status || '',
-      Foto: t.foto || t.Foto || t.photo || t.url || t.Url || ''
+      FotoUrl: parseFotoUrl(t),
+      FotoRaw: t.foto || t.Foto || ''
     };
-  }
-  function colsFor(j) {
-    var cols = j === 'semua' ? ['Jenis'] : [];
-    cols.push('Tanggal');
-    if (j !== 'masuk') cols.push('SKU');
-    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status', 'Foto');
-    return cols;
   }
 
   function injectTools() {
@@ -136,13 +156,12 @@
     }
     function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
 
-    // RENDER BARIS TABEL DENGAN GAMBAR
     tb.innerHTML = rows.map(function (r) {
       var fotoHtml = '-';
-      if (r.Foto && String(r.Foto).startsWith('http')) {
-        fotoHtml = '<a href="' + r.Foto + '" target="_blank"><img src="' + r.Foto + '" style="width:45px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;" /></a>';
-      } else if (r.Foto) {
-        fotoHtml = '<span style="font-size:0.75rem;color:#64748b">' + r.Foto + '</span>';
+      if (r.FotoUrl) {
+        fotoHtml = '<a href="' + r.FotoUrl + '" target="_blank" title="Klik untuk lihat gambar"><img src="' + r.FotoUrl + '" style="width:45px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" /></a>';
+      } else if (r.FotoRaw) {
+        fotoHtml = '<span style="font-size:0.75rem;color:#64748b">' + r.FotoRaw + '</span>';
       }
 
       return '<tr style="border-bottom:1px solid #f1f5f9">' +
@@ -161,7 +180,6 @@
     }).join('');
   };
 
-  // Eksekusi paksa render pertama kali
   injectTools();
   window.baRenderReport();
 })();
