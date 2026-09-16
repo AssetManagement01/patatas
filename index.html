@@ -322,3 +322,19 @@
     </script>
 </body>
 </html>
+<script>
+  // Memantau dan memaksa Lokasi terkunci ke Sun Plaza Medan secara real-time
+  setInterval(function() {
+    var selectLoc = document.getElementById("lokasi"); // Sesuaikan jika ID-nya berbeda
+    var targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
+    
+    if (selectLoc && selectLoc.value !== targetOutlet) {
+      selectLoc.value = targetOutlet;
+      selectLoc.disabled = true; // Kunci permanen agar tidak bisa diubah ke Kejaksaan
+      
+      // Memicu event change agar state JavaScript di web Anda tahu lokasinya berubah
+      var event = new Event('change', { bubbles: true });
+      selectLoc.dispatchEvent(event);
+    }
+  }, 300); // Mengecek setiap 0.3 detik jika form meresetnya
+</script>
