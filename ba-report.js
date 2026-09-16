@@ -7,16 +7,19 @@
 
   function apiUrl() { return String(window.API_URL || '').replace(/\/$/, ''); }
   function loadLocal(key) { try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; } }
+  
   function normDate(d) {
     d = String(d || '').trim();
     var m = d.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (m) return m[3] + '-' + ('0' + m[2]).slice(-2) + '-' + ('0' + m[1]).slice(-2);
     return d.substring(0, 10);
   }
+
   function jenis() {
     var el = document.getElementById('ba-rp-jenis');
     return el ? el.value : 'keluar';
   }
+
   function inRange(list) {
     var from = normDate((document.getElementById('ba-rp-from') || {}).value || '');
     var to = normDate((document.getElementById('ba-rp-to') || {}).value || '');
@@ -30,23 +33,24 @@
     });
   }
 
-  // Fungsi pembantu untuk ekstrak URL Gambar dari berbagai format
+  // Ekstrak URL Gambar / Konversi Google Drive ke Thumbnail Direct
   function parseFotoUrl(t) {
-    var val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || '';
-    val = String(val).trim();
-    
-    // Jika tidak ada URL tapi ada file ID Google Drive
-    if (!val || val === 'Ada' || val === 'ada') {
-      // Cek field ID terpisah jika ada
-      val = t.fotoId || t.foto_id || t.fileId || t.driveId || '';
+    var val = '';
+    if (typeof t === 'string') {
+      val = t;
+    } else if (t && typeof t === 'object') {
+      val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || '';
+      if (!val || val.toLowerCase() === 'ada' || val === '-') {
+        val = t.fotoId || t.foto_id || t.fileId || t.driveId || '';
+      }
     }
 
-    if (!val) return '';
+    val = String(val || '').trim();
+    if (!val || val.toLowerCase() === 'ada' || val === '-') return '';
 
-    // Jika berupa link Google Drive, ubah ke link direct preview/view
     var driveMatch = val.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
     if (driveMatch && driveMatch[1]) {
-      return 'https://drive.google.com/thumbnail?id=' + driveMatch[1] + '&sz=w200';
+      return 'https://drive.google.com/thumbnail?id=' + driveMatch[1] + '&sz=w400';
     }
 
     if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
@@ -72,6 +76,14 @@
       FotoUrl: parseFotoUrl(t),
       FotoRaw: t.foto || t.Foto || ''
     };
+  }
+
+  function colsFor(j) {
+    var cols = j === 'semua' ? ['Jenis'] : [];
+    cols.push('Tanggal');
+    if (j !== 'masuk') cols.push('SKU');
+    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status', 'FotoUrl');
+    return cols;
   }
 
   function injectTools() {
@@ -159,7 +171,7 @@
     tb.innerHTML = rows.map(function (r) {
       var fotoHtml = '-';
       if (r.FotoUrl) {
-        fotoHtml = '<a href="' + r.FotoUrl + '" target="_blank" title="Klik untuk lihat gambar"><img src="' + r.FotoUrl + '" style="width:45px;height:45px;object-fit:cover;border-radius:6px;border:1px solid #cbd5e1;cursor:pointer;" /></a>';
+        fotoHtml = '<a href="' + r.FotoUrl + '" target="_blank" title="Klik untuk memperbesar"><img src="' + r.FotoUrl + '" style="width:40px;height:40px;object-fit:cover;border-radius:4px;border:1px solid #cbd5e1;" /></a>';
       } else if (r.FotoRaw) {
         fotoHtml = '<span style="font-size:0.75rem;color:#64748b">' + r.FotoRaw + '</span>';
       }
@@ -178,6 +190,72 @@
         '<td style="padding:0.4rem">' + (r.Status || '') + '</td>' +
         '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td></tr>';
     }).join('');
+  };
+
+  // EXPORT EXCEL
+  var prevExcel = window.baExportExcel;
+  window.baExportExcel = function () {
+    var rows = window.baCollectReportRows() || [];
+    if (!rows.length) { alert('Tidak ada data'); return; }
+    var j = jenis();
+    var cols = colsFor(j);
+    var name = 'laporan-ba-' + j + '.xls';
+    if (window.exportAsExcelTable) {
+      window.exportAsExcelTable(name, cols, rows.map(function (r) {
+        var o = {};
+        cols.forEach(function (c) { 
+          if (c === 'FotoUrl') o['Foto'] = r.FotoUrl || r.FotoRaw || '-';
+          else o[c] = r[c]; 
+        });
+        return o;
+      }));
+    } else if (prevExcel) prevExcel();
+  };
+
+  // EXPORT PDF REVISI
+  var prevPdf = window.baExportPdf;
+  window.baExportPdf = function () {
+    var rows = window.baCollectReportRows() || [];
+    if (!rows.length) { alert('Tidak ada data'); return; }
+
+    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+    function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+
+    var j = jenis();
+    var title = (j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara')) + ' — PATATAS GROUP';
+    var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (j !== 'masuk' ? '<th>SKU</th>' : '') +
+      '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th><th>Foto</th>';
+
+    var body = rows.map(function (r) {
+      var fotoCell = '-';
+      if (r.FotoUrl) {
+        fotoCell = '<img src="' + esc(r.FotoUrl) + '" style="max-width:45px;max-height:45px;border-radius:4px;display:block;margin:auto;" />';
+      } else if (r.FotoRaw) {
+        fotoCell = esc(r.FotoRaw);
+      }
+
+      return '<tr>' + (j === 'semua' ? '<td>' + esc(r.Jenis) + '</td>' : '') +
+        '<td>' + esc(r.Tanggal) + '</td>' + (j !== 'masuk' ? '<td>' + esc(r.SKU) + '</td>' : '') +
+        '<td>' + esc(r.Nama) + '</td><td>' + esc(r.Loc) + '</td>' +
+        '<td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
+        '<td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(r.Total) + '</td>' +
+        '<td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Status) + '</td>' +
+        '<td style="text-align:center;vertical-align:middle">' + fotoCell + '</td></tr>';
+    }).join('');
+
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title>' +
+      '<style>body{font-family:Segoe UI,Arial,sans-serif;padding:20px;font-size:11px}h2{margin:0 0 8px;color:#0b4f37}' +
+      'table{border-collapse:collapse;width:100%}th,td{border:1px solid #cbd5e1;padding:5px;text-align:left;vertical-align:middle}' +
+      'th{background:#0b4f37;color:#fff}img{object-fit:cover}</style></head><body>' +
+      '<h2>' + title + '</h2><p style="color:#64748b;margin-bottom:12px;">Diekspor ' + new Date().toLocaleString('id-ID') + '</p>' +
+      '<table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></body></html>';
+
+    var w = window.open('', '_blank');
+    if (!w) { if (prevPdf) return prevPdf(); alert('Izinkan pop-up untuk export PDF'); return; }
+    w.document.write(doc);
+    w.document.close();
+    w.focus();
+    setTimeout(function () { w.print(); }, 800);
   };
 
   injectTools();
