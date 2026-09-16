@@ -222,8 +222,9 @@
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 
     var j = jenis();
+    var showSku = j !== 'masuk';
     var title = (j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara')) + ' — PATATAS GROUP';
-    var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (j !== 'masuk' ? '<th>SKU</th>' : '') +
+    var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (showSku ? '<th>SKU</th>' : '') +
       '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th><th>Foto</th>';
 
     var body = rows.map(function (r) {
@@ -235,7 +236,7 @@
       }
 
       return '<tr>' + (j === 'semua' ? '<td>' + esc(r.Jenis) + '</td>' : '') +
-        '<td>' + esc(r.Tanggal) + '</td>' + (j !== 'masuk' ? '<td>' + esc(r.SKU) + '</td>' : '') +
+        '<td>' + esc(r.Tanggal) + '</td>' + (showSku ? '<td>' + esc(r.SKU) + '</td>' : '') +
         '<td>' + esc(r.Nama) + '</td><td>' + esc(r.Loc) + '</td>' +
         '<td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
         '<td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(r.Total) + '</td>' +
