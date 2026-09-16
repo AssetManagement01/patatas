@@ -302,18 +302,18 @@
     });
 })();
 
-// PEMANTAU DINAMIS: Otomatis mendeteksi akun login (KJK atau SP) dan mengunci ke lokasi yang sesuai
+// PEMANTAU LOGIKA TEPAT: Mengunci form mutlak sesuai tulisan persis di sidebar
 setInterval(function() {
   var selectLoc = document.getElementById("ba-loc");
   if (!selectLoc) return;
 
-  // Baca teks info outlet di sidebar atau halaman untuk tahu akun mana yang sedang aktif
   var bodyText = document.body.innerText || "";
   var targetOutlet = "";
 
-  if (bodyText.indexOf("Kejaksaan") >= 0 || bodyText.indexOf("NR KJK") >= 0) {
+  // Cek secara spesifik teks di sidebar
+  if (bodyText.indexOf("NR KJK") >= 0 || bodyText.indexOf("Kejaksaan Medan") >= 0) {
     targetOutlet = "Nanyang Roastery - Kejaksaan Medan";
-  } else if (bodyText.indexOf("Sun Plaza") >= 0 || bodyText.indexOf("NR SP") >= 0) {
+  } else if (bodyText.indexOf("NR SP") >= 0 || bodyText.indexOf("Sun Plaza Medan") >= 0) {
     targetOutlet = "Nanyang Roastery - Sun Plaza Medan";
   }
 
