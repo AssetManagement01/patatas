@@ -28,26 +28,19 @@
       if (from && td && td < from) return false;
       if (to && td && td > to) return false;
       return true;
-    }).sort(function (a, b) {
-      var da = normDate(a.date || a.Tanggal || (Array.isArray(a) ? a[0] : '') || '');
-      var db = normDate(b.date || b.Tanggal || (Array.isArray(b) ? b[0] : '') || '');
-      return da.localeCompare(db);
     });
   }
 
   function parseFotoUrl(val) {
     val = String(val || '').trim();
     if (!val || val.toLowerCase() === 'ada' || val === '-') return '';
-
     var driveMatch = val.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
     if (driveMatch && driveMatch[1]) {
       return 'https://drive.google.com/thumbnail?id=' + driveMatch[1] + '&sz=w400';
     }
-
     if (val.startsWith('http://') || val.startsWith('https://') || val.startsWith('data:image/')) {
       return val;
     }
-
     return '';
   }
 
@@ -57,34 +50,50 @@
       Tanggal: '', SKU: '', Nama: '', Uom: '', Qty: 0, Price: 0, Total: 0, Keterangan: '', FotoUrl: '', FotoRaw: '', Loc: '', Status: ''
     };
 
+    var vals = Array.isArray(t) ? t : Object.values(t);
+
     if (kind === 'masuk') {
-      // Header Kas Masuk: Tanggal | Nama | Uom | Qty | Price | Total | Keterangan | Foto | Loc | Status
-      if (Array.isArray(t)) {
-        res.Tanggal = t[0] || '';
-        res.Nama = t[1] || '';
-        res.Uom = t[2] || '';
-        res.Qty = Number(t[3]) || 0;
-        res.Price = Number(t[4]) || 0;
-        res.Total = Number(t[5]) || (res.Price * res.Qty);
-        res.Keterangan = t[6] || '';
-        res.FotoRaw = t[7] || '';
-        res.Loc = t[8] || '';
-        res.Status = t[9] || '';
-      } else {
-        res.Tanggal = t.date || t.Tanggal || t.tanggal || '';
-        res.Nama = t.nama || t.Nama || t.name || '';
-        res.Uom = t.uom || t.Uom || t.UOM || '';
+      // Pemetaan cerdas berbasis isi konten (Smart Content Matcher) untuk Kas Masuk
+      vals.forEach(function (val) {
+        var s = String(val == null ? '' : val).trim();
+        if (!s) return;
+
+        if ((/^\d{4}-\d{2}-\d{2}/.test(s) || /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(s)) && !res.Tanggal) {
+          res.Tanggal = s;
+        } else if (['done', 'permintaan', 'proses', 'pending'].includes(s.toLowerCase()) && !res.Status) {
+          res.Status = s;
+        } else if (['drg', 'pcs', 'liter', 'unit', 'box', 'kg', 'pack', 'set'].includes(s.toLowerCase()) && !res.Uom) {
+          res.Uom = s;
+        } else if ((/CK\s*-|WH|HO|Blok/i.test(s)) && !res.Loc) {
+          res.Loc = s;
+        } else if ((s.startsWith('http') || s.includes('drive.google.com')) && !res.FotoRaw) {
+          res.FotoRaw = s;
+        } else if (!isNaN(s) && Number(s) > 0 && Number(s) < 1000 && !res.Qty) {
+          res.Qty = Number(s);
+        } else if (!isNaN(s) && Number(s) >= 1000) {
+          if (!res.Price) res.Price = Number(s);
+          else if (!res.Total) res.Total = Number(s);
+        } else if (!res.Nama && s.length > 2 && !/^\d+$/.test(s) && !s.startsWith('http')) {
+          res.Nama = s;
+        } else if (!res.Keterangan && s.length > 2 && s !== res.Nama && !s.startsWith('http')) {
+          res.Keterangan = s;
+        }
+      });
+    } else {
+      // Untuk Kas Keluar
+      if (!Array.isArray(t) && t && typeof t === 'object') {
+        res.Tanggal = t.date || t.Tanggal || '';
+        res.SKU = t.sku || t.SKU || '';
+        res.Nama = t.nama || t.Nama || '';
+        res.Uom = t.uom || t.Uom || '';
         res.Qty = Number(t.qty || t.Qty) || 0;
         res.Price = Number(t.price || t.Price) || 0;
         res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
         res.Keterangan = t.keterangan || t.Keterangan || '';
         res.FotoRaw = t.foto || t.Foto || '';
-        res.Loc = t.loc || t.Loc || t.lokasi || '';
-        res.Status = t.status || t.Status || '';
-      }
-    } else {
-      // Header Kas Keluar: Tanggal | SKU | Nama | Uom | Qty | Price | Total | Keterangan | Foto | Loc | Status
-      if (Array.isArray(t)) {
+        res.Loc = t.loc || t.Loc || '';
+        res.Status = t.status || '';
+      } else {
         res.Tanggal = t[0] || '';
         res.SKU = t[1] || '';
         res.Nama = t[2] || '';
@@ -96,19 +105,11 @@
         res.FotoRaw = t[8] || '';
         res.Loc = t[9] || '';
         res.Status = t[10] || '';
-      } else {
-        res.Tanggal = t.date || t.Tanggal || '';
-        res.SKU = t.sku || t.SKU || '';
-        res.Nama = t.nama || t.Nama || '';
-        res.Uom = t.uom || t.Uom || t.UOM || '';
-        res.Qty = Number(t.qty || t.Qty) || 0;
-        res.Price = Number(t.price || t.Price) || 0;
-        res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
-        res.Keterangan = t.keterangan || t.Keterangan || '';
-        res.FotoRaw = t.foto || t.Foto || '';
-        res.Loc = t.loc || t.Loc || '';
-        res.Status = t.status || '';
       }
+    }
+
+    if (!res.Total && res.Price && res.Qty) {
+      res.Total = res.Price * res.Qty;
     }
 
     res.FotoUrl = parseFotoUrl(res.FotoRaw || res.Keterangan);
@@ -119,7 +120,7 @@
     var cols = j === 'semua' ? ['Jenis'] : [];
     cols.push('Tanggal');
     if (j !== 'masuk') cols.push('SKU');
-    cols.push('Nama', 'Uom', 'Qty', 'Price', 'Total', 'Keterangan', 'FotoUrl', 'Loc', 'Status');
+    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status', 'FotoUrl');
     return cols;
   }
 
@@ -193,14 +194,14 @@
           '<th style="padding:0.4rem">Tanggal</th>' +
           (showSku ? '<th style="padding:0.4rem">SKU</th>' : '') +
           '<th style="padding:0.4rem">Nama</th>' +
-          '<th style="padding:0.4rem">Uom</th>' +
+          '<th style="padding:0.4rem">Loc</th>' +
           '<th style="padding:0.4rem">Qty</th>' +
+          '<th style="padding:0.4rem">Uom</th>' +
           '<th style="padding:0.4rem">Price</th>' +
           '<th style="padding:0.4rem">Total</th>' +
           '<th style="padding:0.4rem">Keterangan</th>' +
-          '<th style="padding:0.4rem">Foto</th>' +
-          '<th style="padding:0.4rem">Loc</th>' +
-          '<th style="padding:0.4rem">Status</th>';
+          '<th style="padding:0.4rem">Status</th>' +
+          '<th style="padding:0.4rem">Foto</th>';
       }
     }
     if (!rows.length) {
@@ -222,14 +223,14 @@
         '<td style="padding:0.4rem">' + (r.Tanggal || '') + '</td>' +
         (showSku ? '<td style="padding:0.4rem;font-family:monospace;font-size:0.72rem">' + (r.SKU || '') + '</td>' : '') +
         '<td style="padding:0.4rem">' + (r.Nama || '') + '</td>' +
-        '<td style="padding:0.4rem;text-align:center">' + (r.Uom || '') + '</td>' +
+        '<td style="padding:0.4rem">' + (r.Loc || '') + '</td>' +
         '<td style="padding:0.4rem;text-align:center">' + (r.Qty || 0) + '</td>' +
+        '<td style="padding:0.4rem;text-align:center">' + (r.Uom || '') + '</td>' +
         '<td style="padding:0.4rem;text-align:right">' + fmt(r.Price) + '</td>' +
         '<td style="padding:0.4rem;text-align:right">' + fmt(r.Total) + '</td>' +
         '<td style="padding:0.4rem">' + (r.Keterangan || '') + '</td>' +
-        '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td>' +
-        '<td style="padding:0.4rem">' + (r.Loc || '') + '</td>' +
-        '<td style="padding:0.4rem">' + (r.Status || '') + '</td></tr>';
+        '<td style="padding:0.4rem">' + (r.Status || '') + '</td>' +
+        '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td></tr>';
     }).join('');
   };
 
@@ -266,7 +267,7 @@
     var showSku = j !== 'masuk';
     var title = (j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara')) + ' — PATATAS GROUP';
     var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (showSku ? '<th>SKU</th>' : '') +
-      '<th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Foto</th><th>Loc</th><th>Status</th>';
+      '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th><th>Foto</th>';
 
     var body = rows.map(function (r) {
       var fotoCell = '-';
@@ -278,11 +279,11 @@
 
       return '<tr>' + (j === 'semua' ? '<td>' + esc(r.Jenis) + '</td>' : '') +
         '<td>' + esc(r.Tanggal) + '</td>' + (showSku ? '<td>' + esc(r.SKU) + '</td>' : '') +
-        '<td>' + esc(r.Nama) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
-        '<td style="text-align:center">' + esc(r.Qty) + '</td>' +
+        '<td>' + esc(r.Nama) + '</td><td>' + esc(r.Loc) + '</td>' +
+        '<td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
         '<td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(r.Total) + '</td>' +
-        '<td>' + esc(r.Keterangan) + '</td><td style="text-align:center;vertical-align:middle">' + fotoCell + '</td>' +
-        '<td>' + esc(r.Loc) + '</td><td>' + esc(r.Status) + '</td></tr>';
+        '<td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Status) + '</td>' +
+        '<td style="text-align:center;vertical-align:middle">' + fotoCell + '</td></tr>';
     }).join('');
 
     var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title>' +
