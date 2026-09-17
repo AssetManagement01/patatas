@@ -24,23 +24,23 @@
     var from = normDate((document.getElementById('ba-rp-from') || {}).value || '');
     var to = normDate((document.getElementById('ba-rp-to') || {}).value || '');
     return (list || []).filter(function (t) {
-      var td = normDate(t.date || t.Tanggal || '');
+      var td = normDate(t.date || t.Tanggal || t.tanggal || '');
       if (from && td && td < from) return false;
       if (to && td && td > to) return false;
       return true;
     }).sort(function (a, b) {
-      return String(a.date || '').localeCompare(String(b.date || ''));
+      return String(a.date || a.Tanggal || '').localeCompare(String(b.date || b.Tanggal || ''));
     });
   }
 
-  // Ekstrak URL Gambar / Konversi Google Drive ke Thumbnail Direct
   function parseFotoUrl(t) {
     var val = '';
     if (typeof t === 'string') {
       val = t;
     } else if (t && typeof t === 'object') {
-      val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || '';
-      if (!val || val.toLowerCase() === 'ada' || val === '-') {
+      val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || t.keterangan || '';
+      // Jika keterangan berisi link drive/http, anggap itu foto jika kolom keterangan dipakai menyimpan link
+      if (val.indexOf('http://') < 0 && val.indexOf('https://') < 0) {
         val = t.fotoId || t.foto_id || t.fileId || t.driveId || '';
       }
     }
@@ -61,11 +61,32 @@
   }
 
   function mapRow(t, kind) {
+    // Jika Kas Masuk, kita petak-kan properti secara eksplisit berdasarkan urutan isian form Anda
+    if (kind === 'masuk') {
+      // Biasanya form kas masuk menyimpan nilai berurutan atau menggunakan key standar form input
+      return {
+        Jenis: 'Kas Masuk',
+        Tanggal: t.date || t.Tanggal || t.tanggal || t[0] || '',
+        SKU: '',
+        Nama: t.nama || t.Nama || t.name || t[1] || '',
+        Loc: t.loc || t.Loc || t.lokasi || t[8] || t[2] || '', // antisipasi jika posisi tertukar di data lama
+        Qty: Number(t.qty || t.Qty || t[3]) || 0,
+        Uom: t.uom || t.Uom || t.UOM || t[4] || '',
+        Price: Number(t.price || t.Price || t[5]) || 0,
+        Total: Number(t.total || t.Total || t[6]) || ((Number(t.price || t[5]) || 0) * (Number(t.qty || t[3]) || 0)),
+        Keterangan: t.keterangan || t.Keterangan || t[7] || '',
+        Status: t.status || t.Status || t[9] || t.Loc || '', 
+        FotoUrl: parseFotoUrl(t.foto || t.Foto || t.keterangan || t[7]),
+        FotoRaw: t.foto || t.Foto || ''
+      };
+    }
+
+    // Untuk Kas Keluar
     return {
-      Jenis: kind === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
+      Jenis: 'Kas Keluar',
       Tanggal: t.date || t.Tanggal || '',
-      SKU: kind === 'masuk' ? '' : (t.sku || t.SKU || ''),
-      Nama: t.name || t.nama || t.Nama || '',
+      SKU: t.sku || t.SKU || '',
+      Nama: t.nama || t.Nama || '',
       Loc: t.loc || t.Loc || '',
       Qty: Number(t.qty || t.Qty) || 0,
       Uom: t.uom || t.Uom || t.UOM || '',
@@ -212,7 +233,7 @@
     } else if (prevExcel) prevExcel();
   };
 
-  // EXPORT PDF REVISI
+  // EXPORT PDF
   var prevPdf = window.baExportPdf;
   window.baExportPdf = function () {
     var rows = window.baCollectReportRows() || [];
