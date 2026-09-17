@@ -24,27 +24,18 @@
     var from = normDate((document.getElementById('ba-rp-from') || {}).value || '');
     var to = normDate((document.getElementById('ba-rp-to') || {}).value || '');
     return (list || []).filter(function (t) {
-      var td = normDate(t.date || t.Tanggal || t.tanggal || '');
+      var td = normDate(t.date || t.Tanggal || t.tanggal || (Array.isArray(t) ? t[0] : '') || '');
       if (from && td && td < from) return false;
       if (to && td && td > to) return false;
       return true;
     }).sort(function (a, b) {
-      return String(a.date || a.Tanggal || '').localeCompare(String(b.date || b.Tanggal || ''));
+      var da = normDate(a.date || a.Tanggal || (Array.isArray(a) ? a[0] : '') || '');
+      var db = normDate(b.date || b.Tanggal || (Array.isArray(b) ? b[0] : '') || '');
+      return da.localeCompare(db);
     });
   }
 
-  function parseFotoUrl(t) {
-    var val = '';
-    if (typeof t === 'string') {
-      val = t;
-    } else if (t && typeof t === 'object') {
-      val = t.foto || t.Foto || t.photo || t.Photo || t.image || t.Image || t.url || t.Url || t.link || t.Link || t.keterangan || '';
-      // Jika keterangan berisi link drive/http, anggap itu foto jika kolom keterangan dipakai menyimpan link
-      if (val.indexOf('http://') < 0 && val.indexOf('https://') < 0) {
-        val = t.fotoId || t.foto_id || t.fileId || t.driveId || '';
-      }
-    }
-
+  function parseFotoUrl(val) {
     val = String(val || '').trim();
     if (!val || val.toLowerCase() === 'ada' || val === '-') return '';
 
@@ -61,49 +52,74 @@
   }
 
   function mapRow(t, kind) {
-    // Jika Kas Masuk, kita petak-kan properti secara eksplisit berdasarkan urutan isian form Anda
+    var res = {
+      Jenis: kind === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
+      Tanggal: '', SKU: '', Nama: '', Uom: '', Qty: 0, Price: 0, Total: 0, Keterangan: '', FotoUrl: '', FotoRaw: '', Loc: '', Status: ''
+    };
+
     if (kind === 'masuk') {
-      // Biasanya form kas masuk menyimpan nilai berurutan atau menggunakan key standar form input
-      return {
-        Jenis: 'Kas Masuk',
-        Tanggal: t.date || t.Tanggal || t.tanggal || t[0] || '',
-        SKU: '',
-        Nama: t.nama || t.Nama || t.name || t[1] || '',
-        Loc: t.loc || t.Loc || t.lokasi || t[8] || t[2] || '', // antisipasi jika posisi tertukar di data lama
-        Qty: Number(t.qty || t.Qty || t[3]) || 0,
-        Uom: t.uom || t.Uom || t.UOM || t[4] || '',
-        Price: Number(t.price || t.Price || t[5]) || 0,
-        Total: Number(t.total || t.Total || t[6]) || ((Number(t.price || t[5]) || 0) * (Number(t.qty || t[3]) || 0)),
-        Keterangan: t.keterangan || t.Keterangan || t[7] || '',
-        Status: t.status || t.Status || t[9] || t.Loc || '', 
-        FotoUrl: parseFotoUrl(t.foto || t.Foto || t.keterangan || t[7]),
-        FotoRaw: t.foto || t.Foto || ''
-      };
+      // Header Kas Masuk: Tanggal | Nama | Uom | Qty | Price | Total | Keterangan | Foto | Loc | Status
+      if (Array.isArray(t)) {
+        res.Tanggal = t[0] || '';
+        res.Nama = t[1] || '';
+        res.Uom = t[2] || '';
+        res.Qty = Number(t[3]) || 0;
+        res.Price = Number(t[4]) || 0;
+        res.Total = Number(t[5]) || (res.Price * res.Qty);
+        res.Keterangan = t[6] || '';
+        res.FotoRaw = t[7] || '';
+        res.Loc = t[8] || '';
+        res.Status = t[9] || '';
+      } else {
+        res.Tanggal = t.date || t.Tanggal || t.tanggal || '';
+        res.Nama = t.nama || t.Nama || t.name || '';
+        res.Uom = t.uom || t.Uom || t.UOM || '';
+        res.Qty = Number(t.qty || t.Qty) || 0;
+        res.Price = Number(t.price || t.Price) || 0;
+        res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
+        res.Keterangan = t.keterangan || t.Keterangan || '';
+        res.FotoRaw = t.foto || t.Foto || '';
+        res.Loc = t.loc || t.Loc || t.lokasi || '';
+        res.Status = t.status || t.Status || '';
+      }
+    } else {
+      // Header Kas Keluar: Tanggal | SKU | Nama | Uom | Qty | Price | Total | Keterangan | Foto | Loc | Status
+      if (Array.isArray(t)) {
+        res.Tanggal = t[0] || '';
+        res.SKU = t[1] || '';
+        res.Nama = t[2] || '';
+        res.Uom = t[3] || '';
+        res.Qty = Number(t[4]) || 0;
+        res.Price = Number(t[5]) || 0;
+        res.Total = Number(t[6]) || (res.Price * res.Qty);
+        res.Keterangan = t[7] || '';
+        res.FotoRaw = t[8] || '';
+        res.Loc = t[9] || '';
+        res.Status = t[10] || '';
+      } else {
+        res.Tanggal = t.date || t.Tanggal || '';
+        res.SKU = t.sku || t.SKU || '';
+        res.Nama = t.nama || t.Nama || '';
+        res.Uom = t.uom || t.Uom || t.UOM || '';
+        res.Qty = Number(t.qty || t.Qty) || 0;
+        res.Price = Number(t.price || t.Price) || 0;
+        res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
+        res.Keterangan = t.keterangan || t.Keterangan || '';
+        res.FotoRaw = t.foto || t.Foto || '';
+        res.Loc = t.loc || t.Loc || '';
+        res.Status = t.status || '';
+      }
     }
 
-    // Untuk Kas Keluar
-    return {
-      Jenis: 'Kas Keluar',
-      Tanggal: t.date || t.Tanggal || '',
-      SKU: t.sku || t.SKU || '',
-      Nama: t.nama || t.Nama || '',
-      Loc: t.loc || t.Loc || '',
-      Qty: Number(t.qty || t.Qty) || 0,
-      Uom: t.uom || t.Uom || t.UOM || '',
-      Price: Number(t.price || t.Price) || 0,
-      Total: Number(t.total || t.Total) || ((Number(t.price) || 0) * (Number(t.qty) || 0)),
-      Keterangan: t.keterangan || t.Keterangan || '',
-      Status: t.status || '',
-      FotoUrl: parseFotoUrl(t),
-      FotoRaw: t.foto || t.Foto || ''
-    };
+    res.FotoUrl = parseFotoUrl(res.FotoRaw || res.Keterangan);
+    return res;
   }
 
   function colsFor(j) {
     var cols = j === 'semua' ? ['Jenis'] : [];
     cols.push('Tanggal');
     if (j !== 'masuk') cols.push('SKU');
-    cols.push('Nama', 'Loc', 'Qty', 'Uom', 'Price', 'Total', 'Keterangan', 'Status', 'FotoUrl');
+    cols.push('Nama', 'Uom', 'Qty', 'Price', 'Total', 'Keterangan', 'FotoUrl', 'Loc', 'Status');
     return cols;
   }
 
@@ -176,11 +192,15 @@
           (jenis() === 'semua' ? '<th style="padding:0.4rem">Jenis</th>' : '') +
           '<th style="padding:0.4rem">Tanggal</th>' +
           (showSku ? '<th style="padding:0.4rem">SKU</th>' : '') +
-          '<th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Loc</th>' +
-          '<th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Uom</th>' +
-          '<th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th>' +
-          '<th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Status</th>' +
-          '<th style="padding:0.4rem">Foto</th>';
+          '<th style="padding:0.4rem">Nama</th>' +
+          '<th style="padding:0.4rem">Uom</th>' +
+          '<th style="padding:0.4rem">Qty</th>' +
+          '<th style="padding:0.4rem">Price</th>' +
+          '<th style="padding:0.4rem">Total</th>' +
+          '<th style="padding:0.4rem">Keterangan</th>' +
+          '<th style="padding:0.4rem">Foto</th>' +
+          '<th style="padding:0.4rem">Loc</th>' +
+          '<th style="padding:0.4rem">Status</th>';
       }
     }
     if (!rows.length) {
@@ -202,14 +222,14 @@
         '<td style="padding:0.4rem">' + (r.Tanggal || '') + '</td>' +
         (showSku ? '<td style="padding:0.4rem;font-family:monospace;font-size:0.72rem">' + (r.SKU || '') + '</td>' : '') +
         '<td style="padding:0.4rem">' + (r.Nama || '') + '</td>' +
-        '<td style="padding:0.4rem">' + (r.Loc || '') + '</td>' +
-        '<td style="padding:0.4rem;text-align:center">' + (r.Qty || 0) + '</td>' +
         '<td style="padding:0.4rem;text-align:center">' + (r.Uom || '') + '</td>' +
+        '<td style="padding:0.4rem;text-align:center">' + (r.Qty || 0) + '</td>' +
         '<td style="padding:0.4rem;text-align:right">' + fmt(r.Price) + '</td>' +
         '<td style="padding:0.4rem;text-align:right">' + fmt(r.Total) + '</td>' +
         '<td style="padding:0.4rem">' + (r.Keterangan || '') + '</td>' +
-        '<td style="padding:0.4rem">' + (r.Status || '') + '</td>' +
-        '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td></tr>';
+        '<td style="padding:0.4rem;text-align:center">' + fotoHtml + '</td>' +
+        '<td style="padding:0.4rem">' + (r.Loc || '') + '</td>' +
+        '<td style="padding:0.4rem">' + (r.Status || '') + '</td></tr>';
     }).join('');
   };
 
@@ -246,7 +266,7 @@
     var showSku = j !== 'masuk';
     var title = (j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara')) + ' — PATATAS GROUP';
     var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (showSku ? '<th>SKU</th>' : '') +
-      '<th>Nama</th><th>Loc</th><th>Qty</th><th>Uom</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Status</th><th>Foto</th>';
+      '<th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Foto</th><th>Loc</th><th>Status</th>';
 
     var body = rows.map(function (r) {
       var fotoCell = '-';
@@ -258,11 +278,11 @@
 
       return '<tr>' + (j === 'semua' ? '<td>' + esc(r.Jenis) + '</td>' : '') +
         '<td>' + esc(r.Tanggal) + '</td>' + (showSku ? '<td>' + esc(r.SKU) + '</td>' : '') +
-        '<td>' + esc(r.Nama) + '</td><td>' + esc(r.Loc) + '</td>' +
-        '<td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
+        '<td>' + esc(r.Nama) + '</td><td style="text-align:center">' + esc(r.Uom) + '</td>' +
+        '<td style="text-align:center">' + esc(r.Qty) + '</td>' +
         '<td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(r.Total) + '</td>' +
-        '<td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Status) + '</td>' +
-        '<td style="text-align:center;vertical-align:middle">' + fotoCell + '</td></tr>';
+        '<td>' + esc(r.Keterangan) + '</td><td style="text-align:center;vertical-align:middle">' + fotoCell + '</td>' +
+        '<td>' + esc(r.Loc) + '</td><td>' + esc(r.Status) + '</td></tr>';
     }).join('');
 
     var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title>' +
