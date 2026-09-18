@@ -50,61 +50,48 @@
       Tanggal: '', SKU: '', Nama: '', Uom: '', Qty: 0, Price: 0, Total: 0, Keterangan: '', FotoUrl: '', FotoRaw: '', Loc: '', Status: ''
     };
 
-    var vals = Array.isArray(t) ? t : Object.values(t);
-
-    if (kind === 'masuk') {
-      // Pemetaan cerdas berbasis isi konten (Smart Content Matcher) untuk Kas Masuk
-      vals.forEach(function (val) {
-        var s = String(val == null ? '' : val).trim();
-        if (!s) return;
-
-        if ((/^\d{4}-\d{2}-\d{2}/.test(s) || /^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/.test(s)) && !res.Tanggal) {
-          res.Tanggal = s;
-        } else if (['done', 'permintaan', 'proses', 'pending'].includes(s.toLowerCase()) && !res.Status) {
-          res.Status = s;
-        } else if (['drg', 'pcs', 'liter', 'unit', 'box', 'kg', 'pack', 'set'].includes(s.toLowerCase()) && !res.Uom) {
-          res.Uom = s;
-        } else if ((/CK\s*-|WH|HO|Blok/i.test(s)) && !res.Loc) {
-          res.Loc = s;
-        } else if ((s.startsWith('http') || s.includes('drive.google.com')) && !res.FotoRaw) {
-          res.FotoRaw = s;
-        } else if (!isNaN(s) && Number(s) > 0 && Number(s) < 1000 && !res.Qty) {
-          res.Qty = Number(s);
-        } else if (!isNaN(s) && Number(s) >= 1000) {
-          if (!res.Price) res.Price = Number(s);
-          else if (!res.Total) res.Total = Number(s);
-        } else if (!res.Nama && s.length > 2 && !/^\d+$/.test(s) && !s.startsWith('http')) {
-          res.Nama = s;
-        } else if (!res.Keterangan && s.length > 2 && s !== res.Nama && !s.startsWith('http')) {
-          res.Keterangan = s;
-        }
-      });
-    } else {
-      // Untuk Kas Keluar
-      if (!Array.isArray(t) && t && typeof t === 'object') {
-        res.Tanggal = t.date || t.Tanggal || '';
-        res.SKU = t.sku || t.SKU || '';
-        res.Nama = t.nama || t.Nama || '';
-        res.Uom = t.uom || t.Uom || '';
-        res.Qty = Number(t.qty || t.Qty) || 0;
-        res.Price = Number(t.price || t.Price) || 0;
-        res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
-        res.Keterangan = t.keterangan || t.Keterangan || '';
-        res.FotoRaw = t.foto || t.Foto || '';
-        res.Loc = t.loc || t.Loc || '';
-        res.Status = t.status || '';
-      } else {
+    if (t && typeof t === 'object' && !Array.isArray(t)) {
+      // Jika data berupa Objek Key-Value dari API/JSON
+      res.Tanggal = t.tanggal || t.Tanggal || t.date || '';
+      res.SKU = t.sku || t.SKU || '';
+      res.Nama = t.nama || t.Nama || t.name || t.namaBarang || '';
+      res.Loc = t.loc || t.Loc || t.lokasi || '';
+      res.Qty = Number(t.qty || t.Qty) || 0;
+      res.Uom = t.uom || t.Uom || t.UOM || '';
+      res.Price = Number(t.price || t.Price) || 0;
+      res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
+      res.Keterangan = t.keterangan || t.Keterangan || '';
+      res.Status = t.status || t.Status || '';
+      res.FotoRaw = t.foto || t.Foto || t.image || t.photo || '';
+    } else if (Array.isArray(t)) {
+      // Jika data berupa Array murni dari baris Spreadsheet. 
+      // Sesuaikan urutan indeks [0, 1, 2, ...] berdasarkan urutan kolom di Google Sheets Anda.
+      if (kind === 'masuk') {
+        // Urutan Kas Masuk di Spreadsheet (berdasarkan gambar screenshot Anda):
+        // 0: Tanggal, 1: Nama, 2: Loc, 3: Qty, 4: Uom, 5: Price, 6: Total, 7: Keterangan, 8: Link/Foto, 9: Status
         res.Tanggal = t[0] || '';
-        res.SKU = t[1] || '';
-        res.Nama = t[2] || '';
-        res.Uom = t[3] || '';
-        res.Qty = Number(t[4]) || 0;
+        res.Nama = t[1] || '';
+        res.Loc = t[2] || '';
+        res.Qty = Number(t[3]) || 0;
+        res.Uom = t[4] || '';
         res.Price = Number(t[5]) || 0;
         res.Total = Number(t[6]) || (res.Price * res.Qty);
         res.Keterangan = t[7] || '';
         res.FotoRaw = t[8] || '';
-        res.Loc = t[9] || '';
-        res.Status = t[10] || '';
+        res.Status = t[9] || '';
+      } else {
+        // Urutan Kas Keluar di Spreadsheet:
+        res.Tanggal = t[0] || '';
+        res.SKU = t[1] || '';
+        res.Nama = t[2] || '';
+        res.Loc = t[3] || '';
+        res.Qty = Number(t[4]) || 0;
+        res.Uom = t[5] || '';
+        res.Price = Number(t[6]) || 0;
+        res.Total = Number(t[7]) || (res.Price * res.Qty);
+        res.Keterangan = t[8] || '';
+        res.Status = t[9] || '';
+        res.FotoRaw = t[10] || '';
       }
     }
 
