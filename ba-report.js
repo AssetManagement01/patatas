@@ -51,10 +51,9 @@
     };
 
     if (t && typeof t === 'object' && !Array.isArray(t)) {
-      // Jika data berupa Objek Key-Value dari API/JSON
       res.Tanggal = t.tanggal || t.Tanggal || t.date || '';
       res.SKU = t.sku || t.SKU || '';
-      res.Nama = t.nama || t.Nama || t.name || t.namaBarang || '';
+      res.Nama = t.nama || t.Nama || t.name || '';
       res.Loc = t.loc || t.Loc || t.lokasi || '';
       res.Qty = Number(t.qty || t.Qty) || 0;
       res.Uom = t.uom || t.Uom || t.UOM || '';
@@ -62,13 +61,11 @@
       res.Total = Number(t.total || t.Total) || (res.Price * res.Qty);
       res.Keterangan = t.keterangan || t.Keterangan || '';
       res.Status = t.status || t.Status || '';
-      res.FotoRaw = t.foto || t.Foto || t.image || t.photo || '';
+      res.FotoRaw = t.foto || t.Foto || t.image || '';
     } else if (Array.isArray(t)) {
-      // Jika data berupa Array murni dari baris Spreadsheet. 
-      // Sesuaikan urutan indeks [0, 1, 2, ...] berdasarkan urutan kolom di Google Sheets Anda.
       if (kind === 'masuk') {
-        // Urutan Kas Masuk di Spreadsheet (berdasarkan gambar screenshot Anda):
-        // 0: Tanggal, 1: Nama, 2: Loc, 3: Qty, 4: Uom, 5: Price, 6: Total, 7: Keterangan, 8: Link/Foto, 9: Status
+        // Urutan Spreadsheet Kas Masuk berdasarkan gambar Anda:
+        // [0] Tanggal, [1] Nama, [2] Loc, [3] Qty, [4] Uom, [5] Price, [6] Total, [7] Keterangan, [8] Status, [9] Foto
         res.Tanggal = t[0] || '';
         res.Nama = t[1] || '';
         res.Loc = t[2] || '';
@@ -77,10 +74,10 @@
         res.Price = Number(t[5]) || 0;
         res.Total = Number(t[6]) || (res.Price * res.Qty);
         res.Keterangan = t[7] || '';
-        res.FotoRaw = t[8] || '';
-        res.Status = t[9] || '';
+        res.Status = t[8] || '';
+        res.FotoRaw = t[9] || '';
       } else {
-        // Urutan Kas Keluar di Spreadsheet:
+        // Urutan Spreadsheet Kas Keluar (yang sudah benar):
         res.Tanggal = t[0] || '';
         res.SKU = t[1] || '';
         res.Nama = t[2] || '';
