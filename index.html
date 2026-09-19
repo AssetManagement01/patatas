@@ -120,6 +120,18 @@
     }
     window.lockBAOutlet = forceLock;
   }
+  function setHoPass() {
+    var rec = { password: 'PATATAS2026', canEdit: true, canDelete: true, outlet: null, label: 'HO JKT' };
+    window.OUTLET_ACCOUNTS = window.OUTLET_ACCOUNTS || {};
+    ['ho jkt','hojkt','ho-jkt','ho_jkt'].forEach(function (k) { window.OUTLET_ACCOUNTS[k] = rec; });
+    try {
+      var map = JSON.parse(localStorage.getItem('patatas_passwords') || '{}');
+      map['ho jkt'] = 'PATATAS2026';
+      map['hojkt'] = 'PATATAS2026';
+      map['ho-jkt'] = 'PATATAS2026';
+      localStorage.setItem('patatas_passwords', JSON.stringify(map));
+    } catch (e) {}
+  }
   function cellStr(c) {
     if (c == null) return '';
     if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
@@ -185,8 +197,8 @@
           var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
-          applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); forceLock(); }, ms); });
+          applyHeadline(); applyNewLogo(src, srcWhite); setHoPass(); loadBa2();
+          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); }, ms); });
         });
     });
 })();
