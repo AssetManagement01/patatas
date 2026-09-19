@@ -58,7 +58,7 @@
     if (!src) return;
     document.querySelectorAll('.brand img, .sidebar .logo img').forEach(function (img) {
       var use = img.closest && img.closest('.sidebar') ? (srcWhite || src) : src;
-      img.src = use; img.style.background = 'transparent'; img.style.filter = 'none'; img.style.mixBlendMode = 'normal';
+      img.src = use; img.style.background = 'transparent'; img.style.filter = 'none';
     });
   }
   function loadExtra(src, id) {
@@ -67,6 +67,7 @@
   }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   function sess() { try { return JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) { return {}; } }
+  var SHEET_ID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   var OUTLET_MAP = {
     nrsp: 'Nanyang Roastery - Sun Plaza Medan', 'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
     nrkjk: 'Nanyang Roastery - Kejaksaan Medan', 'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
@@ -87,11 +88,9 @@
     var kw = String(s.outletKeyword || window.USER_OUTLET || '').trim();
     var role = String(s.role || window.USER_ROLE || '').toLowerCase();
     if (!name) name = OUTLET_MAP[code] || OUTLET_MAP[code2] || OUTLET_MAP[first] || '';
-    if (!name && /sun plaza/.test(email + ' ' + code) && /nanyang|nrsp/.test(email + ' ' + code)) name = OUTLET_MAP.nrsp;
-    if (!name && /kejaksaan/.test(email + ' ' + code) && /nanyang|nrkjk/.test(email + ' ' + code)) name = OUTLET_MAP.nrkjk;
     var isOutlet = role === 'outlet' || !!OUTLET_MAP[first] || !!OUTLET_MAP[code2] || /OUTLET:/i.test((document.body && document.body.innerText) || '');
     if (isOutlet && !name) name = kw;
-    return { role: role, name: name, kw: kw || name, code: first || code2, isOutlet: isOutlet && !!name };
+    return { role: role, name: name, kw: kw || name, isOutlet: isOutlet && !!name };
   }
   function forceLock() {
     var info = outletInfo();
@@ -118,38 +117,59 @@
     }
     forceLock();
   }
-  function isUrlVal(s) { return /https?:\/\//i.test(String(s || '')); }
-  function isStatusVal(s) { return /^(done|selesai|permintaan|proses|tolak|sedang proses|tahap penawaran)/i.test(String(s || '').trim()); }
-  function normBa2Row(r) {
-    r = r || {};
-    var nameIsUom = /^(drg|liter|ltr|lt|pcs|kg|unit|galon|pak|box|buah|ml|ons)$/i.test(String(r.name||'').trim());
-    var shifted = !!(r.sku && (nameIsUom || /^\d+$/.test(String(r.uom||''))));
-    if (shifted) {
-      return {
-        date: r.date || '',
-        name: r.sku || '',
-        uom: r.name || '',
-        qty: Number(r.uom) || 0,
-        price: Number(r.qty) || 0,
-        total: Number(r.price) || 0,
-        keterangan: isUrlVal(r.keterangan) ? '' : String(r.keterangan || ''),
-        foto: isUrlVal(r.keterangan) ? r.keterangan : (r.foto || ''),
-        loc: r.foto || '',
-        status: isStatusVal(r.loc) ? r.loc : (isStatusVal(r.status) ? r.status : 'Done')
-      };
+  function parseCsv(text) {
+    var rows = [], row = [], cur = '', q = false;
+    for (var i = 0; i < text.length; i++) {
+      var c = text[i];
+      if (q) {
+        if (c === '"' && text[i+1] === '"') { cur += '"'; i++; }
+        else if (c === '"') q = false;
+        else cur += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(cur); cur = ''; }
+      else if (c === '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+      else if (c !== '\r') cur += c;
     }
-    return {
-      date: r.date || '',
-      name: r.name || r.nama || r.sku || '',
-      uom: r.uom || '',
-      qty: Number(r.qty) || 0,
-      price: Number(r.price) || 0,
-      total: Number(r.total) || ((Number(r.price)||0)*(Number(r.qty)||0)),
-      keterangan: isUrlVal(r.keterangan) ? '' : (r.keterangan || ''),
-      foto: r.foto || '',
-      loc: isStatusVal(r.loc) ? '' : (r.loc || ''),
-      status: isStatusVal(r.status) ? r.status : (isStatusVal(r.loc) ? r.loc : (r.status || 'Done'))
-    };
+    if (cur || row.length) { row.push(cur); rows.push(row); }
+    return rows;
+  }
+  async function loadBa2Sheet() {
+    var url = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?tqx=out:csv&sheet=BA2&_=' + Date.now();
+    var txt = await (await fetch(url, { cache: 'no-store' })).text();
+    var rows = parseCsv(txt);
+    if (!rows.length) return [];
+    var h = rows[0].map(function (x) { return String(x || '').trim().toLowerCase(); });
+    function col(names) {
+      for (var i = 0; i < names.length; i++) {
+        var ix = h.indexOf(names[i]);
+        if (ix >= 0) return ix;
+      }
+      return -1;
+    }
+    var iT = col(['tanggal']), iN = col(['nama']), iU = col(['uom']), iQ = col(['qty']),
+        iP = col(['price']), iTot = col(['total']), iK = col(['keterangan']), iF = col(['foto']),
+        iL = col(['loc']), iS = col(['status']);
+    var out = [];
+    for (var r = 1; r < rows.length; r++) {
+      var cells = rows[r];
+      if (!cells || !String(cells[iT] || cells[iN] || '').trim()) continue;
+      out.push({
+        id: 'BA2ROW' + (r + 1),
+        date: String(cells[iT] || '').trim(),
+        name: String(cells[iN] || '').trim(),
+        uom: String(cells[iU] || '').trim(),
+        qty: Number(String(cells[iQ] || '').replace(/,/g, '')) || 0,
+        price: Number(String(cells[iP] || '').replace(/,/g, '')) || 0,
+        total: Number(String(cells[iTot] || '').replace(/,/g, '')) || 0,
+        keterangan: String(cells[iK] || '').trim(),
+        foto: String(cells[iF] || '').trim(),
+        loc: String(cells[iL] || '').trim(),
+        status: String(cells[iS] || 'Done').trim() || 'Done'
+      });
+    }
+    out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+    try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(out)); } catch (e) {}
+    return out;
   }
   var SHEET_HEAD = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
   function hookBaKeluarCols() {
@@ -178,7 +198,6 @@
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
     try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba2_v1') || '[]'); } catch (e) { list = list || []; }
-    list = (list || []).map(normBa2Row);
     if (window.baFilterOutlet) list = window.baFilterOutlet(list);
     var table = tb.closest('table');
     if (table) { var tr = table.querySelector('thead tr'); if (tr) tr.innerHTML = SHEET_HEAD; }
@@ -193,17 +212,25 @@
   function loadBa2() {
     hookOutletLock(); hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
+    window.ba2Reload = async function () {
+      try {
+        var items = await loadBa2Sheet();
+        renderBa2FromSheet(items);
+        return items;
+      } catch (e) {
+        renderBa2FromSheet();
+      }
+    };
     function after() {
       hookOutletLock(); hookBaKeluarCols();
       window.ba2Render = renderBa2FromSheet;
       if (window.ba2Init) window.ba2Init();
-      renderBa2FromSheet();
-      if (window.ba2Reload) window.ba2Reload();
+      window.ba2Reload();
       forceLock();
     }
     if (document.getElementById('ba2-script')) { after(); return; }
     var s = document.createElement('script');
-    s.id = 'ba2-script'; s.src = 'ba2.js?v=17'; s.onload = after;
+    s.id = 'ba2-script'; s.src = 'ba2.js?v=18'; s.onload = after;
     document.body.appendChild(s);
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
@@ -218,7 +245,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          [300, 800, 1500, 3000].forEach(function (ms) { setTimeout(function () { hookOutletLock(); forceLock(); }, ms); });
+          [300, 800, 1600].forEach(function (ms) { setTimeout(function () { hookOutletLock(); forceLock(); }, ms); });
         });
     });
 })();
