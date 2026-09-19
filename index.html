@@ -72,27 +72,46 @@
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   var SHEET_ID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   var CODE_MAP = {
-    nrsp: 'Nanyang Roastery - Sun Plaza Medan', 'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
-    nrkjk: 'Nanyang Roastery - Kejaksaan Medan', 'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
-    hgs: 'HIJO - Gading Serpong', hakd: 'HIJO - AKD', hta: 'HIJO - Taman Anggrek',
-    hk: 'HIJO - Karmaja', hevent: 'HIJO - Event', hhq: 'HIJO - HQ',
-    xosp: 'XO Suki - Sun Plaza Medan', khcp: 'Kota Hainan - Central Park',
     bbm: 'Boemi - Blok M', cba: 'Chop Buntut AKD', cbs: 'Chop Buntut Semarang',
-    tbm: 'Thirty Bumbu - Taman Anggrek', bda: 'Bao Darling - AKD'
+    'ho mdn': 'HEAD OFFICE KEJAKSAAN MEDAN', homdn: 'HEAD OFFICE KEJAKSAAN MEDAN',
+    'kh cp': 'Kota Hainan - Central Park', khcp: 'Kota Hainan - Central Park',
+    'nr kjk': 'Nanyang Roastery - Kejaksaan Medan', nrkjk: 'Nanyang Roastery - Kejaksaan Medan',
+    'nr sp': 'Nanyang Roastery - Sun Plaza Medan', nrsp: 'Nanyang Roastery - Sun Plaza Medan',
+    tbm: 'Thirty Bumbu - Taman Anggrek',
+    'xo sp': 'XO Suki - Sun Plaza Medan', xosp: 'XO Suki - Sun Plaza Medan',
+    hta: 'HIJO - Taman Anggrek', hgs: 'HIJO - Gading Serpong', hk: 'HIJO - Karmaja',
+    hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD'
   };
+  function pageText() { return ((document.body && document.body.innerText) || '').replace(/\s+/g, ' '); }
+  function isSeeAllAccount() {
+    var t = pageText();
+    if (/OUTLET:\s*[A-Z0-9]/i.test(t)) return false;
+    if (/Dapat melihat semua outlet/i.test(t)) return true;
+    if (/\bEDITOR\b|\bHO JKT\b|USER \(Semua/i.test(t)) return true;
+    try {
+      var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
+      var role = String(s.role || '').toLowerCase();
+      if (role === 'admin' || role === 'ho' || role === 'user') return true;
+      if (!s.outlet && !s.outletKeyword && /gmail|admin|ho jkt|user/i.test(String(s.email||''))) return true;
+    } catch (e) {}
+    return false;
+  }
   function lockedOutletName() {
-    var text = ((document.body && document.body.innerText) || '').replace(/\s+/g, ' ');
-    var hanya = text.match(/Hanya data:\s*(.+?)\s+OUTLET:/i);
-    if (hanya && hanya[1] && hanya[1].trim().length > 4) return hanya[1].trim();
+    if (isSeeAllAccount()) return '';
+    var text = pageText();
     var badge = text.match(/OUTLET:\s*([A-Z0-9 ]{2,12})/i);
     var code = badge ? badge[1].toLowerCase().replace(/\s+/g, '') : '';
+    var spaced = badge ? badge[1].toLowerCase().replace(/\s+/g, ' ').trim() : '';
     if (CODE_MAP[code]) return CODE_MAP[code];
-    return CODE_MAP[badge ? badge[1].toLowerCase().trim() : ''] || '';
+    if (CODE_MAP[spaced]) return CODE_MAP[spaced];
+    var hanya = text.match(/Hanya data:\s*(.+?)\s+OUTLET:/i);
+    if (hanya && hanya[1] && hanya[1].trim().length > 4) return hanya[1].trim();
+    return '';
   }
   function applyLockToSelect(el, name) {
     if (!el || el.tagName !== 'SELECT') return;
     var cur = (el.value || '') + ' ' + Array.prototype.map.call(el.options || [], function (o) { return o.text; }).join(' ');
-    var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas/i.test(cur);
+    var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas|hainan|suki|bao|thirty/i.test(cur);
     if (!isOutlet) return;
     if (el.getAttribute('data-lock') === name && el.value === name && el.options.length === 1) return;
     el.innerHTML = '';
@@ -106,6 +125,7 @@
     el.setAttribute('data-lock', name);
   }
   function forceLock() {
+    if (isSeeAllAccount()) return;
     var name = lockedOutletName();
     if (!name) return;
     document.querySelectorAll('select').forEach(function (el) { applyLockToSelect(el, name); });
@@ -114,7 +134,7 @@
       window.fillTransferOutlets = function () {
         prev.apply(this, arguments);
         setTimeout(forceLock, 0);
-        setTimeout(forceLock, 50);
+        setTimeout(forceLock, 80);
       };
       window.fillTransferOutlets._locked = true;
     }
