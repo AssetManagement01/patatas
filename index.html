@@ -67,7 +67,6 @@
   }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   function sess() { try { return JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) { return {}; } }
-
   var OUTLET_MAP = {
     nrsp: 'Nanyang Roastery - Sun Plaza Medan', 'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
     nrkjk: 'Nanyang Roastery - Kejaksaan Medan', 'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
@@ -77,7 +76,6 @@
     tbm: 'Thirty Bumbu - Taman Anggrek', hta: 'HIJO - Taman Anggrek', hgs: 'HIJO - Gading Serpong',
     hk: 'HIJO - Karmaja', hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD'
   };
-
   function outletInfo() {
     var s = sess();
     var email = String(s.email || window.USER_EMAIL || '').toLowerCase();
@@ -95,7 +93,6 @@
     if (isOutlet && !name) name = kw;
     return { role: role, name: name, kw: kw || name, code: first || code2, isOutlet: isOutlet && !!name };
   }
-
   function forceLock() {
     var info = outletInfo();
     if (!info.isOutlet || !info.name) return;
@@ -109,59 +106,52 @@
       el.value = info.name;
       el.disabled = true;
       el.style.background = '#f1f5f9';
-      el.style.cursor = 'not-allowed';
       el.style.pointerEvents = 'none';
     });
   }
-
   function hookOutletLock() {
     window.lockBAOutlet = forceLock;
     var prevFill = window.fillTransferOutlets;
     if (typeof prevFill === 'function' && !prevFill._locked) {
-      window.fillTransferOutlets = function () {
-        prevFill.apply(this, arguments);
-        forceLock();
-      };
+      window.fillTransferOutlets = function () { prevFill.apply(this, arguments); forceLock(); };
       window.fillTransferOutlets._locked = true;
     }
     forceLock();
   }
-
-  function isUomVal(s) { return /^(drg|liter|ltr|lt|pcs|kg|unit|galon|pak|box|buah|ml|ons)$/i.test(String(s || '').trim()); }
   function isUrlVal(s) { return /https?:\/\//i.test(String(s || '')); }
   function isStatusVal(s) { return /^(done|selesai|permintaan|proses|tolak|sedang proses|tahap penawaran)/i.test(String(s || '').trim()); }
   function normBa2Row(r) {
     r = r || {};
-    var name = r.name || r.nama || '';
-    var shifted = isUomVal(name) || (Number(r.qty) >= 1000 && Number(r.uom) > 0 && Number(r.uom) < 10000 && isUomVal(name));
-    if (!shifted) {
+    var nameIsUom = /^(drg|liter|ltr|lt|pcs|kg|unit|galon|pak|box|buah|ml|ons)$/i.test(String(r.name||'').trim());
+    var shifted = !!(r.sku && (nameIsUom || /^\d+$/.test(String(r.uom||''))));
+    if (shifted) {
       return {
-        date: r.date || r.Tanggal || '',
-        name: name || r.sku || '',
-        uom: r.uom || r.Uom || '',
-        qty: Number(r.qty || r.Qty) || 0,
-        price: Number(r.price || r.Price) || 0,
-        total: Number(r.total || r.Total) || 0,
-        keterangan: isUrlVal(r.keterangan) ? '' : (r.keterangan || ''),
-        loc: isStatusVal(r.loc) ? '' : (r.loc || r.Loc || ''),
-        status: isStatusVal(r.status) ? r.status : (isStatusVal(r.loc) ? r.loc : (r.status || 'Done')),
-        foto: r.foto || (isUrlVal(r.keterangan) ? r.keterangan : '')
+        date: r.date || '',
+        name: r.sku || '',
+        uom: r.name || '',
+        qty: Number(r.uom) || 0,
+        price: Number(r.qty) || 0,
+        total: Number(r.price) || 0,
+        keterangan: isUrlVal(r.keterangan) ? '' : String(r.keterangan || ''),
+        foto: isUrlVal(r.keterangan) ? r.keterangan : (r.foto || ''),
+        loc: r.foto || '',
+        status: isStatusVal(r.loc) ? r.loc : (isStatusVal(r.status) ? r.status : 'Done')
       };
     }
     return {
       date: r.date || '',
-      name: r.sku || r.SKU || '',
-      uom: name,
-      qty: Number(r.uom) || 0,
-      price: Number(r.qty) || 0,
-      total: Number(r.price) || 0,
-      keterangan: isUrlVal(r.keterangan) ? '' : String(r.total || r.keterangan || ''),
-      loc: isStatusVal(r.loc) ? (isUrlVal(r.foto) ? '' : (r.foto || '')) : (r.loc || ''),
-      status: isStatusVal(r.loc) ? r.loc : (isStatusVal(r.status) ? r.status : 'Done'),
-      foto: isUrlVal(r.keterangan) ? r.keterangan : (r.foto || '')
+      name: r.name || r.nama || r.sku || '',
+      uom: r.uom || '',
+      qty: Number(r.qty) || 0,
+      price: Number(r.price) || 0,
+      total: Number(r.total) || ((Number(r.price)||0)*(Number(r.qty)||0)),
+      keterangan: isUrlVal(r.keterangan) ? '' : (r.keterangan || ''),
+      foto: r.foto || '',
+      loc: isStatusVal(r.loc) ? '' : (r.loc || ''),
+      status: isStatusVal(r.status) ? r.status : (isStatusVal(r.loc) ? r.loc : (r.status || 'Done'))
     };
   }
-
+  var SHEET_HEAD = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
   function hookBaKeluarCols() {
     if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
     window.baRenderTable = function (list) {
@@ -170,27 +160,20 @@
       try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { list = list || []; }
       if (window.baFilterOutlet) list = window.baFilterOutlet(list);
       var table = tb.closest('table');
-      if (table) {
-        var head = table.querySelector('thead tr');
-        if (head) head.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
-      }
-      if (!list.length) {
-        tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
-        return;
-      }
+      if (table) { var head = table.querySelector('thead tr'); if (head) head.innerHTML = SHEET_HEAD; }
+      if (!list.length) { tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>'; return; }
       var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
       tb.innerHTML = list.map(function (r) {
         var pr = Number(r.price || 0) || 0;
         var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
         var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
         var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
       }).join('');
     };
     window.baRenderTable._price = true;
     try { window.baRenderTable(); } catch (e) {}
   }
-
   function renderBa2FromSheet(list) {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -198,29 +181,20 @@
     list = (list || []).map(normBa2Row);
     if (window.baFilterOutlet) list = window.baFilterOutlet(list);
     var table = tb.closest('table');
-    if (table) {
-      var tr = table.querySelector('thead tr');
-      if (tr) tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
-    }
-    if (!list.length) {
-      tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
-      return;
-    }
+    if (table) { var tr = table.querySelector('thead tr'); if (tr) tr.innerHTML = SHEET_HEAD; }
+    if (!list.length) { tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>'; return; }
     var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
     tb.innerHTML = list.map(function (r) {
       var tot = Number(r.total) || ((Number(r.price)||0) * (Number(r.qty)||0));
       var badge = window.baStatusBadge ? window.baStatusBadge(r.status || 'Done') : (r.status || 'Done');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+'"></td></tr>';
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+'"></td></tr>';
     }).join('');
   }
-
   function loadBa2() {
-    hookOutletLock();
-    hookBaKeluarCols();
+    hookOutletLock(); hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
     function after() {
-      hookOutletLock();
-      hookBaKeluarCols();
+      hookOutletLock(); hookBaKeluarCols();
       window.ba2Render = renderBa2FromSheet;
       if (window.ba2Init) window.ba2Init();
       renderBa2FromSheet();
@@ -232,7 +206,6 @@
     s.id = 'ba2-script'; s.src = 'ba2.js?v=17'; s.onload = after;
     document.body.appendChild(s);
   }
-
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
     .then(function (html) {
@@ -245,9 +218,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          [300, 800, 1500, 3000].forEach(function (ms) {
-            setTimeout(function () { hookOutletLock(); forceLock(); }, ms);
-          });
+          [300, 800, 1500, 3000].forEach(function (ms) { setTimeout(function () { hookOutletLock(); forceLock(); }, ms); });
         });
     });
 })();
