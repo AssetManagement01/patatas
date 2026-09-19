@@ -71,18 +71,64 @@
   }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   var SHEET_ID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
-  function forceLock() {
-    var infoName = '';
+  var CODE_MAP = {
+    nrsp: 'Nanyang Roastery - Sun Plaza Medan',
+    'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
+    nrkjk: 'Nanyang Roastery - Kejaksaan Medan',
+    'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
+    hgs: 'HIJO - Gading Serpong',
+    hakd: 'HIJO - AKD',
+    hta: 'HIJO - Taman Anggrek',
+    hk: 'HIJO - Karmaja',
+    hevent: 'HIJO - Event',
+    hhq: 'HIJO - HQ',
+    xosp: 'XO Suki - Sun Plaza Medan',
+    khcp: 'Kota Hainan - Central Park',
+    bbm: 'Boemi - Blok M',
+    cba: 'Chop Buntut AKD',
+    cbs: 'Chop Buntut Semarang',
+    tbm: 'Thirty Bumbu - Taman Anggrek',
+    bda: 'Bao Darling - AKD'
+  };
+  function lockedOutletName() {
+    var text = ((document.body && document.body.innerText) || '').replace(/\s+/g, ' ');
+    var hanya = text.match(/Hanya data:\s*([^\n]+?)(?:\s+OUTLET:|$)/i);
+    if (hanya && hanya[1] && hanya[1].trim().length > 4) return hanya[1].trim();
+    var badge = text.match(/OUTLET:\s*([A-Z0-9 ]{2,12})/i);
+    var code = badge ? badge[1].toLowerCase().replace(/\s+/g, '') : '';
+    if (CODE_MAP[code]) return CODE_MAP[code];
+    var spaced = badge ? badge[1].toLowerCase().replace(/\s+/g, ' ').trim() : '';
+    if (CODE_MAP[spaced]) return CODE_MAP[spaced];
     try {
       var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
-      infoName = s.outletName || s.outlet || '';
+      var n = String(s.outletName || s.outlet || '').trim();
+      if (n && !/nanyang roastery$/i.test(n) && !/^hijo$/i.test(n)) return n;
+      var kw = String(s.outletKeyword || s.code || '').toLowerCase().replace(/\s+/g, '');
+      if (CODE_MAP[kw]) return CODE_MAP[kw];
     } catch (e) {}
-    if (!infoName) return;
-    ['ba-loc','m-ba-loc','ba2-loc'].forEach(function(id){
-      var el=document.getElementById(id); if(!el||el.tagName!=='SELECT')return;
-      el.innerHTML=''; var o=document.createElement('option'); o.value=infoName; o.textContent=infoName; el.appendChild(o);
-      el.value=infoName; el.disabled=true; el.style.background='#f1f5f9'; el.style.pointerEvents='none';
+    return '';
+  }
+  function forceLock() {
+    var name = lockedOutletName();
+    if (!name) return;
+    ['ba-loc', 'm-ba-loc', 'ba2-loc'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el.tagName !== 'SELECT') return;
+      el.innerHTML = '';
+      var o = document.createElement('option');
+      o.value = name; o.textContent = name;
+      el.appendChild(o);
+      el.value = name;
+      el.disabled = true;
+      el.style.background = '#f1f5f9';
+      el.style.pointerEvents = 'none';
     });
+    var prev = window.fillTransferOutlets;
+    if (typeof prev === 'function' && !prev._locked) {
+      window.fillTransferOutlets = function () { prev.apply(this, arguments); forceLock(); };
+      window.fillTransferOutlets._locked = true;
+    }
+    window.lockBAOutlet = forceLock;
   }
   function cellStr(c) {
     if (c == null) return '';
@@ -133,10 +179,10 @@
     loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
     window.ba2Render = function(){ window.ba2Reload(); };
     window.ba2Reload = async function(){ try{ renderBa2FromSheet(await loadBa2Sheet()); }catch(e){ renderBa2FromSheet(); } };
-    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=20';
-    s.onload=function(){ window.ba2Render=function(){window.ba2Reload();}; window.ba2Reload=async function(){try{renderBa2FromSheet(await loadBa2Sheet());}catch(e){renderBa2FromSheet();}}; window.ba2Reload(); forceLock(); };
+    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=21';
+    s.onload=function(){ forceLock(); window.ba2Reload(); };
     document.body.appendChild(s);
-    [400,1200,2500].forEach(function(ms){ setTimeout(function(){ forceLock(); if(window.ba2Reload)window.ba2Reload(); }, ms); });
+    [300,800,1600,3000].forEach(function(ms){ setTimeout(forceLock, ms); });
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
@@ -150,7 +196,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          [500,1500].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); forceLock(); }, ms); });
+          [400,1200,2500].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); forceLock(); }, ms); });
         });
     });
 })();
