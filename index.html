@@ -70,56 +70,19 @@
     var s = document.createElement('script'); s.id = id; s.src = src; document.body.appendChild(s);
   }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-  function sess() { try { return JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) { return {}; } }
   var SHEET_ID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
-  var OUTLET_MAP = {
-    nrsp: 'Nanyang Roastery - Sun Plaza Medan', 'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
-    nrkjk: 'Nanyang Roastery - Kejaksaan Medan', 'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
-    xosp: 'XO Suki - Sun Plaza Medan', 'xo sp': 'XO Suki - Sun Plaza Medan',
-    khcp: 'Kota Hainan - Central Park', 'kh cp': 'Kota Hainan - Central Park',
-    bbm: 'Boemi - Blok M', cba: 'Chop Buntut AKD', cbs: 'Chop Buntut Semarang',
-    tbm: 'Thirty Bumbu - Taman Anggrek', hta: 'HIJO - Taman Anggrek', hgs: 'HIJO - Gading Serpong',
-    hk: 'HIJO - Karmaja', hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD'
-  };
-  function outletInfo() {
-    var s = sess();
-    var email = String(s.email || window.USER_EMAIL || '').toLowerCase();
-    var raw = email.split('\u00b7')[0].trim();
-    var code = raw.replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
-    var code2 = code.replace(/\s+/g, '');
-    var first = code.split(' ')[0] || '';
-    var name = String(s.outletName || s.outlet || '').trim();
-    var kw = String(s.outletKeyword || window.USER_OUTLET || '').trim();
-    var role = String(s.role || window.USER_ROLE || '').toLowerCase();
-    if (!name) name = OUTLET_MAP[code] || OUTLET_MAP[code2] || OUTLET_MAP[first] || '';
-    var isOutlet = role === 'outlet' || !!OUTLET_MAP[first] || !!OUTLET_MAP[code2] || /OUTLET:/i.test((document.body && document.body.innerText) || '');
-    if (isOutlet && !name) name = kw;
-    return { role: role, name: name, kw: kw || name, isOutlet: isOutlet && !!name };
-  }
   function forceLock() {
-    var info = outletInfo();
-    if (!info.isOutlet || !info.name) return;
-    ['ba-loc', 'm-ba-loc', 'ba2-loc'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (!el || el.tagName !== 'SELECT') return;
-      el.innerHTML = '';
-      var o = document.createElement('option');
-      o.value = info.name; o.textContent = info.name;
-      el.appendChild(o);
-      el.value = info.name;
-      el.disabled = true;
-      el.style.background = '#f1f5f9';
-      el.style.pointerEvents = 'none';
+    var infoName = '';
+    try {
+      var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
+      infoName = s.outletName || s.outlet || '';
+    } catch (e) {}
+    if (!infoName) return;
+    ['ba-loc','m-ba-loc','ba2-loc'].forEach(function(id){
+      var el=document.getElementById(id); if(!el||el.tagName!=='SELECT')return;
+      el.innerHTML=''; var o=document.createElement('option'); o.value=infoName; o.textContent=infoName; el.appendChild(o);
+      el.value=infoName; el.disabled=true; el.style.background='#f1f5f9'; el.style.pointerEvents='none';
     });
-  }
-  function hookOutletLock() {
-    window.lockBAOutlet = forceLock;
-    var prevFill = window.fillTransferOutlets;
-    if (typeof prevFill === 'function' && !prevFill._locked) {
-      window.fillTransferOutlets = function () { prevFill.apply(this, arguments); forceLock(); };
-      window.fillTransferOutlets._locked = true;
-    }
-    forceLock();
   }
   function cellStr(c) {
     if (c == null) return '';
@@ -136,97 +99,44 @@
           var rows = (table && table.rows) || [];
           var h = cols.map(function (c) { return String(c.label || c.id || '').trim().toLowerCase(); });
           function ix(n) { return h.indexOf(n); }
-          var iT = ix('tanggal'), iN = ix('nama'), iU = ix('uom'), iQ = ix('qty'), iP = ix('price'),
-              iTot = ix('total'), iK = ix('keterangan'), iF = ix('foto'), iL = ix('loc'), iS = ix('status');
-          var out = [];
-          rows.forEach(function (row, ri) {
-            var c = row.c || [];
-            var date = cellStr(c[iT]); var nama = cellStr(c[iN]);
-            if (!date && !nama) return;
-            out.push({
-              id: 'BA2ROW' + (ri + 2),
-              date: date, name: nama, uom: cellStr(c[iU]),
-              qty: Number(String(cellStr(c[iQ])).replace(/,/g,'')) || 0,
-              price: Number(String(cellStr(c[iP])).replace(/,/g,'')) || 0,
-              total: Number(String(cellStr(c[iTot])).replace(/,/g,'')) || 0,
-              keterangan: cellStr(c[iK]), foto: cellStr(c[iF]), loc: cellStr(c[iL]),
-              status: cellStr(c[iS]) || 'Done'
-            });
+          var iT=ix('tanggal'),iN=ix('nama'),iU=ix('uom'),iQ=ix('qty'),iP=ix('price'),iTot=ix('total'),iK=ix('keterangan'),iF=ix('foto'),iL=ix('loc'),iS=ix('status');
+          var out=[];
+          rows.forEach(function(row,ri){
+            var c=row.c||[]; var date=cellStr(c[iT]); var nama=cellStr(c[iN]);
+            if(!date&&!nama)return;
+            out.push({id:'BA2ROW'+(ri+2),date:date,name:nama,uom:cellStr(c[iU]),qty:Number(String(cellStr(c[iQ])).replace(/,/g,''))||0,price:Number(String(cellStr(c[iP])).replace(/,/g,''))||0,total:Number(String(cellStr(c[iTot])).replace(/,/g,''))||0,keterangan:cellStr(c[iK]),foto:cellStr(c[iF]),loc:cellStr(c[iL]),status:cellStr(c[iS])||'Done'});
           });
-          out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
-          try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(out)); } catch (e) {}
+          out.sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
+          try{localStorage.setItem('patatas_ba2_v1',JSON.stringify(out));}catch(e){}
           resolve(out);
-        } catch (err) { reject(err); }
-        try { delete window[name]; } catch (e2) {}
+        } catch(err){reject(err);}
       };
-      var s = document.createElement('script');
-      s.src = 'https://docs.google.com/spreadsheets/d/' + SHEET_ID + '/gviz/tq?sheet=BA2&tqx=out:json;responseHandler:' + name + '&_=' + Date.now();
-      s.onerror = function () { reject(new Error('gviz')); };
+      var s=document.createElement('script');
+      s.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?sheet=BA2&tqx=out:json;responseHandler:'+name+'&_='+Date.now();
+      s.onerror=function(){reject(new Error('gviz'));};
       document.body.appendChild(s);
     });
   }
-  var SHEET_HEAD = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
-  function hookBaKeluarCols() {
-    if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
-    window.baRenderTable = function (list) {
-      var tb = document.getElementById('ba-table-body');
-      if (!tb) return;
-      try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]'); } catch (e) { list = list || []; }
-      if (window.baFilterOutlet) list = window.baFilterOutlet(list);
-      var table = tb.closest('table');
-      if (table) { var head = table.querySelector('thead tr'); if (head) head.innerHTML = SHEET_HEAD; }
-      if (!list.length) { tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>'; return; }
-      var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
-      tb.innerHTML = list.map(function (r) {
-        var pr = Number(r.price || 0) || 0;
-        var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
-        var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
-        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
-      }).join('');
-    };
-    window.baRenderTable._price = true;
-    try { window.baRenderTable(); } catch (e) {}
-  }
-  function renderBa2FromSheet(list) {
-    var tb = document.getElementById('ba2-table-body');
-    if (!tb) return;
-    try { if (!list) list = JSON.parse(localStorage.getItem('patatas_ba2_v1') || '[]'); } catch (e) { list = list || []; }
-    if (window.baFilterOutlet) list = window.baFilterOutlet(list);
-    var table = tb.closest('table');
-    if (table) { var tr = table.querySelector('thead tr'); if (tr) tr.innerHTML = SHEET_HEAD; }
-    if (!list.length) { tb.innerHTML = '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>'; return; }
-    var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
-    tb.innerHTML = list.map(function (r) {
-      if (r.name && /^(drg|liter)$/i.test(r.name) && r.sku) return '';
-      var tot = Number(r.total) || ((Number(r.price)||0) * (Number(r.qty)||0));
-      if (tot > 10000000 && Number(r.qty) > 1000) return '';
-      var badge = window.baStatusBadge ? window.baStatusBadge(r.status || 'Done') : (r.status || 'Done');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+'"></td></tr>';
+  var SHEET_HEAD='<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+  function renderBa2FromSheet(list){
+    var tb=document.getElementById('ba2-table-body'); if(!tb)return;
+    try{if(!list)list=JSON.parse(localStorage.getItem('patatas_ba2_v1')||'[]');}catch(e){list=list||[];}
+    var table=tb.closest('table'); if(table){var tr=table.querySelector('thead tr'); if(tr)tr.innerHTML=SHEET_HEAD;}
+    if(!list.length){tb.innerHTML='<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';return;}
+    var td='padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+    tb.innerHTML=list.map(function(r){
+      var tot=Number(r.total)||((Number(r.price)||0)*(Number(r.qty)||0));
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.status||'')+'</td><td style="'+td+'"></td></tr>';
     }).join('');
   }
-  function bindBa2() {
-    window.ba2Render = function () { window.ba2Reload(); };
-    window.ba2Reload = async function () {
-      try { renderBa2FromSheet(await loadBa2Sheet()); }
-      catch (e) { renderBa2FromSheet(); }
-    };
-  }
   function loadBa2() {
-    hookOutletLock(); hookBaKeluarCols();
-    loadExtra('ba-report.js?v=3', 'ba-report-script');
-    bindBa2();
-    function after() {
-      bindBa2();
-      hookOutletLock(); hookBaKeluarCols();
-      window.ba2Reload();
-      forceLock();
-    }
-    if (document.getElementById('ba2-script')) { after(); return; }
-    var s = document.createElement('script');
-    s.id = 'ba2-script'; s.src = 'ba2.js?v=19'; s.onload = after;
+    loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
+    window.ba2Render = function(){ window.ba2Reload(); };
+    window.ba2Reload = async function(){ try{ renderBa2FromSheet(await loadBa2Sheet()); }catch(e){ renderBa2FromSheet(); } };
+    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=20';
+    s.onload=function(){ window.ba2Render=function(){window.ba2Reload();}; window.ba2Reload=async function(){try{renderBa2FromSheet(await loadBa2Sheet());}catch(e){renderBa2FromSheet();}}; window.ba2Reload(); forceLock(); };
     document.body.appendChild(s);
-    [200, 600, 1200, 2500].forEach(function (ms) { setTimeout(function () { bindBa2(); window.ba2Reload(); forceLock(); }, ms); });
+    [400,1200,2500].forEach(function(ms){ setTimeout(function(){ forceLock(); if(window.ba2Reload)window.ba2Reload(); }, ms); });
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
@@ -240,9 +150,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          [400, 1000, 2000].forEach(function (ms) {
-            setTimeout(function () { applyNewLogo(src, srcWhite); hookOutletLock(); forceLock(); bindBa2(); }, ms);
-          });
+          [500,1500].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); forceLock(); }, ms); });
         });
     });
 })();
