@@ -61,11 +61,11 @@
     if (!src) return;
     document.querySelectorAll('.brand img').forEach(function (img) {
       img.src = src;
-      img.style.cssText = 'background:transparent;max-width:280px;width:100%;height:auto;max-height:110px;object-fit:contain;filter:none;display:block;margin:0 auto;transform:none';
+      img.style.cssText = 'background:transparent;max-width:280px;width:100%;height:auto;max-height:110px;object-fit:contain;filter:none;display:block;margin:0 auto';
     });
     document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
       img.src = srcWhite || src;
-      img.style.cssText = 'background:transparent;max-width:168px;width:100%;height:auto;max-height:64px;object-fit:contain;filter:none;display:block;margin:0 auto;transform:none';
+      img.style.cssText = 'background:transparent;max-width:168px;width:100%;height:auto;max-height:64px;object-fit:contain;filter:none;display:block;margin:0 auto';
     });
   }
   function loadExtra(src, id) {
@@ -95,7 +95,6 @@
       var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
       var role = String(s.role || '').toLowerCase();
       if (role === 'admin' || role === 'ho' || role === 'user') return true;
-      if (!s.outlet && !s.outletKeyword && /gmail|admin|ho jkt|user/i.test(String(s.email||''))) return true;
     } catch (e) {}
     return false;
   }
@@ -134,11 +133,7 @@
     document.querySelectorAll('select').forEach(function (el) { applyLockToSelect(el, name); });
     var prev = window.fillTransferOutlets;
     if (typeof prev === 'function' && !prev._locked) {
-      window.fillTransferOutlets = function () {
-        prev.apply(this, arguments);
-        setTimeout(forceLock, 0);
-        setTimeout(forceLock, 80);
-      };
+      window.fillTransferOutlets = function () { prev.apply(this, arguments); setTimeout(forceLock, 0); };
       window.fillTransferOutlets._locked = true;
     }
     window.lockBAOutlet = forceLock;
@@ -146,12 +141,10 @@
   function setHoPass() {
     var rec = { password: 'PATATAS2026', canEdit: true, canDelete: true, outlet: null, label: 'HO JKT' };
     window.OUTLET_ACCOUNTS = window.OUTLET_ACCOUNTS || {};
-    ['ho jkt','hojkt','ho-jkt','ho_jkt'].forEach(function (k) { window.OUTLET_ACCOUNTS[k] = rec; });
+    ['ho jkt','hojkt','ho-jkt'].forEach(function (k) { window.OUTLET_ACCOUNTS[k] = rec; });
     try {
       var map = JSON.parse(localStorage.getItem('patatas_passwords') || '{}');
-      map['ho jkt'] = 'PATATAS2026';
-      map['hojkt'] = 'PATATAS2026';
-      map['ho-jkt'] = 'PATATAS2026';
+      map['ho jkt'] = 'PATATAS2026'; map['hojkt'] = 'PATATAS2026';
       localStorage.setItem('patatas_passwords', JSON.stringify(map));
     } catch (e) {}
   }
@@ -192,22 +185,41 @@
   function renderBa2FromSheet(list){
     var tb=document.getElementById('ba2-table-body'); if(!tb)return;
     try{if(!list)list=JSON.parse(localStorage.getItem('patatas_ba2_v1')||'[]');}catch(e){list=list||[];}
+    list=(list||[]).filter(function(r){ return !(/^(drg|liter)$/i.test(String(r.name||'')) && Number(r.qty)>1000); });
     var table=tb.closest('table'); if(table){var tr=table.querySelector('thead tr'); if(tr)tr.innerHTML=SHEET_HEAD;}
     if(!list.length){tb.innerHTML='<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';return;}
     var td='padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
+    tb.setAttribute('data-sheet','1');
     tb.innerHTML=list.map(function(r){
       var tot=Number(r.total)||((Number(r.price)||0)*(Number(r.qty)||0));
       return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.status||'')+'</td><td style="'+td+'"></td></tr>';
     }).join('');
   }
+  function tableScrambled() {
+    var tb=document.getElementById('ba2-table-body'); if(!tb) return false;
+    var cell=tb.querySelector('tr td:nth-child(2)');
+    var head=tb.closest('table') && tb.closest('table').querySelector('thead');
+    var headTxt=head?head.innerText:'';
+    if (/NAMA[\s\S]{0,20}LOC/i.test(headTxt)) return true;
+    return !!(cell && /^(drg|liter)$/i.test(cell.textContent.trim()));
+  }
+  function bindBa2Fns() {
+    window.ba2Render = function () { renderBa2FromSheet(); };
+    window.ba2Reload = async function () {
+      try { renderBa2FromSheet(await loadBa2Sheet()); }
+      catch (e) { renderBa2FromSheet(); }
+    };
+  }
   function loadBa2() {
     loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
-    window.ba2Reload = async function(){ try{ renderBa2FromSheet(await loadBa2Sheet()); }catch(e){ renderBa2FromSheet(); } };
-    window.ba2Render = function(){ window.ba2Reload(); };
-    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=22';
-    s.onload=function(){ forceLock(); window.ba2Reload(); };
+    bindBa2Fns();
+    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=23';
+    s.onload=function(){ bindBa2Fns(); forceLock(); window.ba2Reload(); };
     document.body.appendChild(s);
-    setInterval(forceLock, 700);
+    setInterval(function(){
+      bindBa2Fns(); forceLock();
+      if (tableScrambled()) window.ba2Reload();
+    }, 600);
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
     .then(function (r) { return r.text(); })
@@ -221,7 +233,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); setHoPass(); loadBa2();
-          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); }, ms); });
+          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); bindBa2Fns(); }, ms); });
         });
     });
 })();
