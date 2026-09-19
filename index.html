@@ -70,8 +70,120 @@
     s.src = src;
     document.body.appendChild(s);
   }
-
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
+
+  function sess() {
+    try { return JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) { return {}; }
+  }
+  function outletInfo() {
+    var s = sess();
+    var name = String(s.outletName || s.outlet || '').trim();
+    var kw = String(s.outletKeyword || window.USER_OUTLET || '').trim();
+    var role = String(s.role || window.USER_ROLE || '').toLowerCase();
+    var email = String(s.email || window.USER_EMAIL || '').toLowerCase();
+    var code = email.split('\u00b7')[0].trim();
+    var map = {
+      'nr sp': 'Nanyang Roastery - Sun Plaza Medan',
+      nrsp: 'Nanyang Roastery - Sun Plaza Medan',
+      'nr kjk': 'Nanyang Roastery - Kejaksaan Medan',
+      nrkjk: 'Nanyang Roastery - Kejaksaan Medan',
+      'xo sp': 'XO Suki - Sun Plaza Medan',
+      xosp: 'XO Suki - Sun Plaza Medan',
+      'kh cp': 'Kota Hainan - Central Park',
+      khcp: 'Kota Hainan - Central Park',
+      bbm: 'Boemi - Blok M',
+      cba: 'Chop Buntut AKD',
+      cbs: 'Chop Buntut Semarang',
+      tbm: 'Thirty Bumbu - Taman Anggrek',
+      hta: 'HIJO - Taman Anggrek',
+      hgs: 'HIJO - Gading Serpong',
+      hk: 'HIJO - Karmaja',
+      hakd: 'HIJO - AKD',
+      hevent: 'HIJO - Event',
+      hhq: 'HIJO - HQ',
+      bda: 'Bao Darling - AKD'
+    };
+    if (!name) name = map[code] || map[kw.toLowerCase()] || '';
+    if (!name && typeof OUTLETS !== 'undefined' && OUTLETS[code]) name = OUTLETS[code].name;
+    if (!kw && typeof OUTLETS !== 'undefined' && OUTLETS[code]) kw = OUTLETS[code].keyword;
+    return { role: role, name: name, kw: kw, code: code, isOutlet: role === 'outlet' };
+  }
+  function pickExactLoc(el, info) {
+    if (!el) return '';
+    var name = String(info.name || '').trim();
+    var kw = String(info.kw || '').trim();
+    var opts = [];
+    for (var i = 0; i < el.options.length; i++) {
+      if (el.options[i].value) opts.push(el.options[i].value);
+    }
+    function low(s) { return String(s || '').toLowerCase().trim(); }
+    var targets = [name, kw].filter(function (x) { return x; });
+    var j, o;
+    for (j = 0; j < targets.length; j++) {
+      for (o = 0; o < opts.length; o++) {
+        if (low(opts[o]) === low(targets[j])) return opts[o];
+      }
+    }
+    for (j = 0; j < targets.length; j++) {
+      var t = low(targets[j]);
+      if (t.length < 10) continue;
+      for (o = 0; o < opts.length; o++) {
+        var ov = low(opts[o]);
+        if (ov.indexOf(t) >= 0 || t.indexOf(ov) >= 0) return opts[o];
+      }
+    }
+    var tail = name.split(' - ').slice(-1)[0] || kw.split(' - ').slice(-1)[0] || '';
+    tail = low(tail);
+    if (tail.length >= 4) {
+      var hits = opts.filter(function (v) { return low(v).indexOf(tail) >= 0; });
+      if (hits.length === 1) return hits[0];
+      if (hits.length > 1 && name) {
+        var pref = hits.filter(function (v) { return low(v).indexOf(low(name.split(' - ')[0] || '')) >= 0; });
+        if (pref.length === 1) return pref[0];
+      }
+    }
+    return name || kw || '';
+  }
+  function lockSelect(el, info) {
+    if (!el || !info.isOutlet) {
+      if (el) { el.disabled = false; el.style.background = ''; el.style.cursor = ''; }
+      return;
+    }
+    var val = pickExactLoc(el, info);
+    if (val) {
+      var has = false;
+      for (var i = 0; i < el.options.length; i++) if (el.options[i].value === val) has = true;
+      if (!has) {
+        var opt = document.createElement('option');
+        opt.value = val; opt.textContent = val;
+        el.appendChild(opt);
+      }
+      el.value = val;
+    }
+    el.disabled = true;
+    el.style.background = '#f1f5f9';
+    el.style.cursor = 'not-allowed';
+  }
+  function hookOutletLock() {
+    var info = outletInfo();
+    window.lockBAOutlet = function () {
+      lockSelect(document.getElementById('ba-loc'), info);
+      lockSelect(document.getElementById('m-ba-loc'), info);
+      lockSelect(document.getElementById('ba2-loc'), info);
+    };
+    window.locationMatchesOutlet = function (loc, scope) {
+      var L = String(loc || '').toLowerCase().trim();
+      if (!L) return false;
+      var name = String((scope && scope.name) || info.name || '').toLowerCase().trim();
+      var kw = String((scope && scope.keyword) || info.kw || '').toLowerCase().trim();
+      if (name && (L === name || L.indexOf(name) >= 0 || name.indexOf(L) >= 0)) return true;
+      if (kw && kw.length >= 8 && (L === kw || L.indexOf(kw) >= 0 || kw.indexOf(L) >= 0)) return true;
+      var tail = (name || kw).split(' - ').slice(-1)[0];
+      if (tail && tail.length >= 4 && L.indexOf(tail) >= 0 && L.indexOf((name || kw).split(' - ')[0]) >= 0) return true;
+      return false;
+    };
+    try { window.lockBAOutlet(); } catch (e) {}
+  }
 
   function hookBaKeluarCols() {
     if (typeof window.baRenderTable !== 'function' || window.baRenderTable._price) return;
@@ -101,19 +213,15 @@
     window.baRenderTable._price = true;
     try { window.baRenderTable(); } catch (e) {}
   }
-
   function fixBa2Table() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
     var table = tb.closest('table');
     if (table) {
       var tr = table.querySelector('thead tr');
-      if (tr) {
-        tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
-      }
+      if (tr) tr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
     }
   }
-
   function renderBa2FromSheet(list) {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -129,18 +237,18 @@
       var pr = Number(r.price || 0) || 0;
       var tot = Number(r.total) || (pr * (Number(r.qty) || 0));
       var st = r.status || '';
-      var badge = window.baStatusBadge ? window.baStatusBadge(st) : (st ? '<span style="background:#dcfce7;color:#166534;padding:0.2rem 0.5rem;border-radius:0.25rem;font-size:0.75rem;font-weight:600">'+st+'</span>' : '');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap"></td></tr>';
+      var badge = window.baStatusBadge ? window.baStatusBadge(st) : st;
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||r.nama||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:center">'+(r.uom||r.Uom||'')+'</td><td style="'+td+';text-align:right">'+fmt(pr)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+'"></td></tr>';
     }).join('');
   }
-
   function loadBa2() {
+    hookOutletLock();
     hookBaKeluarCols();
     loadExtra('ba-report.js?v=2', 'ba-report-script');
     function after() {
+      hookOutletLock();
       hookBaKeluarCols();
       window.ba2Render = renderBa2FromSheet;
-      window.ba2Render._fixedHead = true;
       if (window.ba2Init) window.ba2Init();
       renderBa2FromSheet();
       if (window.ba2Reload) window.ba2Reload();
@@ -158,7 +266,6 @@
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
       document.open(); document.write(html); document.close();
-
       var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
       Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }))
         .then(async function (chunks) {
@@ -166,7 +273,9 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); loadBa2();
-          setTimeout(function () { applyHeadline(); applyNewLogo(src, srcWhite); loadBa2(); }, 300);
+          setTimeout(function () { applyHeadline(); applyNewLogo(src, srcWhite); loadBa2(); hookOutletLock(); }, 300);
+          setTimeout(hookOutletLock, 800);
+          setTimeout(hookOutletLock, 1600);
         });
     });
 })();
