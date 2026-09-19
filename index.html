@@ -112,6 +112,7 @@
   }
   function applyLockToSelect(el, name) {
     if (!el || el.tagName !== 'SELECT') return;
+    if (el.id === 'ba-rp-jenis') return;
     var cur = (el.value || '') + ' ' + Array.prototype.map.call(el.options || [], function (o) { return o.text; }).join(' ');
     var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas|hainan|suki|bao|thirty/i.test(cur);
     if (!isOutlet) return;
@@ -189,7 +190,6 @@
     var table=tb.closest('table'); if(table){var tr=table.querySelector('thead tr'); if(tr)tr.innerHTML=SHEET_HEAD;}
     if(!list.length){tb.innerHTML='<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';return;}
     var td='padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
-    tb.setAttribute('data-sheet','1');
     tb.innerHTML=list.map(function(r){
       var tot=Number(r.total)||((Number(r.price)||0)*(Number(r.qty)||0));
       return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.status||'')+'</td><td style="'+td+'"></td></tr>';
@@ -203,6 +203,23 @@
     if (/NAMA[\s\S]{0,20}LOC/i.test(headTxt)) return true;
     return !!(cell && /^(drg|liter)$/i.test(cell.textContent.trim()));
   }
+  function injectJenis() {
+    if (document.getElementById('ba-rp-jenis')) return;
+    var from = document.getElementById('ba-rp-from');
+    if (!from) return;
+    var wrap = from.parentElement && from.parentElement.parentElement;
+    if (!wrap) return;
+    var box = document.createElement('div');
+    box.style.minWidth = '170px';
+    box.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label>' +
+      '<select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box">' +
+      '<option value="keluar">Kas Keluar</option>' +
+      '<option value="masuk">Kas Masuk</option>' +
+      '<option value="semua">Semua</option></select>';
+    wrap.insertBefore(box, wrap.firstChild);
+    var sel = document.getElementById('ba-rp-jenis');
+    if (sel) sel.addEventListener('change', function () { if (window.baRenderReport) window.baRenderReport(); });
+  }
   function bindBa2Fns() {
     window.ba2Render = function () { renderBa2FromSheet(); };
     window.ba2Reload = async function () {
@@ -214,10 +231,10 @@
     loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
     bindBa2Fns();
     var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=23';
-    s.onload=function(){ bindBa2Fns(); forceLock(); window.ba2Reload(); };
+    s.onload=function(){ bindBa2Fns(); injectJenis(); forceLock(); window.ba2Reload(); };
     document.body.appendChild(s);
     setInterval(function(){
-      bindBa2Fns(); forceLock();
+      bindBa2Fns(); injectJenis(); forceLock();
       if (tableScrambled()) window.ba2Reload();
     }, 600);
   }
@@ -233,7 +250,7 @@
           var src = await punchBg(raw);
           var srcWhite = await makeWhite(src);
           applyHeadline(); applyNewLogo(src, srcWhite); setHoPass(); loadBa2();
-          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); bindBa2Fns(); }, ms); });
+          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); bindBa2Fns(); injectJenis(); }, ms); });
         });
     });
 })();
