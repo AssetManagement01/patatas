@@ -111,8 +111,7 @@
     return '';
   }
   function applyLockToSelect(el, name) {
-    if (!el || el.tagName !== 'SELECT') return;
-    if (el.id === 'ba-rp-jenis') return;
+    if (!el || el.tagName !== 'SELECT' || el.id === 'ba-rp-jenis') return;
     var cur = (el.value || '') + ' ' + Array.prototype.map.call(el.options || [], function (o) { return o.text; }).join(' ');
     var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas|hainan|suki|bao|thirty/i.test(cur);
     if (!isOutlet) return;
@@ -229,6 +228,7 @@
   }
   function loadBa2() {
     loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
+    loadExtra('ba-keluar.js?t=' + Date.now(), 'ba-keluar-js');
     bindBa2Fns();
     var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=23';
     s.onload=function(){ bindBa2Fns(); injectJenis(); forceLock(); window.ba2Reload(); };
