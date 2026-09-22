@@ -1,6 +1,6 @@
 (function () {
-  if (window.__baFill2) return;
-  window.__baFill2 = true;
+  if (window.__baFill3) return;
+  window.__baFill3 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
@@ -42,28 +42,29 @@
     if (/Dapat melihat semua outlet|EDITOR|HO JKT/i.test(t) && !/OUTLET:\s*[A-Z]/i.test(t)) return list;
     var h = hint();
     if (!h) return list;
-    var keys = [];
-    if (/kh|hainan|central park/.test(h)) keys = ['hainan', 'central park'];
-    else keys = h.split(/[-,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
-    var out = list.filter(function (r) {
+    var keys = /kh|hainan|central park/.test(h) ? ['hainan', 'central park'] : h.split(/[-,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
+    return list.filter(function (r) {
       var L = String(r.loc || '').toLowerCase();
       for (var i = 0; i < keys.length; i++) if (L.indexOf(keys[i]) >= 0) return true;
       return false;
     });
-    return out;
   }
   function fmt(n) { n = Number(n)||0; try { return n.toLocaleString('id-ID'); } catch(e){ return String(n); } }
   function paint(list) {
     list = list || window.__baLastList || [];
     var show = filt(list);
     var tb = document.getElementById('ba-table-body');
-    if (tb && show.length) {
-      var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9';
-      tb.innerHTML = show.map(function (r) {
-        var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status||'');
-        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.sku||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'">'+aksi+'</td></tr>';
-      }).join('');
+    if (tb) {
+      if (!show.length) {
+        tb.innerHTML = '<tr><td colspan="8" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
+      } else {
+        var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9';
+        tb.innerHTML = show.map(function (r) {
+          var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status||'');
+          var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
+          return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.sku||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'">'+aksi+'</td></tr>';
+        }).join('');
+      }
     }
     var rp = document.getElementById('ba-rp-tbody');
     if (rp && show.length) {
@@ -78,31 +79,54 @@
     try { localStorage.setItem('patatas_ba_v1', JSON.stringify(rows)); } catch (e) {}
     paint(rows);
   }
-  function loadGviz() {
-    window.patatasBAfill = function (resp) {
-      var rows = parse(resp);
-      if (rows.length) save(rows);
-    };
-    var s = document.createElement('script');
-    s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA&tqx=out:json;responseHandler:patatasBAfill&_=' + Date.now();
-    document.body.appendChild(s);
-  }
-  function loadJson() {
-    fetch('ba-data.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (rows) {
-      if (rows && rows.length) {
-        rows.forEach(function (r, i) { if (!r.id) r.id = 'BAROW' + (i + 2); });
-        if (!window.__baLastList || !window.__baLastList.length) save(rows);
-        else paint(window.__baLastList);
+  function loadAll() {
+    return new Promise(function (resolve) {
+      var done = false;
+      function finish(rows) {
+        if (rows && rows.length) save(rows);
+        else if (window.__baLastList) paint(window.__baLastList);
+        if (!done) { done = true; resolve(); }
       }
-    }).catch(function () {});
+      window.patatasBAfill = function (resp) { finish(parse(resp)); };
+      var s = document.createElement('script');
+      s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA&tqx=out:json;responseHandler:patatasBAfill&_=' + Date.now();
+      s.onerror = function () {
+        fetch('ba-data.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (rows) {
+          rows.forEach(function (r, i) { if (!r.id) r.id = 'BAROW' + (i + 2); });
+          finish(rows);
+        }).catch(function () { finish(null); });
+      };
+      document.body.appendChild(s);
+      setTimeout(function () {
+        if (!done) {
+          fetch('ba-data.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (rows) {
+            rows.forEach(function (x, i) { if (!x.id) x.id = 'BAROW' + (i + 2); });
+            finish(rows);
+          }).catch(function () { finish(null); });
+        }
+      }, 4000);
+    });
   }
-  loadJson();
-  loadGviz();
-  setTimeout(function () { if (window.__baLastList) paint(window.__baLastList); }, 1500);
-  document.addEventListener('click', function (e) {
-    var a = e.target && e.target.closest && e.target.closest('a,button');
-    if (!a) return;
-    var tx = (a.textContent || '') + (a.getAttribute('data-page') || '');
-    if (/berita|report|refresh|ba/i.test(tx)) setTimeout(function () { if (window.__baLastList) paint(window.__baLastList); else { loadJson(); loadGviz(); } }, 300);
-  }, true);
+  function hookRefresh() {
+    document.querySelectorAll('button').forEach(function (b) {
+      if (!/refresh/i.test(b.textContent || '') || b.getAttribute('data-ba-load')) return;
+      b.setAttribute('data-ba-load', '1');
+      b.addEventListener('click', function (ev) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+        var old = b.innerHTML;
+        b.disabled = true;
+        b.innerHTML = 'Loading...';
+        var tb = document.getElementById('ba-table-body');
+        if (tb) tb.innerHTML = '<tr><td colspan="8" style="padding:1rem;text-align:center;color:#0f766e">Loading...</td></tr>';
+        loadAll().finally(function () {
+          b.disabled = false;
+          b.innerHTML = old;
+        });
+      }, true);
+    });
+  }
+  loadAll();
+  hookRefresh();
+  setInterval(hookRefresh, 1500);
 })();
