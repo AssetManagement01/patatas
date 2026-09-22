@@ -16,6 +16,7 @@
     var el = document.getElementById('ba-rp-jenis');
     return el ? el.value : 'keluar';
   }
+  function filt(list) { return window.baFilterOutlet ? window.baFilterOutlet(list || []) : (list || []); }
   function injectJenis() {
     if (document.getElementById('ba-rp-jenis')) return true;
     var from = document.getElementById('ba-rp-from');
@@ -57,14 +58,7 @@
             var c = row.c || [];
             var date = cell(c[iT]), nama = cell(c[iN]);
             if (!date && !nama) return;
-            out.push({
-              date: date, name: nama, uom: cell(c[iU]),
-              qty: Number(String(cell(c[iQ])).replace(/,/g, '')) || 0,
-              price: Number(String(cell(c[iP])).replace(/,/g, '')) || 0,
-              total: Number(String(cell(c[iTot])).replace(/,/g, '')) || 0,
-              keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]),
-              status: cell(c[iS]) || 'Done'
-            });
+            out.push({ date: date, name: nama, uom: cell(c[iU]), qty: Number(String(cell(c[iQ])).replace(/,/g, '')) || 0, price: Number(String(cell(c[iP])).replace(/,/g, '')) || 0, total: Number(String(cell(c[iTot])).replace(/,/g, '')) || 0, keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]), status: cell(c[iS]) || 'Done' });
           });
           try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(out)); } catch (e) {}
           res(out);
@@ -125,9 +119,9 @@
     injectJenis();
     var j = jenis();
     var masuk = [];
-    var keluar = loadLocal('patatas_ba_v1');
+    var keluar = filt(loadLocal('patatas_ba_v1'));
     if (j !== 'keluar') {
-      try { masuk = await loadSheet(); } catch (e) { masuk = loadLocal('patatas_ba2_v1'); }
+      try { masuk = filt(await loadSheet()); } catch (e) { masuk = filt(loadLocal('patatas_ba2_v1')); }
     }
     if (j === 'masuk') draw(masuk, 'masuk');
     else if (j === 'semua') {
@@ -143,8 +137,8 @@
   };
   window.baCollectReportRows = function () {
     var j = jenis();
-    var keluar = loadLocal('patatas_ba_v1');
-    var masuk = loadLocal('patatas_ba2_v1');
+    var keluar = filt(loadLocal('patatas_ba_v1'));
+    var masuk = filt(loadLocal('patatas_ba2_v1'));
     if (j === 'masuk') return masuk;
     if (j === 'semua') return keluar.concat(masuk);
     return keluar;
