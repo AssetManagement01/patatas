@@ -57,10 +57,11 @@
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
-      var extra = '<script src="ba-scope.js?t=' + v + '"><\/script><script src="ba2.js?t=' + v + '"><\/script><script src="ba-report-v5.js?t=' + v + '"><\/script><script src="ba-fill.js?t=' + v + '"><\/script>';
-      var i = html.toLowerCase().lastIndexOf('</body>');
-      if (i >= 0) html = html.slice(0, i) + extra + html.slice(i);
       document.open(); document.write(html); document.close();
+      add('ba-scope.js');
+      add('ba2.js?v=25');
+      add('ba-report-v5.js');
+      add('ba-fill.js');
       loadLogo();
     });
 })();
