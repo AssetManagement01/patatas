@@ -34,7 +34,7 @@
   }
   function loadSheet(sheet) {
     return new Promise(function (res, rej) {
-      var n = 'pgviz_' + sheet + '_' + Date.now();
+      var n = 'patatasBA';
       var t = setTimeout(function () { rej(new Error('t')); }, 15000);
       window[n] = function (resp) { clearTimeout(t); try { res(parseGviz(resp)); } catch (e) { rej(e); } };
       var s = document.createElement('script');
@@ -56,21 +56,24 @@
         doc.body.appendChild(s);
       }
       add('ba-scope.js');
+      add('ba-paint.js');
       add('ba-keluar.js');
       add('ba-report-v5.js');
-      add('ba-boot.js');
       function push(rows) {
         try {
           var w = frame.contentWindow;
           w.__baLastList = rows;
-          w.localStorage.setItem('patatas_ba_v1', JSON.stringify(rows));
+          try { w.localStorage.setItem('patatas_ba_v1', JSON.stringify(rows)); } catch (e) {}
           if (typeof w.paintHist === 'function') w.paintHist(rows);
-          else if (typeof w.baRenderTable === 'function') w.baRenderTable(rows);
-          if (typeof w.baRenderReport === 'function') w.baRenderReport();
         } catch (e) {}
       }
       loadSheet('BA').then(push).catch(function () {});
-      setTimeout(function () { loadSheet('BA').then(push).catch(function () {}); }, 2000);
+      setInterval(function () {
+        try {
+          var w = frame.contentWindow;
+          if (w && w.__baLastList && typeof w.paintHist === 'function') w.paintHist(w.__baLastList);
+        } catch (e) {}
+      }, 1500);
     });
 })();
 </script>
