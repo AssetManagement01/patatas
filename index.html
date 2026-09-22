@@ -1,23 +1,40 @@
 <!DOCTYPE html>
-<html lang="id"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ASSET PATATAS GROUP</title>
+<style>html,body{margin:0;height:100%;overflow:hidden}iframe{border:0;width:100%;height:100%;display:block}</style>
+</head>
 <body>
+<iframe id="appf" title="app"></iframe>
 <script>
 (function () {
   var v = Date.now();
-  var inject = '<script src="ba-scope.js?t=' + v + '"><\/script>' +
-    '<script src="ba-keluar.js?t=' + v + '"><\/script>' +
-    '<script src="ba-report-v5.js?t=' + v + '"><\/script>';
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
-      var i = html.toLowerCase().lastIndexOf('</body>');
-      if (i >= 0) html = html.slice(0, i) + inject + html.slice(i);
-      else html += inject;
-      document.open();
-      document.write(html);
-      document.close();
+      var frame = document.getElementById('appf');
+      var doc = frame.contentDocument || frame.contentWindow.document;
+      doc.open();
+      doc.write(html);
+      doc.close();
+      function add(src) {
+        var s = doc.createElement('script');
+        s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 't=' + v;
+        doc.body.appendChild(s);
+      }
+      function boot() {
+        add('ba-scope.js');
+        add('ba-keluar.js');
+        add('ba-report-v5.js');
+      }
+      if (doc.readyState === 'complete') boot();
+      else frame.addEventListener('load', boot);
+      setTimeout(boot, 1500);
     });
 })();
 </script>
-</body></html>
+</body>
+</html>
