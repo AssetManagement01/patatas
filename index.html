@@ -11,24 +11,19 @@
     document.body.appendChild(s);
   }
   function apply(src, srcW) {
+    document.querySelectorAll('.login-card .brand, #login-screen .brand, .sidebar .logo').forEach(function (box) {
+      box.style.overflow = 'visible';
+      box.style.height = 'auto';
+    });
     document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .brand img, .sidebar .logo img').forEach(function (img) {
       var side = !!(img.closest && img.closest('.sidebar'));
       img.src = side ? (srcW || src) : src;
-      img.style.background = 'transparent';
-      img.style.objectFit = 'contain';
-      img.style.filter = 'none';
-      img.style.transform = 'none';
-      img.style.display = 'block';
-      img.style.margin = '0 auto';
-      img.style.width = '100%';
-      img.style.height = 'auto';
-      img.style.maxWidth = side ? '200px' : '300px';
-      img.style.maxHeight = side ? '80px' : '128px';
+      img.style.cssText = 'background:transparent;display:block;margin:8px auto;width:auto;height:auto;max-width:' + (side ? '210px' : '280px') + ';max-height:' + (side ? '88px' : '130px') + ';object-fit:contain;object-position:center;filter:none;transform:none;overflow:visible';
     });
   }
   function loadLogo() {
     Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-      return fetch(f + '?v=11').then(function (r) { return r.text(); });
+      return fetch(f + '?v=12').then(function (r) { return r.text(); });
     })).then(function (chunks) {
       var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
       var im = new Image();
@@ -42,8 +37,7 @@
         for (var i = 0; i < d.length; i += 4) {
           var r = d[i], g = d[i+1], b = d[i+2];
           var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
-          var luma = 0.299*r+0.587*g+0.114*b;
-          if (dist < 30 || luma > 225) d[i+3] = 0;
+          if (dist < 26 || (0.299*r+0.587*g+0.114*b) > 232) d[i+3] = 0;
         }
         ctx.putImageData(imgd, 0, 0);
         var src = c.toDataURL('image/png');
@@ -68,7 +62,6 @@
       add('ba2.js?v=25');
       add('ba-report-v5.js');
       loadLogo();
-      setTimeout(loadLogo, 800);
     });
 })();
 </script>
