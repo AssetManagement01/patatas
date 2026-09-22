@@ -17,6 +17,42 @@
     return el ? el.value : 'keluar';
   }
   function filt(list) { return window.baFilterOutlet ? window.baFilterOutlet(list || []) : (list || []); }
+  function gviz(sheet) {
+    return new Promise(function (res, rej) {
+      var n = '__rp_' + sheet.replace(/\W/g, '') + '_' + Date.now();
+      var t = setTimeout(function () { rej(new Error('t')); }, 12000);
+      window[n] = function (resp) {
+        clearTimeout(t);
+        try {
+          var cols = (resp.table && resp.table.cols) || [];
+          var rows = (resp.table && resp.table.rows) || [];
+          var h = cols.map(function (c) { return String(c.label || '').toLowerCase(); });
+          function ix(x) { return h.indexOf(x); }
+          var iT = ix('tanggal'), iSku = ix('sku'), iN = ix('nama'), iU = ix('uom'), iQ = ix('qty');
+          var iP = ix('price'), iTot = ix('total'), iK = ix('keterangan'), iF = ix('foto'), iL = ix('loc'), iS = ix('status');
+          var out = [];
+          rows.forEach(function (row) {
+            var c = row.c || [];
+            var date = cell(c[iT]), nama = cell(c[iN]);
+            if (!date && !nama) return;
+            out.push({
+              date: date, sku: cell(c[iSku]), name: nama, uom: cell(c[iU]),
+              qty: Number(String(cell(c[iQ])).replace(/,/g, '')) || 0,
+              price: Number(String(cell(c[iP])).replace(/,/g, '')) || 0,
+              total: Number(String(cell(c[iTot])).replace(/,/g, '')) || 0,
+              keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]),
+              status: cell(c[iS]) || ''
+            });
+          });
+          res(out);
+        } catch (err) { rej(err); }
+      };
+      var s = document.createElement('script');
+      s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=' + encodeURIComponent(sheet) + '&tqx=out:json;responseHandler:' + n + '&_=' + Date.now();
+      s.onerror = function () { clearTimeout(t); rej(new Error('g')); };
+      document.body.appendChild(s);
+    });
+  }
   function injectJenis() {
     if (document.getElementById('ba-rp-jenis')) return true;
     var from = document.getElementById('ba-rp-from');
@@ -40,44 +76,11 @@
     });
     return true;
   }
-  function loadSheet() {
-    return new Promise(function (res, rej) {
-      var n = '__rp5_' + Date.now();
-      var t = setTimeout(function () { rej(new Error('t')); }, 10000);
-      window[n] = function (resp) {
-        clearTimeout(t);
-        try {
-          var cols = (resp.table && resp.table.cols) || [];
-          var rows = (resp.table && resp.table.rows) || [];
-          var h = cols.map(function (c) { return String(c.label || '').toLowerCase(); });
-          function ix(x) { return h.indexOf(x); }
-          var iT = ix('tanggal'), iN = ix('nama'), iU = ix('uom'), iQ = ix('qty'), iP = ix('price');
-          var iTot = ix('total'), iK = ix('keterangan'), iF = ix('foto'), iL = ix('loc'), iS = ix('status');
-          var out = [];
-          rows.forEach(function (row) {
-            var c = row.c || [];
-            var date = cell(c[iT]), nama = cell(c[iN]);
-            if (!date && !nama) return;
-            out.push({ date: date, name: nama, uom: cell(c[iU]), qty: Number(String(cell(c[iQ])).replace(/,/g, '')) || 0, price: Number(String(cell(c[iP])).replace(/,/g, '')) || 0, total: Number(String(cell(c[iTot])).replace(/,/g, '')) || 0, keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]), status: cell(c[iS]) || 'Done' });
-          });
-          try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(out)); } catch (e) {}
-          res(out);
-        } catch (err) { rej(err); }
-      };
-      var s = document.createElement('script');
-      s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA2&tqx=out:json;responseHandler:' + n + '&_=' + Date.now();
-      s.onerror = function () { clearTimeout(t); rej(new Error('g')); };
-      document.body.appendChild(s);
-    });
-  }
-  function loadLocal(key) {
-    try { return JSON.parse(localStorage.getItem(key) || '[]'); } catch (e) { return []; }
-  }
   function draw(list, j) {
     var tb = document.getElementById('ba-rp-tbody');
     if (!tb) return;
     j = j || jenis();
-    var showSku = j === 'keluar';
+    var showSku = j !== 'masuk';
     var table = tb.closest('table');
     if (table) {
       var head = table.querySelector('thead tr');
@@ -118,30 +121,21 @@
   window.baRenderReport = async function () {
     injectJenis();
     var j = jenis();
-    var masuk = [];
-    var keluar = filt(loadLocal('patatas_ba_v1'));
-    if (j !== 'keluar') {
-      try { masuk = filt(await loadSheet()); } catch (e) { masuk = filt(loadLocal('patatas_ba2_v1')); }
+    var masuk = [], keluar = [];
+    if (j !== 'masuk') {
+      try { keluar = filt(await gviz('BA')); } catch (e) { keluar = filt(JSON.parse(localStorage.getItem('patatas_ba_v1') || '[]')); }
     }
+    if (j !== 'keluar') {
+      try { masuk = filt(await gviz('BA2')); } catch (e) { masuk = filt(JSON.parse(localStorage.getItem('patatas_ba2_v1') || '[]')); }
+    }
+    try { localStorage.setItem('patatas_ba_v1', JSON.stringify(keluar.length ? keluar : localStorage.getItem('patatas_ba_v1'))); } catch (e) {}
     if (j === 'masuk') draw(masuk, 'masuk');
     else if (j === 'semua') {
-      var all = keluar.map(function (r) { r._jenis = 'Kas Keluar'; return r; })
-        .concat(masuk.map(function (r) { r._jenis = 'Kas Masuk'; return r; }));
-      draw(all, 'semua');
-    } else {
-      if (window.__baReportOldRender) {
-        try { await window.__baReportOldRender(); } catch (e) {}
-      }
-      draw(keluar, 'keluar');
-    }
+      draw(keluar.map(function (r) { r._jenis = 'Kas Keluar'; return r; }).concat(masuk.map(function (r) { r._jenis = 'Kas Masuk'; return r; })), 'semua');
+    } else draw(keluar, 'keluar');
   };
   window.baCollectReportRows = function () {
-    var j = jenis();
-    var keluar = filt(loadLocal('patatas_ba_v1'));
-    var masuk = filt(loadLocal('patatas_ba2_v1'));
-    if (j === 'masuk') return masuk;
-    if (j === 'semua') return keluar.concat(masuk);
-    return keluar;
+    return [];
   };
   var n = 0;
   var it = setInterval(function () {
