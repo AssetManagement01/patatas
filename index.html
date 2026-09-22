@@ -17,22 +17,20 @@
       html = html.replace(/Empowering/g, 'Elevating');
       var frame = document.getElementById('appf');
       var doc = frame.contentDocument || frame.contentWindow.document;
-      doc.open();
-      doc.write(html);
-      doc.close();
+      doc.open(); doc.write(html); doc.close();
       function add(src) {
         var s = doc.createElement('script');
-        s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 't=' + v;
+        s.src = src + '?t=' + v;
         doc.body.appendChild(s);
       }
       function boot() {
         add('ba-scope.js');
         add('ba-keluar.js');
         add('ba-report-v5.js');
+        add('ba-boot.js');
       }
-      if (doc.readyState === 'complete') boot();
-      else frame.addEventListener('load', boot);
-      setTimeout(boot, 1500);
+      setTimeout(boot, 300);
+      setTimeout(boot, 1600);
     });
 })();
 </script>
