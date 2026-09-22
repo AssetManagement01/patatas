@@ -4,7 +4,6 @@
 <body>
 <script>
 (function () {
-  var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   var v = Date.now();
   function add(src) {
     var s = document.createElement('script');
@@ -12,20 +11,17 @@
     document.body.appendChild(s);
   }
   function applyLogo(src, srcW) {
-    document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .sidebar .logo img').forEach(function (img) {
+    document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .brand img, .sidebar .logo img').forEach(function (img) {
       var side = !!(img.closest && img.closest('.sidebar'));
       img.src = side ? (srcW || src) : src;
-      img.style.background = 'transparent';
-      img.style.objectFit = 'contain';
-      img.style.filter = 'none';
-      img.style.transform = 'none';
-      img.style.maxWidth = side ? '168px' : '240px';
-      img.style.maxHeight = side ? '64px' : '100px';
+      img.style.cssText = side
+        ? 'background:transparent;max-width:220px;width:100%;height:auto;max-height:92px;object-fit:contain;filter:none;transform:none;display:block;margin:0 auto'
+        : 'background:transparent;max-width:340px;width:100%;height:auto;max-height:150px;object-fit:contain;filter:none;transform:none;display:block;margin:0 auto';
     });
   }
   function loadLogo() {
     Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-      return fetch(f + '?v=9').then(function (r) { return r.text(); });
+      return fetch(f + '?v=10').then(function (r) { return r.text(); });
     })).then(function (chunks) {
       var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
       var im = new Image();
@@ -50,9 +46,8 @@
         var imgd2 = ctx2.getImageData(0, 0, c2.width, c2.height), d2 = imgd2.data;
         for (var j = 0; j < d2.length; j += 4) if (d2[j+3] > 0) { d2[j]=255; d2[j+1]=255; d2[j+2]=255; }
         ctx2.putImageData(imgd2, 0, 0);
-        var srcW = c2.toDataURL('image/png');
-        applyLogo(src, srcW);
-        setInterval(function () { applyLogo(src, srcW); }, 1200);
+        applyLogo(src, c2.toDataURL('image/png'));
+        setInterval(function () { applyLogo(src, c2.toDataURL('image/png')); }, 1500);
       };
       im.src = raw;
     }).catch(function () {});
