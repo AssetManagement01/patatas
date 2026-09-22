@@ -5,57 +5,69 @@
 <script>
 (function () {
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
-  var BASE = '';
   var v = Date.now();
   function add(src) {
     var s = document.createElement('script');
-    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 't=' + v;
+    s.src = src + (src.indexOf('?')>=0 ? '&' : '?') + 't=' + v;
     document.body.appendChild(s);
   }
-  function cell(c) {
-    if (c == null) return '';
-    if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
-    return String(c).trim();
-  }
-  function parseGviz(resp) {
-    var cols = (resp && resp.table && resp.table.cols) || [];
-    var rows = (resp && resp.table && resp.table.rows) || [];
-    var h = cols.map(function (c) { return String(c.label || '').toLowerCase(); });
-    function ix(x) { return h.indexOf(x); }
-    var iT=ix('tanggal'),iSku=ix('sku'),iN=ix('nama'),iU=ix('uom'),iQ=ix('qty'),iP=ix('price'),iTot=ix('total'),iK=ix('keterangan'),iF=ix('foto'),iL=ix('loc'),iS=ix('status');
-    var out=[];
-    rows.forEach(function(row){
-      var c=row.c||[]; var date=cell(c[iT]), nama=cell(c[iN]);
-      if(!date&&!nama)return;
-      out.push({date:date,sku:cell(c[iSku]),name:nama,uom:cell(c[iU]),qty:Number(String(cell(c[iQ])).replace(/,/g,''))||0,price:Number(String(cell(c[iP])).replace(/,/g,''))||0,total:Number(String(cell(c[iTot])).replace(/,/g,''))||0,keterangan:cell(c[iK]),foto:cell(c[iF]),loc:cell(c[iL]),status:cell(c[iS])||''});
+  function applyLogo(src, srcW) {
+    document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .sidebar .logo img').forEach(function (img) {
+      var side = !!(img.closest && img.closest('.sidebar'));
+      img.src = side ? (srcW || src) : src;
+      img.style.background = 'transparent';
+      img.style.objectFit = 'contain';
+      img.style.filter = 'none';
+      img.style.transform = 'none';
+      img.style.maxWidth = side ? '168px' : '240px';
+      img.style.maxHeight = side ? '64px' : '100px';
     });
-    return out;
   }
-  function loadBA(cb) {
-    window.patatasBA = function (resp) {
-      var rows = parseGviz(resp);
-      window.__baLastList = rows;
-      try { localStorage.setItem('patatas_ba_v1', JSON.stringify(rows)); } catch (e) {}
-      if (typeof window.paintHist === 'function') window.paintHist(rows);
-      if (cb) cb(rows);
-    };
-    var s = document.createElement('script');
-    s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA&tqx=out:json;responseHandler:patatasBA&_=' + Date.now();
-    document.body.appendChild(s);
+  function loadLogo() {
+    Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
+      return fetch(f + '?v=9').then(function (r) { return r.text(); });
+    })).then(function (chunks) {
+      var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
+      var im = new Image();
+      im.onload = function () {
+        var c = document.createElement('canvas');
+        c.width = im.width; c.height = im.height;
+        var ctx = c.getContext('2d');
+        ctx.drawImage(im, 0, 0);
+        var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
+        var br = d[0], bg = d[1], bb = d[2];
+        for (var i = 0; i < d.length; i += 4) {
+          var r = d[i], g = d[i+1], b = d[i+2];
+          var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
+          if (dist < 28 || (0.299*r+0.587*g+0.114*b) > 230) d[i+3] = 0;
+        }
+        ctx.putImageData(imgd, 0, 0);
+        var src = c.toDataURL('image/png');
+        var c2 = document.createElement('canvas');
+        c2.width = c.width; c2.height = c.height;
+        var ctx2 = c2.getContext('2d');
+        ctx2.drawImage(c, 0, 0);
+        var imgd2 = ctx2.getImageData(0, 0, c2.width, c2.height), d2 = imgd2.data;
+        for (var j = 0; j < d2.length; j += 4) if (d2[j+3] > 0) { d2[j]=255; d2[j+1]=255; d2[j+2]=255; }
+        ctx2.putImageData(imgd2, 0, 0);
+        var srcW = c2.toDataURL('image/png');
+        applyLogo(src, srcW);
+        setInterval(function () { applyLogo(src, srcW); }, 1200);
+      };
+      im.src = raw;
+    }).catch(function () {});
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
-      document.open();
-      document.write(html);
-      document.close();
+      document.open(); document.write(html); document.close();
       add('ba-scope.js');
       add('ba-paint.js');
+      add('ba2.js?v=24');
       add('ba-keluar.js');
       add('ba-report-v5.js');
-      setTimeout(function () { loadBA(); }, 600);
-      setTimeout(function () { loadBA(); }, 2000);
+      loadLogo();
     });
 })();
 </script>
