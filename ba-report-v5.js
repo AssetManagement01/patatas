@@ -1,11 +1,5 @@
 (function () {
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-  function thumb(u) {
-    u = String(u || '');
-    var m = u.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
-    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w400';
-    return /^https?:/i.test(u) ? u : '';
-  }
   function hint() {
     var t = ((document.body && document.body.innerText) || '');
     var m = t.match(/Hanya data:\s*([^\n]+)/i);
@@ -14,38 +8,33 @@
     return m ? m[1].trim().toLowerCase() : '';
   }
   function filt(list) {
-    list = list || [];
+    list = (list || []).slice();
     var t = ((document.body && document.body.innerText) || '');
-    if (/Dapat melihat semua outlet|EDITOR|HO JKT/i.test(t) && !/OUTLET:\s*[A-Z]/i.test(t)) return list.slice();
+    if (/Dapat melihat semua outlet|EDITOR|HO JKT/i.test(t) && !/OUTLET:\s*[A-Z]/i.test(t)) return list;
     var h = hint();
-    if (!h) return list.slice();
-    var keys = /kh|hainan|central park/.test(h)
-      ? ['hainan', 'central park']
-      : h.split(/[-,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
+    if (!h) return list;
+    var keys = /kh|hainan|central park/.test(h) ? ['hainan', 'central park'] : h.split(/[-,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
     return list.filter(function (r) {
-      var L = String(r.loc || r.location || '').toLowerCase();
+      var L = String(r.loc || r.Loc || r.location || '').toLowerCase();
       for (var i = 0; i < keys.length; i++) if (L.indexOf(keys[i]) >= 0) return true;
       return false;
     });
   }
-  function injectJenis() {
-    if (document.getElementById('ba-rp-jenis')) return true;
-    var from = document.getElementById('ba-rp-from');
-    var wrap = from && from.parentElement && from.parentElement.parentElement;
-    if (!wrap) return false;
-    var box = document.createElement('div');
-    box.style.minWidth = '160px';
-    box.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label><select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:8px"><option value="keluar">Kas Keluar</option><option value="masuk">Kas Masuk</option><option value="semua">Semua</option></select>';
-    wrap.insertBefore(box, wrap.firstChild);
-    document.getElementById('ba-rp-jenis').addEventListener('change', drawNow);
-    return true;
+  function rows() {
+    var list = filt(window.__baLastList || []);
+    list.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+    return list;
+  }
+  function thumb(u) {
+    u = String(u || '');
+    var m = u.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w400';
+    return /^https?:/i.test(u) ? u : '';
   }
   function drawNow() {
     var tb = document.getElementById('ba-rp-tbody');
     if (!tb) return;
-    injectJenis();
-    var list = filt(window.__baLastList || []);
-    list.sort(function (a, b) { return String(b.date || '').localeCompare(String(a.date || '')); });
+    var list = rows();
     var table = tb.closest('table');
     if (table) {
       var head = table.querySelector('thead tr');
@@ -60,16 +49,23 @@
       var f = thumb(r.foto);
       var foto = f ? '<img src="' + f + '" style="width:40px;height:40px;object-fit:cover;border-radius:4px"/>' : '-';
       var tot = Number(r.total) || ((Number(r.price) || 0) * (Number(r.qty) || 0));
-      return '<tr><td style="padding:0.4rem">' + (r.date || '') + '</td><td style="padding:0.4rem">' + (r.sku || '') + '</td><td style="padding:0.4rem">' + (r.name || '') + '</td><td style="padding:0.4rem">' + (r.uom || '') + '</td><td style="padding:0.4rem">' + (r.qty || 0) + '</td><td style="padding:0.4rem">' + fmt(r.price) + '</td><td style="padding:0.4rem">' + fmt(tot) + '</td><td style="padding:0.4rem">' + (r.keterangan || '') + '</td><td style="padding:0.4rem">' + (r.loc || '') + '</td><td style="padding:0.4rem">' + (r.status || '') + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
+      return '<tr><td style="padding:0.4rem">'+(r.date||'')+'</td><td style="padding:0.4rem">'+(r.sku||'')+'</td><td style="padding:0.4rem">'+(r.name||'')+'</td><td style="padding:0.4rem">'+(r.uom||'')+'</td><td style="padding:0.4rem">'+(r.qty||0)+'</td><td style="padding:0.4rem">'+fmt(r.price)+'</td><td style="padding:0.4rem">'+fmt(tot)+'</td><td style="padding:0.4rem">'+(r.keterangan||'')+'</td><td style="padding:0.4rem">'+(r.loc||'')+'</td><td style="padding:0.4rem">'+(r.status||'')+'</td><td style="padding:0.4rem">'+foto+'</td></tr>';
     }).join('');
   }
-  window.baRenderReport = drawNow;
-  setInterval(function () {
+  function collect() {
+    return rows().map(function (t) {
+      return {
+        Tanggal: t.date || '', SKU: t.sku || '', Nama: t.name || '', Loc: t.loc || '',
+        Qty: Number(t.qty) || 0, Uom: t.uom || '', Keterangan: t.keterangan || '',
+        Price: Number(t.price) || 0, Total: Number(t.total) || 0, Foto: t.foto || '', Status: t.status || ''
+      };
+    });
+  }
+  function lock() {
+    window.baCollectReportRows = collect;
     window.baRenderReport = drawNow;
-    if (document.getElementById('ba-rp-tbody')) drawNow();
-  }, 1000);
-  document.addEventListener('click', function (e) {
-    var el = e.target && e.target.closest && e.target.closest('a,button');
-    if (el && /report|filter/i.test(el.textContent || '')) setTimeout(drawNow, 300);
-  }, true);
+    window.baFilterOutlet = window.baFilterOutlet || function (list) { return filt(list); };
+  }
+  lock();
+  setInterval(function () { lock(); if (document.getElementById('ba-rp-tbody')) drawNow(); }, 700);
 })();
