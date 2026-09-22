@@ -112,6 +112,9 @@
   }
   function applyLockToSelect(el, name) {
     if (!el || el.tagName !== 'SELECT' || el.id === 'ba-rp-jenis') return;
+    var near = '';
+    try { near = ((el.parentElement && el.parentElement.parentElement && el.parentElement.parentElement.innerText) || '').slice(0, 240); } catch (e) {}
+    if (/Dari Outlet|Ke Outlet|Form Transfer Antar/i.test(near)) return;
     var cur = (el.value || '') + ' ' + Array.prototype.map.call(el.options || [], function (o) { return o.text; }).join(' ');
     var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas|hainan|suki|bao|thirty/i.test(cur);
     if (!isOutlet) return;
@@ -131,11 +134,6 @@
     var name = lockedOutletName();
     if (!name) return;
     document.querySelectorAll('select').forEach(function (el) { applyLockToSelect(el, name); });
-    var prev = window.fillTransferOutlets;
-    if (typeof prev === 'function' && !prev._locked) {
-      window.fillTransferOutlets = function () { prev.apply(this, arguments); setTimeout(forceLock, 0); };
-      window.fillTransferOutlets._locked = true;
-    }
     window.lockBAOutlet = forceLock;
   }
   function setHoPass() {
@@ -186,6 +184,7 @@
     var tb=document.getElementById('ba2-table-body'); if(!tb)return;
     try{if(!list)list=JSON.parse(localStorage.getItem('patatas_ba2_v1')||'[]');}catch(e){list=list||[];}
     list=(list||[]).filter(function(r){ return !(/^(drg|liter)$/i.test(String(r.name||'')) && Number(r.qty)>1000); });
+    if (window.baFilterOutlet) list = window.baFilterOutlet(list);
     var table=tb.closest('table'); if(table){var tr=table.querySelector('thead tr'); if(tr)tr.innerHTML=SHEET_HEAD;}
     if(!list.length){tb.innerHTML='<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';return;}
     var td='padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
@@ -227,6 +226,7 @@
     };
   }
   function loadBa2() {
+    loadExtra('ba-scope.js?t=' + Date.now(), 'ba-scope-js');
     loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
     loadExtra('ba-keluar.js?t=' + Date.now(), 'ba-keluar-js');
     bindBa2Fns();
