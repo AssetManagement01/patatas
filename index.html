@@ -4,16 +4,15 @@
 <script>
 (function () {
   var v = Date.now();
-  var inject = [
-    '<script src="ba-scope.js?t=' + v + '"><\/script>',
-    '<script src="ba-keluar.js?t=' + v + '"><\/script>',
-    '<script src="ba-report-v5.js?t=' + v + '"><\/script>'
-  ].join('');
+  var inject = '<script src="ba-scope.js?t=' + v + '"><\/script>' +
+    '<script src="ba-keluar.js?t=' + v + '"><\/script>' +
+    '<script src="ba-report-v5.js?t=' + v + '"><\/script>';
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
-      if (html.indexOf('</body>') >= 0) html = html.replace('</body>', inject + '</body>');
+      var i = html.toLowerCase().lastIndexOf('</body>');
+      if (i >= 0) html = html.slice(0, i) + inject + html.slice(i);
       else html += inject;
       document.open();
       document.write(html);
