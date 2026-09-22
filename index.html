@@ -1,259 +1,29 @@
 <!DOCTYPE html>
-<html lang="id">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ASSET PATATAS GROUP — Enterprise</title>
-</head>
+<html lang="id"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
 <body>
 <script>
-(function () {
-  function applyHeadline() {
-    document.querySelectorAll('h1').forEach(function (h) {
-      if (h && /Empowering/i.test(h.innerHTML)) h.innerHTML = h.innerHTML.replace(/Empowering/gi, 'Elevating');
-    });
+(function(){
+  function load(src,id){if(document.getElementById(id))return;var s=document.createElement('script');s.id=id;s.src=src;document.body.appendChild(s);}
+  function extras(){
+    load('ba-scope.js?t='+Date.now(),'ba-scope-js');
+    load('ba-keluar.js?t='+Date.now(),'ba-keluar-js');
+    load('ba-report-v5.js?t='+Date.now(),'ba-report-v5');
+    load('ba2.js?v=24','ba2-script');
+    try{
+      var rec={password:'PATATAS2026',canEdit:true,outlet:null,label:'HO JKT'};
+      window.OUTLET_ACCOUNTS=window.OUTLET_ACCOUNTS||{};
+      ['ho jkt','hojkt'].forEach(function(k){window.OUTLET_ACCOUNTS[k]=rec;});
+    }catch(e){}
   }
-  function punchBg(src) {
-    return new Promise(function (resolve) {
-      var im = new Image();
-      im.onload = function () {
-        var rot = -2 * Math.PI / 180;
-        var c = document.createElement('canvas');
-        c.width = im.width; c.height = im.height;
-        var ctx = c.getContext('2d');
-        ctx.translate(c.width/2, c.height/2);
-        ctx.rotate(rot);
-        ctx.drawImage(im, -im.width/2, -im.height/2);
-        var imgd = ctx.getImageData(0, 0, c.width, c.height);
-        var d = imgd.data, br = d[0], bg = d[1], bb = d[2];
-        for (var i = 0; i < d.length; i += 4) {
-          var r = d[i], g = d[i+1], b = d[i+2];
-          var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
-          var luma = 0.299*r + 0.587*g + 0.114*b;
-          if (dist < 32 || luma > 228) d[i+3] = 0;
-          else if (dist < 55 || luma > 205) d[i+3] = Math.min(d[i+3], Math.floor(255 * ((dist-32)/23)));
-        }
-        ctx.putImageData(imgd, 0, 0);
-        resolve(c.toDataURL('image/png'));
-      };
-      im.onerror = function () { resolve(src); };
-      im.src = src;
-    });
-  }
-  function makeWhite(src) {
-    return new Promise(function (resolve) {
-      var im = new Image();
-      im.onload = function () {
-        var c = document.createElement('canvas');
-        c.width = im.width; c.height = im.height;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(im, 0, 0);
-        var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
-        for (var i = 0; i < d.length; i += 4) { if (d[i+3] > 0) { d[i]=255; d[i+1]=255; d[i+2]=255; } }
-        ctx.putImageData(imgd, 0, 0);
-        resolve(c.toDataURL('image/png'));
-      };
-      im.onerror = function () { resolve(src); };
-      im.src = src;
-    });
-  }
-  function applyNewLogo(src, srcWhite) {
-    if (!src) return;
-    document.querySelectorAll('.brand img').forEach(function (img) {
-      img.src = src;
-      img.style.cssText = 'background:transparent;max-width:280px;width:100%;height:auto;max-height:110px;object-fit:contain;filter:none;display:block;margin:0 auto';
-    });
-    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
-      img.src = srcWhite || src;
-      img.style.cssText = 'background:transparent;max-width:168px;width:100%;height:auto;max-height:64px;object-fit:contain;filter:none;display:block;margin:0 auto';
-    });
-  }
-  function loadExtra(src, id) {
-    if (document.getElementById(id)) return;
-    var s = document.createElement('script'); s.id = id; s.src = src; document.body.appendChild(s);
-  }
-  function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
-  var SHEET_ID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
-  var CODE_MAP = {
-    bbm: 'Boemi - Blok M', cba: 'Chop Buntut AKD', cbs: 'Chop Buntut Semarang',
-    'ho mdn': 'HEAD OFFICE KEJAKSAAN MEDAN', homdn: 'HEAD OFFICE KEJAKSAAN MEDAN',
-    'kh cp': 'Kota Hainan - Central Park', khcp: 'Kota Hainan - Central Park',
-    'nr kjk': 'Nanyang Roastery - Kejaksaan Medan', nrkjk: 'Nanyang Roastery - Kejaksaan Medan',
-    'nr sp': 'Nanyang Roastery - Sun Plaza Medan', nrsp: 'Nanyang Roastery - Sun Plaza Medan',
-    tbm: 'Thirty Bumbu - Taman Anggrek',
-    'xo sp': 'XO Suki - Sun Plaza Medan', xosp: 'XO Suki - Sun Plaza Medan',
-    hta: 'HIJO - Taman Anggrek', hgs: 'HIJO - Gading Serpong', hk: 'HIJO - Karmaja',
-    hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD'
-  };
-  function pageText() { return ((document.body && document.body.innerText) || '').replace(/\s+/g, ' '); }
-  function isSeeAllAccount() {
-    var t = pageText();
-    if (/OUTLET:\s*[A-Z0-9]/i.test(t)) return false;
-    if (/Dapat melihat semua outlet/i.test(t)) return true;
-    if (/\bEDITOR\b|\bHO JKT\b|USER \(Semua/i.test(t)) return true;
-    try {
-      var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
-      var role = String(s.role || '').toLowerCase();
-      if (role === 'admin' || role === 'ho' || role === 'user') return true;
-    } catch (e) {}
-    return false;
-  }
-  function lockedOutletName() {
-    if (isSeeAllAccount()) return '';
-    var text = pageText();
-    var badge = text.match(/OUTLET:\s*([A-Z0-9 ]{2,12})/i);
-    var code = badge ? badge[1].toLowerCase().replace(/\s+/g, '') : '';
-    var spaced = badge ? badge[1].toLowerCase().replace(/\s+/g, ' ').trim() : '';
-    if (CODE_MAP[code]) return CODE_MAP[code];
-    if (CODE_MAP[spaced]) return CODE_MAP[spaced];
-    var hanya = text.match(/Hanya data:\s*(.+?)\s+OUTLET:/i);
-    if (hanya && hanya[1] && hanya[1].trim().length > 4) return hanya[1].trim();
-    return '';
-  }
-  function applyLockToSelect(el, name) {
-    if (!el || el.tagName !== 'SELECT' || el.id === 'ba-rp-jenis') return;
-    var near = '';
-    try { near = ((el.parentElement && el.parentElement.parentElement && el.parentElement.parentElement.innerText) || '').slice(0, 240); } catch (e) {}
-    if (/Dari Outlet|Ke Outlet|Form Transfer Antar/i.test(near)) return;
-    var cur = (el.value || '') + ' ' + Array.prototype.map.call(el.options || [], function (o) { return o.text; }).join(' ');
-    var isOutlet = /loc|outlet|lokasi/i.test(el.id || el.name || '') || /nanyang|hijo|boemi|chop|gading|kejaksaan|sun plaza|arkadia|akd|patatas|hainan|suki|bao|thirty/i.test(cur);
-    if (!isOutlet) return;
-    if (el.getAttribute('data-lock') === name && el.value === name && el.options.length === 1) return;
-    el.innerHTML = '';
-    var o = document.createElement('option');
-    o.value = name; o.textContent = name; o.selected = true;
-    el.appendChild(o);
-    el.value = name;
-    el.disabled = true;
-    el.style.background = '#f1f5f9';
-    el.style.pointerEvents = 'none';
-    el.setAttribute('data-lock', name);
-  }
-  function forceLock() {
-    if (isSeeAllAccount()) return;
-    var name = lockedOutletName();
-    if (!name) return;
-    document.querySelectorAll('select').forEach(function (el) { applyLockToSelect(el, name); });
-    window.lockBAOutlet = forceLock;
-  }
-  function setHoPass() {
-    var rec = { password: 'PATATAS2026', canEdit: true, canDelete: true, outlet: null, label: 'HO JKT' };
-    window.OUTLET_ACCOUNTS = window.OUTLET_ACCOUNTS || {};
-    ['ho jkt','hojkt','ho-jkt'].forEach(function (k) { window.OUTLET_ACCOUNTS[k] = rec; });
-    try {
-      var map = JSON.parse(localStorage.getItem('patatas_passwords') || '{}');
-      map['ho jkt'] = 'PATATAS2026'; map['hojkt'] = 'PATATAS2026';
-      localStorage.setItem('patatas_passwords', JSON.stringify(map));
-    } catch (e) {}
-  }
-  function cellStr(c) {
-    if (c == null) return '';
-    if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
-    return String(c).trim();
-  }
-  function loadBa2Sheet() {
-    return new Promise(function (resolve, reject) {
-      var name = '__ba2Gviz_' + Date.now();
-      window[name] = function (resp) {
-        try {
-          var table = resp && resp.table;
-          var cols = (table && table.cols) || [];
-          var rows = (table && table.rows) || [];
-          var h = cols.map(function (c) { return String(c.label || c.id || '').trim().toLowerCase(); });
-          function ix(n) { return h.indexOf(n); }
-          var iT=ix('tanggal'),iN=ix('nama'),iU=ix('uom'),iQ=ix('qty'),iP=ix('price'),iTot=ix('total'),iK=ix('keterangan'),iF=ix('foto'),iL=ix('loc'),iS=ix('status');
-          var out=[];
-          rows.forEach(function(row,ri){
-            var c=row.c||[]; var date=cellStr(c[iT]); var nama=cellStr(c[iN]);
-            if(!date&&!nama)return;
-            out.push({id:'BA2ROW'+(ri+2),date:date,name:nama,uom:cellStr(c[iU]),qty:Number(String(cellStr(c[iQ])).replace(/,/g,''))||0,price:Number(String(cellStr(c[iP])).replace(/,/g,''))||0,total:Number(String(cellStr(c[iTot])).replace(/,/g,''))||0,keterangan:cellStr(c[iK]),foto:cellStr(c[iF]),loc:cellStr(c[iL]),status:cellStr(c[iS])||'Done'});
-          });
-          out.sort(function(a,b){return String(b.date).localeCompare(String(a.date));});
-          try{localStorage.setItem('patatas_ba2_v1',JSON.stringify(out));}catch(e){}
-          resolve(out);
-        } catch(err){reject(err);}
-      };
-      var s=document.createElement('script');
-      s.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?sheet=BA2&tqx=out:json;responseHandler:'+name+'&_='+Date.now();
-      s.onerror=function(){reject(new Error('gviz'));};
-      document.body.appendChild(s);
-    });
-  }
-  var SHEET_HEAD='<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
-  function renderBa2FromSheet(list){
-    var tb=document.getElementById('ba2-table-body'); if(!tb)return;
-    try{if(!list)list=JSON.parse(localStorage.getItem('patatas_ba2_v1')||'[]');}catch(e){list=list||[];}
-    list=(list||[]).filter(function(r){ return !(/^(drg|liter)$/i.test(String(r.name||'')) && Number(r.qty)>1000); });
-    if (window.baFilterOutlet) list = window.baFilterOutlet(list);
-    var table=tb.closest('table'); if(table){var tr=table.querySelector('thead tr'); if(tr)tr.innerHTML=SHEET_HEAD;}
-    if(!list.length){tb.innerHTML='<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';return;}
-    var td='padding:0.45rem;border-bottom:1px solid #f1f5f9;vertical-align:middle';
-    tb.innerHTML=list.map(function(r){
-      var tot=Number(r.total)||((Number(r.price)||0)*(Number(r.qty)||0));
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+';text-align:center">'+(r.uom||'')+'</td><td style="'+td+';text-align:center">'+(r.qty||0)+'</td><td style="'+td+';text-align:right">'+fmt(r.price)+'</td><td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.status||'')+'</td><td style="'+td+'"></td></tr>';
-    }).join('');
-  }
-  function tableScrambled() {
-    var tb=document.getElementById('ba2-table-body'); if(!tb) return false;
-    var cell=tb.querySelector('tr td:nth-child(2)');
-    var head=tb.closest('table') && tb.closest('table').querySelector('thead');
-    var headTxt=head?head.innerText:'';
-    if (/NAMA[\s\S]{0,20}LOC/i.test(headTxt)) return true;
-    return !!(cell && /^(drg|liter)$/i.test(cell.textContent.trim()));
-  }
-  function injectJenis() {
-    if (document.getElementById('ba-rp-jenis')) return;
-    var from = document.getElementById('ba-rp-from');
-    if (!from) return;
-    var wrap = from.parentElement && from.parentElement.parentElement;
-    if (!wrap) return;
-    var box = document.createElement('div');
-    box.style.minWidth = '170px';
-    box.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label>' +
-      '<select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box">' +
-      '<option value="keluar">Kas Keluar</option>' +
-      '<option value="masuk">Kas Masuk</option>' +
-      '<option value="semua">Semua</option></select>';
-    wrap.insertBefore(box, wrap.firstChild);
-    var sel = document.getElementById('ba-rp-jenis');
-    if (sel) sel.addEventListener('change', function () { if (window.baRenderReport) window.baRenderReport(); });
-  }
-  function bindBa2Fns() {
-    window.ba2Render = function () { renderBa2FromSheet(); };
-    window.ba2Reload = async function () {
-      try { renderBa2FromSheet(await loadBa2Sheet()); }
-      catch (e) { renderBa2FromSheet(); }
-    };
-  }
-  function loadBa2() {
-    loadExtra('ba-scope.js?t=' + Date.now(), 'ba-scope-js');
-    loadExtra('ba-report-v5.js?t=' + Date.now(), 'ba-report-v5');
-    loadExtra('ba-keluar.js?t=' + Date.now(), 'ba-keluar-js');
-    bindBa2Fns();
-    var s=document.createElement('script'); s.id='ba2-script'; s.src='ba2.js?v=23';
-    s.onload=function(){ bindBa2Fns(); injectJenis(); forceLock(); window.ba2Reload(); };
-    document.body.appendChild(s);
-    setInterval(function(){
-      bindBa2Fns(); injectJenis(); forceLock();
-      if (tableScrambled()) window.ba2Reload();
-    }, 600);
-  }
-  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + Date.now())
-    .then(function (r) { return r.text(); })
-    .then(function (html) {
-      html = html.replace(/Empowering/g, 'Elevating');
-      document.open(); document.write(html); document.close();
-      var files = ['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'];
-      Promise.all(files.map(function (f) { return fetch(f + '?v=3').then(function (r) { return r.text(); }); }))
-        .then(async function (chunks) {
-          var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
-          var src = await punchBg(raw);
-          var srcWhite = await makeWhite(src);
-          applyHeadline(); applyNewLogo(src, srcWhite); setHoPass(); loadBa2();
-          [300,800,1600].forEach(function(ms){ setTimeout(function(){ applyNewLogo(src, srcWhite); setHoPass(); forceLock(); bindBa2Fns(); injectJenis(); }, ms); });
-        });
+  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t='+Date.now())
+    .then(function(r){return r.text();})
+    .then(function(html){
+      html=html.replace(/Empowering/g,'Elevating');
+      document.open();document.write(html);document.close();
+      extras();
+      setTimeout(extras,400);
+      setTimeout(extras,1200);
     });
 })();
 </script>
-</body>
-</html>
+</body></html>
