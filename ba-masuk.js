@@ -1,6 +1,6 @@
 (function () {
-  if (window.__baMasuk) return;
-  window.__baMasuk = true;
+  if (window.__baMasuk2) return;
+  window.__baMasuk2 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
@@ -31,11 +31,11 @@
     var h = hint();
     if (!h) return list.slice();
     var keys;
-    if (/bbm|boemi|blok m/.test(h)) keys = ['boemi', 'blok m'];
+    if (/bbm|boemi|blok/.test(h)) keys = ['boemi', 'blok m'];
     else if (/kh|hainan|central park/.test(h)) keys = ['hainan', 'central park'];
     else keys = h.split(/[-,]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
     return list.filter(function (r) {
-      var L = String(r.loc || '').toLowerCase();
+      var L = String(r.loc || r.location || '').toLowerCase();
       for (var i = 0; i < keys.length; i++) if (L.indexOf(keys[i]) >= 0) return true;
       return false;
     });
@@ -51,8 +51,7 @@
     tb.innerHTML = list.length ? list.map(function (r) {
       var tot = Number(r.total) || ((Number(r.price) || 0) * (Number(r.qty) || 0));
       var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
-      var aksi = '<button type="button" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px">Hapus</button>';
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'">'+aksi+'</td></tr>';
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'"></td></tr>';
     }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
   }
   function load() {
@@ -70,6 +69,7 @@
         out.push({ id: 'BA2ROW' + (i + 2), date: date, name: nama, uom: cell(c[iU]), qty: numID(c[iQ]), price: numID(c[iP]), total: numID(c[iTot]), keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]), status: cell(c[iS]) || 'Done' });
       });
       window.__ba2LastList = out;
+      try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(out)); } catch (e) {}
       paint();
     };
     var s = document.createElement('script');
@@ -77,14 +77,5 @@
     document.body.appendChild(s);
   }
   load();
-  setInterval(function () { if (document.getElementById('ba2-table-body') && window.__ba2LastList) paint(); }, 1200);
-  document.addEventListener('click', function (e) {
-    var b = e.target && e.target.closest && e.target.closest('button');
-    if (b && /refresh/i.test(b.textContent || '') && document.getElementById('ba2-table-body')) {
-      var old = b.innerHTML;
-      b.innerHTML = 'Loading...';
-      load();
-      setTimeout(function () { b.innerHTML = old; }, 1500);
-    }
-  }, true);
+  setInterval(function () { if (document.getElementById('ba2-table-body') && window.__ba2LastList) paint(); }, 1000);
 })();
