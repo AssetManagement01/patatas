@@ -1,7 +1,20 @@
 (function () {
-  if (window.__baFill5) return;
-  window.__baFill5 = true;
+  if (window.__baFill6) return;
+  window.__baFill6 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
+  function numID(c) {
+    if (c && typeof c === 'object' && typeof c.v === 'number') return c.v;
+    var s = '';
+    if (c && typeof c === 'object') s = String(c.f != null ? c.f : (c.v != null ? c.v : ''));
+    else s = String(c || '');
+    s = s.trim();
+    if (!s) return 0;
+    if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.');
+    else if (s.indexOf(',') >= 0) s = s.replace(',', '.');
+    else if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+    var n = Number(s);
+    return isNaN(n) ? 0 : n;
+  }
   function cell(c) {
     if (c == null) return '';
     if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
@@ -18,11 +31,11 @@
       var c = row.c || [];
       var date = cell(c[iT]), nama = cell(c[iN]);
       if (!date && !nama) return;
+      var price = numID(c[iP]), qty = numID(c[iQ]) || 1, total = numID(c[iTot]);
+      if (!total) total = price * qty;
       out.push({
         id: 'BAROW' + (i + 2), date: date, sku: cell(c[iSku]), name: nama, uom: cell(c[iU]),
-        qty: Number(String(cell(c[iQ])).replace(/,/g,''))||0,
-        price: Number(String(cell(c[iP])).replace(/,/g,''))||0,
-        total: Number(String(cell(c[iTot])).replace(/,/g,''))||0,
+        qty: qty, price: price, total: total,
         keterangan: cell(c[iK]), foto: cell(c[iF]), loc: cell(c[iL]),
         status: cell(c[iS]) || 'Permintaan', revisi: 1
       });
@@ -103,13 +116,7 @@
       var s = document.createElement('script');
       s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA&tqx=out:json;responseHandler:patatasBAfill&_=' + Date.now();
       document.body.appendChild(s);
-      setTimeout(function () {
-        if (done) return;
-        fetch('ba-data.json?t=' + Date.now()).then(function (r) { return r.json(); }).then(function (rows) {
-          rows.forEach(function (x, i) { if (!x.id) x.id = 'BAROW' + (i + 2); });
-          finish(rows);
-        }).catch(function () { finish(null); });
-      }, 3500);
+      setTimeout(function () { if (!done) finish(window.__baLastList || null); }, 4000);
     });
   }
   function lockRenderer() {
