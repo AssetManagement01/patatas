@@ -61,21 +61,23 @@
   }
   function applyLogo(doc) {
     if (!logoSrc || !doc) return;
-    var imgs = doc.querySelectorAll('img');
-    for (var i = 0; i < imgs.length; i++) {
-      var img = imgs[i];
-      var box = (img.className + ' ' + (img.parentElement && img.parentElement.className || '') + ' ' + (img.alt || '')).toLowerCase();
-      var inBrand = img.closest && (img.closest('.brand') || img.closest('.logo') || img.closest('.sidebar') || img.closest('.login-right') || img.closest('.login'));
-      if (!inBrand && !/logo|patatas|brand/.test(box)) continue;
-      var inSide = img.closest && img.closest('.sidebar');
+    var sel = '#login-screen img, .login-card img, .login-card .brand img, .brand img, .sidebar .logo img, .sidebar img';
+    var nodes = doc.querySelectorAll(sel);
+    for (var i = 0; i < nodes.length; i++) {
+      var img = nodes[i];
+      var inSide = !!(img.closest && img.closest('.sidebar'));
       img.src = inSide ? (logoWhite || logoSrc) : logoSrc;
       img.style.background = 'transparent';
       img.style.objectFit = 'contain';
       img.style.filter = 'none';
+      img.style.maxWidth = inSide ? '168px' : '260px';
+      img.style.maxHeight = inSide ? '64px' : '110px';
+      img.style.height = 'auto';
+      img.style.width = '100%';
     }
   }
   Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-    return fetch(BASE + f + '?v=6').then(function (r) { return r.text(); });
+    return fetch(BASE + f + '?v=7').then(function (r) { return r.text(); });
   })).then(async function (chunks) {
     var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
     logoSrc = await toCanvas(raw, function (ctx, c) {
@@ -93,8 +95,7 @@
       for (var i = 0; i < d.length; i += 4) if (d[i+3] > 0) { d[i]=255; d[i+1]=255; d[i+2]=255; }
       ctx.putImageData(imgd, 0, 0);
     });
-    var frame = document.getElementById('appf');
-    applyLogo(frame.contentDocument);
+    applyLogo(document.getElementById('appf').contentDocument);
   }).catch(function () {});
 
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
@@ -124,7 +125,7 @@
         } catch (e) {}
       }
       loadSheet('BA').then(push).catch(function () {});
-      setInterval(function () { applyLogo(frame.contentDocument); }, 800);
+      setInterval(function () { applyLogo(frame.contentDocument); }, 400);
       setTimeout(function () { loadSheet('BA').then(push).catch(function () {}); }, 2000);
     });
 })();
