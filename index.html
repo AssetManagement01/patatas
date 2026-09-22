@@ -61,7 +61,7 @@
   }
   function applyLogo(doc) {
     if (!logoSrc || !doc) return;
-    var sel = '#login-screen img, .login-card img, .login-card .brand img, .brand img, .sidebar .logo img, .sidebar img';
+    var sel = '#login-screen img, .login-card img, .brand img, .sidebar .logo img';
     var nodes = doc.querySelectorAll(sel);
     for (var i = 0; i < nodes.length; i++) {
       var img = nodes[i];
@@ -70,6 +70,7 @@
       img.style.background = 'transparent';
       img.style.objectFit = 'contain';
       img.style.filter = 'none';
+      img.style.transform = 'rotate(-2.4deg)';
       img.style.maxWidth = inSide ? '168px' : '260px';
       img.style.maxHeight = inSide ? '64px' : '110px';
       img.style.height = 'auto';
@@ -77,7 +78,7 @@
     }
   }
   Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-    return fetch(BASE + f + '?v=7').then(function (r) { return r.text(); });
+    return fetch(BASE + f + '?v=8').then(function (r) { return r.text(); });
   })).then(async function (chunks) {
     var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
     logoSrc = await toCanvas(raw, function (ctx, c) {
@@ -97,7 +98,6 @@
     });
     applyLogo(document.getElementById('appf').contentDocument);
   }).catch(function () {});
-
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
@@ -110,10 +110,7 @@
         s.src = BASE + src + '?t=' + v;
         doc.body.appendChild(s);
       }
-      add('ba-scope.js');
-      add('ba-keluar.js');
-      add('ba-report-v5.js');
-      add('ba-boot.js');
+      add('ba-scope.js'); add('ba-keluar.js'); add('ba-report-v5.js'); add('ba-boot.js');
       function push(rows) {
         try {
           var w = frame.contentWindow;
