@@ -2,27 +2,22 @@
 <html lang="id"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
 <body>
 <script>
-(function(){
-  function load(src,id){if(document.getElementById(id))return;var s=document.createElement('script');s.id=id;s.src=src;document.body.appendChild(s);}
-  function extras(){
-    load('ba-scope.js?t='+Date.now(),'ba-scope-js');
-    load('ba-keluar.js?t='+Date.now(),'ba-keluar-js');
-    load('ba-report-v5.js?t='+Date.now(),'ba-report-v5');
-    load('ba2.js?v=24','ba2-script');
-    try{
-      var rec={password:'PATATAS2026',canEdit:true,outlet:null,label:'HO JKT'};
-      window.OUTLET_ACCOUNTS=window.OUTLET_ACCOUNTS||{};
-      ['ho jkt','hojkt'].forEach(function(k){window.OUTLET_ACCOUNTS[k]=rec;});
-    }catch(e){}
-  }
-  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t='+Date.now())
-    .then(function(r){return r.text();})
-    .then(function(html){
-      html=html.replace(/Empowering/g,'Elevating');
-      document.open();document.write(html);document.close();
-      extras();
-      setTimeout(extras,400);
-      setTimeout(extras,1200);
+(function () {
+  var v = Date.now();
+  var inject = [
+    '<script src="ba-scope.js?t=' + v + '"><\/script>',
+    '<script src="ba-keluar.js?t=' + v + '"><\/script>',
+    '<script src="ba-report-v5.js?t=' + v + '"><\/script>'
+  ].join('');
+  fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
+    .then(function (r) { return r.text(); })
+    .then(function (html) {
+      html = html.replace(/Empowering/g, 'Elevating');
+      if (html.indexOf('</body>') >= 0) html = html.replace('</body>', inject + '</body>');
+      else html += inject;
+      document.open();
+      document.write(html);
+      document.close();
     });
 })();
 </script>
