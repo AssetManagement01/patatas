@@ -10,47 +10,26 @@
     s.src = src + (src.indexOf('?')>=0 ? '&' : '?') + 't=' + v;
     document.body.appendChild(s);
   }
-  function applyLogo(src, srcW) {
-    document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .brand img, .sidebar .logo img').forEach(function (img) {
-      var side = !!(img.closest && img.closest('.sidebar'));
-      img.src = side ? (srcW || src) : src;
-      img.style.cssText = side
-        ? 'background:transparent;max-width:220px;width:100%;height:auto;max-height:92px;object-fit:contain;filter:none;transform:none;display:block;margin:0 auto'
-        : 'background:transparent;max-width:340px;width:100%;height:auto;max-height:150px;object-fit:contain;filter:none;transform:none;display:block;margin:0 auto';
+  function sizeLogo() {
+    document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .brand img').forEach(function (img) {
+      if (img.closest && img.closest('.sidebar')) return;
+      img.style.maxWidth = '340px';
+      img.style.maxHeight = '150px';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.objectFit = 'contain';
+      img.style.transform = 'none';
+      img.style.filter = 'none';
     });
-  }
-  function loadLogo() {
-    Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-      return fetch(f + '?v=10').then(function (r) { return r.text(); });
-    })).then(function (chunks) {
-      var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
-      var im = new Image();
-      im.onload = function () {
-        var c = document.createElement('canvas');
-        c.width = im.width; c.height = im.height;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(im, 0, 0);
-        var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
-        var br = d[0], bg = d[1], bb = d[2];
-        for (var i = 0; i < d.length; i += 4) {
-          var r = d[i], g = d[i+1], b = d[i+2];
-          var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
-          if (dist < 28 || (0.299*r+0.587*g+0.114*b) > 230) d[i+3] = 0;
-        }
-        ctx.putImageData(imgd, 0, 0);
-        var src = c.toDataURL('image/png');
-        var c2 = document.createElement('canvas');
-        c2.width = c.width; c2.height = c.height;
-        var ctx2 = c2.getContext('2d');
-        ctx2.drawImage(c, 0, 0);
-        var imgd2 = ctx2.getImageData(0, 0, c2.width, c2.height), d2 = imgd2.data;
-        for (var j = 0; j < d2.length; j += 4) if (d2[j+3] > 0) { d2[j]=255; d2[j+1]=255; d2[j+2]=255; }
-        ctx2.putImageData(imgd2, 0, 0);
-        applyLogo(src, c2.toDataURL('image/png'));
-        setInterval(function () { applyLogo(src, c2.toDataURL('image/png')); }, 1500);
-      };
-      im.src = raw;
-    }).catch(function () {});
+    document.querySelectorAll('.sidebar .logo img').forEach(function (img) {
+      img.style.maxWidth = '220px';
+      img.style.maxHeight = '92px';
+      img.style.width = '100%';
+      img.style.height = 'auto';
+      img.style.objectFit = 'contain';
+      img.style.transform = 'none';
+      img.style.filter = 'none';
+    });
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
@@ -58,11 +37,10 @@
       html = html.replace(/Empowering/g, 'Elevating');
       document.open(); document.write(html); document.close();
       add('ba-scope.js');
-      add('ba-paint.js');
-      add('ba2.js?v=24');
-      add('ba-keluar.js');
+      add('ba2.js?v=25');
       add('ba-report-v5.js');
-      loadLogo();
+      sizeLogo();
+      setInterval(sizeLogo, 2000);
     });
 })();
 </script>
