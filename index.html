@@ -1,26 +1,25 @@
 <!DOCTYPE html>
 <html lang="id">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>ASSET PATATAS GROUP</title>
-<style>html,body{margin:0;height:100%;overflow:hidden}iframe{border:0;width:100%;height:100%;display:block}</style>
-</head>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
 <body>
-<iframe id="appf" title="app"></iframe>
 <script>
 (function () {
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
-  var BASE = 'https://assetmanagement01.github.io/patatas/';
+  var BASE = '';
   var v = Date.now();
+  function add(src) {
+    var s = document.createElement('script');
+    s.src = src + (src.indexOf('?') >= 0 ? '&' : '?') + 't=' + v;
+    document.body.appendChild(s);
+  }
   function cell(c) {
     if (c == null) return '';
     if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
     return String(c).trim();
   }
   function parseGviz(resp) {
-    var cols = (resp.table && resp.table.cols) || [];
-    var rows = (resp.table && resp.table.rows) || [];
+    var cols = (resp && resp.table && resp.table.cols) || [];
+    var rows = (resp && resp.table && resp.table.rows) || [];
     var h = cols.map(function (c) { return String(c.label || '').toLowerCase(); });
     function ix(x) { return h.indexOf(x); }
     var iT=ix('tanggal'),iSku=ix('sku'),iN=ix('nama'),iU=ix('uom'),iQ=ix('qty'),iP=ix('price'),iTot=ix('total'),iK=ix('keterangan'),iF=ix('foto'),iL=ix('loc'),iS=ix('status');
@@ -32,48 +31,31 @@
     });
     return out;
   }
-  function loadSheet(sheet) {
-    return new Promise(function (res, rej) {
-      var n = 'patatasBA';
-      var t = setTimeout(function () { rej(new Error('t')); }, 15000);
-      window[n] = function (resp) { clearTimeout(t); try { res(parseGviz(resp)); } catch (e) { rej(e); } };
-      var s = document.createElement('script');
-      s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=' + encodeURIComponent(sheet) + '&tqx=out:json;responseHandler:' + n + '&_=' + Date.now();
-      s.onerror = function () { clearTimeout(t); rej(new Error('g')); };
-      document.body.appendChild(s);
-    });
+  function loadBA(cb) {
+    window.patatasBA = function (resp) {
+      var rows = parseGviz(resp);
+      window.__baLastList = rows;
+      try { localStorage.setItem('patatas_ba_v1', JSON.stringify(rows)); } catch (e) {}
+      if (typeof window.paintHist === 'function') window.paintHist(rows);
+      if (cb) cb(rows);
+    };
+    var s = document.createElement('script');
+    s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA&tqx=out:json;responseHandler:patatasBA&_=' + Date.now();
+    document.body.appendChild(s);
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
-      var frame = document.getElementById('appf');
-      var doc = frame.contentDocument || frame.contentWindow.document;
-      doc.open(); doc.write(html); doc.close();
-      function add(src) {
-        var s = doc.createElement('script');
-        s.src = BASE + src + '?t=' + v;
-        doc.body.appendChild(s);
-      }
+      document.open();
+      document.write(html);
+      document.close();
       add('ba-scope.js');
       add('ba-paint.js');
       add('ba-keluar.js');
       add('ba-report-v5.js');
-      function push(rows) {
-        try {
-          var w = frame.contentWindow;
-          w.__baLastList = rows;
-          try { w.localStorage.setItem('patatas_ba_v1', JSON.stringify(rows)); } catch (e) {}
-          if (typeof w.paintHist === 'function') w.paintHist(rows);
-        } catch (e) {}
-      }
-      loadSheet('BA').then(push).catch(function () {});
-      setInterval(function () {
-        try {
-          var w = frame.contentWindow;
-          if (w && w.__baLastList && typeof w.paintHist === 'function') w.paintHist(w.__baLastList);
-        } catch (e) {}
-      }, 1500);
+      setTimeout(function () { loadBA(); }, 600);
+      setTimeout(function () { loadBA(); }, 2000);
     });
 })();
 </script>
