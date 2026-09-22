@@ -1,4 +1,10 @@
 (function () {
+  if (!document.getElementById('ba-scope-js')) {
+    var sc = document.createElement('script');
+    sc.id = 'ba-scope-js';
+    sc.src = 'ba-scope.js?t=' + Date.now();
+    document.body.appendChild(sc);
+  }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
   var HEAD = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
   function hook() {
