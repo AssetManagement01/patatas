@@ -13,7 +13,6 @@
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   var BASE = 'https://assetmanagement01.github.io/patatas/';
   var v = Date.now();
-  var logoSrc = '', logoWhite = '';
   function cell(c) {
     if (c == null) return '';
     if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
@@ -44,60 +43,6 @@
       document.body.appendChild(s);
     });
   }
-  function toCanvas(src, fn) {
-    return new Promise(function (resolve) {
-      var im = new Image();
-      im.onload = function () {
-        var c = document.createElement('canvas');
-        c.width = im.width; c.height = im.height;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(im, 0, 0);
-        fn(ctx, c);
-        resolve(c.toDataURL('image/png'));
-      };
-      im.onerror = function () { resolve(src); };
-      im.src = src;
-    });
-  }
-  function applyLogo(doc) {
-    if (!logoSrc || !doc) return;
-    var sel = '#login-screen img, .login-card img, .brand img, .sidebar .logo img';
-    var nodes = doc.querySelectorAll(sel);
-    for (var i = 0; i < nodes.length; i++) {
-      var img = nodes[i];
-      var inSide = !!(img.closest && img.closest('.sidebar'));
-      img.src = inSide ? (logoWhite || logoSrc) : logoSrc;
-      img.style.background = 'transparent';
-      img.style.objectFit = 'contain';
-      img.style.filter = 'none';
-      img.style.transform = 'rotate(-2.4deg)';
-      img.style.maxWidth = inSide ? '168px' : '260px';
-      img.style.maxHeight = inSide ? '64px' : '110px';
-      img.style.height = 'auto';
-      img.style.width = '100%';
-    }
-  }
-  Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-    return fetch(BASE + f + '?v=8').then(function (r) { return r.text(); });
-  })).then(async function (chunks) {
-    var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
-    logoSrc = await toCanvas(raw, function (ctx, c) {
-      var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
-      var br = d[0], bg = d[1], bb = d[2];
-      for (var i = 0; i < d.length; i += 4) {
-        var r = d[i], g = d[i+1], b = d[i+2];
-        var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
-        if (dist < 32 || (0.299*r+0.587*g+0.114*b) > 228) d[i+3] = 0;
-      }
-      ctx.putImageData(imgd, 0, 0);
-    });
-    logoWhite = await toCanvas(logoSrc, function (ctx, c) {
-      var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
-      for (var i = 0; i < d.length; i += 4) if (d[i+3] > 0) { d[i]=255; d[i+1]=255; d[i+2]=255; }
-      ctx.putImageData(imgd, 0, 0);
-    });
-    applyLogo(document.getElementById('appf').contentDocument);
-  }).catch(function () {});
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
@@ -110,7 +55,10 @@
         s.src = BASE + src + '?t=' + v;
         doc.body.appendChild(s);
       }
-      add('ba-scope.js'); add('ba-keluar.js'); add('ba-report-v5.js'); add('ba-boot.js');
+      add('ba-scope.js');
+      add('ba-keluar.js');
+      add('ba-report-v5.js');
+      add('ba-boot.js');
       function push(rows) {
         try {
           var w = frame.contentWindow;
@@ -122,7 +70,6 @@
         } catch (e) {}
       }
       loadSheet('BA').then(push).catch(function () {});
-      setInterval(function () { applyLogo(frame.contentDocument); }, 400);
       setTimeout(function () { loadSheet('BA').then(push).catch(function () {}); }, 2000);
     });
 })();
