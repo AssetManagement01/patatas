@@ -1,6 +1,6 @@
 (function () {
-  if (window.__baMasuk2) return;
-  window.__baMasuk2 = true;
+  if (window.__baMasuk3) return;
+  window.__baMasuk3 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
@@ -41,6 +41,12 @@
     });
   }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
+  function driveUrl(u) {
+    u = String(u || '').trim();
+    var m = u.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (m) return 'https://drive.google.com/file/d/' + m[1] + '/view';
+    return /^https?:/i.test(u) ? u : '';
+  }
   function paint() {
     var tb = document.getElementById('ba2-table-body');
     if (!tb) return;
@@ -50,10 +56,22 @@
     var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9';
     tb.innerHTML = list.length ? list.map(function (r) {
       var tot = Number(r.total) || ((Number(r.price) || 0) * (Number(r.qty) || 0));
-      var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'"></td></tr>';
+      var st = r.status || 'Done';
+      var badge = window.baStatusBadge ? window.baStatusBadge(st) : st;
+      var foto = driveUrl(r.foto);
+      var aksi = foto
+        ? '<button type="button" class="ba2-eye" data-foto="'+foto.replace(/"/g,'')+'" title="Lihat foto" style="font-size:0.9rem;padding:0.2rem 0.45rem;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">👁</button>'
+        : '<span style="color:#94a3b8;font-size:0.75rem">-</span>';
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'">'+aksi+'</td></tr>';
     }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
   }
+  document.addEventListener('click', function (ev) {
+    var b = ev.target && ev.target.closest && ev.target.closest('.ba2-eye');
+    if (!b) return;
+    ev.preventDefault();
+    var u = b.getAttribute('data-foto') || '';
+    if (u) window.open(u, '_blank');
+  }, true);
   function load() {
     window.patatasBA2 = function (resp) {
       var cols = (resp.table && resp.table.cols) || [];
