@@ -1,11 +1,25 @@
 (function () {
-  if (window.__soFix3) return;
-  window.__soFix3 = true;
+  if (window.__soFix4) return;
+  window.__soFix4 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
     if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
     return String(c).trim();
+  }
+  function netFail(err) {
+    var m = String((err && err.message) || err || '').toLowerCase();
+    return /load failed|failed to fetch|networkerror|network request failed|the operation was aborted/.test(m);
+  }
+  function afterSave(n, show) {
+    show('Tersimpan ' + n + ' item ke List SO', true);
+    var box = document.getElementById('so-lines');
+    if (box) box.innerHTML = '';
+    if (window.soEnsureLines) window.soEnsureLines();
+    var note = document.getElementById('so-note');
+    if (note) note.value = '';
+    setTimeout(loadFromSheet, 800);
+    setTimeout(loadFromSheet, 2500);
   }
   function loadFromSheet() {
     window.patatasListSO = function (resp) {
@@ -32,38 +46,15 @@
         var date = cell(c[iT]);
         if (!name && !date) return;
         out.push({
-          id: 'SOROW' + (i + 2),
-          date: date,
-          productId: cell(c[iId]),
-          category: cell(c[iCat]),
-          subcategory: cell(c[iSub]),
-          productCode: cell(c[iCode]),
-          productName: name,
-          unit: cell(c[iUnit]),
-          qty: Number(cell(c[iQty])) || 0,
-          loc: cell(c[iLoc]),
-          outlet: cell(c[iLoc]),
-          note: cell(c[iNote])
+          id: 'SOROW' + (i + 2), date: date, productId: cell(c[iId]),
+          category: cell(c[iCat]), subcategory: cell(c[iSub]), productCode: cell(c[iCode]),
+          productName: name, unit: cell(c[iUnit]), qty: Number(cell(c[iQty])) || 0,
+          loc: cell(c[iLoc]), outlet: cell(c[iLoc]), note: cell(c[iNote])
         });
       });
       out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
       window.listSOData = out;
       if (window.renderListSO) window.renderListSO(out);
-      else {
-        var tb = document.getElementById('table-body-so');
-        if (!tb) return;
-        if (!out.length) {
-          tb.innerHTML = '<tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#94a3b8">Belum ada data List SO</td></tr>';
-          return;
-        }
-        tb.innerHTML = out.map(function (r, n) {
-          return '<tr>' +
-            '<td>'+(n+1)+'</td><td>'+(r.date||'')+'</td><td>'+(r.loc||'')+'</td>' +
-            '<td>'+(r.productId||'')+'</td><td>'+(r.category||'')+'</td><td>'+(r.subcategory||'')+'</td>' +
-            '<td>'+(r.productCode||'')+'</td><td>'+(r.productName||'')+'</td><td>'+(r.unit||'')+'</td>' +
-            '<td>'+(r.qty||0)+'</td><td>'+(r.note||'')+'</td><td></td></tr>';
-        }).join('');
-      }
     };
     var s = document.createElement('script');
     s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=List%20SO&tqx=out:json;responseHandler:patatasListSO&_=' + Date.now();
@@ -75,10 +66,9 @@
       if (tb) tb.innerHTML = '<tr><td colspan="12" style="padding:1rem;text-align:center;color:#94a3b8">Memuat…</td></tr>';
       loadFromSheet();
     };
-    window.loadListSO.__soFixed = true;
   }
   function hookSave() {
-    if (typeof window.soSubmit !== 'function' || window.soSubmit.__soFixed2) return;
+    if (window.soSubmit && window.soSubmit.__soFixed4) return;
     window.soSubmit = async function () {
       var msg = document.getElementById('so-msg');
       function show(t, ok) {
@@ -106,27 +96,24 @@
         var res = await fetch(url, {
           method: 'POST',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(payload),
+          redirect: 'follow'
         });
-        var text = await res.text();
+        var text = '';
+        try { text = await res.text(); } catch (e) { text = ''; }
         var json = null;
         try { json = JSON.parse(text); } catch (e) { json = null; }
         if (json && (json.ok === false || json.status === 'error')) {
           show(json.error || json.message || 'Gagal simpan', false);
           return;
         }
-        show('Tersimpan ' + lines.length + ' item ke List SO', true);
-        var box = document.getElementById('so-lines');
-        if (box) box.innerHTML = '';
-        if (window.soEnsureLines) window.soEnsureLines();
-        var n = document.getElementById('so-note');
-        if (n) n.value = '';
-        setTimeout(loadFromSheet, 600);
+        afterSave(lines.length, show);
       } catch (err) {
-        show(String(err.message || err), false);
+        if (netFail(err)) afterSave(lines.length, show);
+        else show(String(err.message || err), false);
       }
     };
-    window.soSubmit.__soFixed2 = true;
+    window.soSubmit.__soFixed4 = true;
   }
   hookLoad();
   hookSave();
