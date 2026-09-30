@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="id">
-<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
+<head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/><title>ASSET PATATAS GROUP</title></head>
 <body>
 <script>
 (function () {
@@ -9,6 +9,12 @@
     var s = document.createElement('script');
     s.src = src + (src.indexOf('?')>=0 ? '&' : '?') + 't=' + v;
     document.body.appendChild(s);
+  }
+  function addCss(href) {
+    var l = document.createElement('link');
+    l.rel = 'stylesheet';
+    l.href = href + (href.indexOf('?')>=0 ? '&' : '?') + 't=' + v;
+    document.head.appendChild(l);
   }
   function apply(src, srcW) {
     document.querySelectorAll('.login-card .brand, #login-screen .brand, .sidebar .logo').forEach(function (box) {
@@ -58,6 +64,7 @@
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
       document.open(); document.write(html); document.close();
+      addCss('so-mobile.css');
       add('ba-scope.js');
       add('ba2.js?v=25');
       add('ba-report-v5.js');
