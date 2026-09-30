@@ -1,35 +1,18 @@
 @media (max-width: 768px) {
-  body, #app, .app, .layout, .main, #main, .content, #content {
-    overflow-x: hidden !important;
-  }
-  .page, [id^="page-"], #page-lancar, #lancar-panel-so {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-    margin-left: 0 !important;
-    box-sizing: border-box !important;
-    max-width: 100% !important;
-  }
   #lancar-panel-so {
     font-size: 14px !important;
     width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
   }
   #lancar-panel-so > div {
     padding: 0.75rem 0.8rem !important;
     border-radius: 12px !important;
     margin-bottom: 0.65rem !important;
-    margin-left: 0 !important;
     width: 100% !important;
     box-sizing: border-box !important;
     overflow: visible !important;
-  }
-  #lancar-panel-so h3,
-  #lancar-panel-so p,
-  #lancar-panel-so label {
-    overflow: visible !important;
-    text-indent: 0 !important;
-    margin-left: 0 !important;
-    padding-left: 0 !important;
-    white-space: normal !important;
   }
   #lancar-panel-so h3 {
     font-size: 1.1rem !important;
@@ -61,7 +44,6 @@
     padding: 0.42rem 0.55rem !important;
     min-height: 40px !important;
     width: 100% !important;
-    max-width: 100% !important;
     box-sizing: border-box !important;
     border-radius: 8px !important;
   }
