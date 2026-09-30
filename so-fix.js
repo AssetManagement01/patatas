@@ -1,9 +1,84 @@
 (function () {
-  if (window.__soFix2) return;
-  window.__soFix2 = true;
-  function hook() {
-    if (typeof window.soSubmit !== 'function') return;
-    if (window.soSubmit.__soFixed2) return;
+  if (window.__soFix3) return;
+  window.__soFix3 = true;
+  var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
+  function cell(c) {
+    if (c == null) return '';
+    if (typeof c === 'object') return String(c.f != null ? c.f : (c.v != null ? c.v : '')).trim();
+    return String(c).trim();
+  }
+  function loadFromSheet() {
+    window.patatasListSO = function (resp) {
+      var cols = (resp.table && resp.table.cols) || [];
+      var rows = (resp.table && resp.table.rows) || [];
+      var h = cols.map(function (c) { return String(c.label || '').toLowerCase().trim(); });
+      function ix() {
+        for (var a = 0; a < arguments.length; a++) {
+          var j = h.indexOf(arguments[a]);
+          if (j >= 0) return j;
+        }
+        return -1;
+      }
+      var iT = ix('tanggal'), iId = ix('product id', 'productid', 'id');
+      var iCat = ix('category'), iSub = ix('subcategory', 'sub category');
+      var iCode = ix('product code', 'productcode', 'code');
+      var iName = ix('product name', 'productname', 'name');
+      var iUnit = ix('unit', 'uom'), iQty = ix('qty');
+      var iLoc = ix('outlet', 'loc'), iNote = ix('catatan', 'note');
+      var out = [];
+      rows.forEach(function (row, i) {
+        var c = row.c || [];
+        var name = cell(c[iName]);
+        var date = cell(c[iT]);
+        if (!name && !date) return;
+        out.push({
+          id: 'SOROW' + (i + 2),
+          date: date,
+          productId: cell(c[iId]),
+          category: cell(c[iCat]),
+          subcategory: cell(c[iSub]),
+          productCode: cell(c[iCode]),
+          productName: name,
+          unit: cell(c[iUnit]),
+          qty: Number(cell(c[iQty])) || 0,
+          loc: cell(c[iLoc]),
+          outlet: cell(c[iLoc]),
+          note: cell(c[iNote])
+        });
+      });
+      out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+      window.listSOData = out;
+      if (window.renderListSO) window.renderListSO(out);
+      else {
+        var tb = document.getElementById('table-body-so');
+        if (!tb) return;
+        if (!out.length) {
+          tb.innerHTML = '<tr><td colspan="12" style="padding:1.5rem;text-align:center;color:#94a3b8">Belum ada data List SO</td></tr>';
+          return;
+        }
+        tb.innerHTML = out.map(function (r, n) {
+          return '<tr>' +
+            '<td>'+(n+1)+'</td><td>'+(r.date||'')+'</td><td>'+(r.loc||'')+'</td>' +
+            '<td>'+(r.productId||'')+'</td><td>'+(r.category||'')+'</td><td>'+(r.subcategory||'')+'</td>' +
+            '<td>'+(r.productCode||'')+'</td><td>'+(r.productName||'')+'</td><td>'+(r.unit||'')+'</td>' +
+            '<td>'+(r.qty||0)+'</td><td>'+(r.note||'')+'</td><td></td></tr>';
+        }).join('');
+      }
+    };
+    var s = document.createElement('script');
+    s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=List%20SO&tqx=out:json;responseHandler:patatasListSO&_=' + Date.now();
+    document.body.appendChild(s);
+  }
+  function hookLoad() {
+    window.loadListSO = function () {
+      var tb = document.getElementById('table-body-so');
+      if (tb) tb.innerHTML = '<tr><td colspan="12" style="padding:1rem;text-align:center;color:#94a3b8">Memuat…</td></tr>';
+      loadFromSheet();
+    };
+    window.loadListSO.__soFixed = true;
+  }
+  function hookSave() {
+    if (typeof window.soSubmit !== 'function' || window.soSubmit.__soFixed2) return;
     window.soSubmit = async function () {
       var msg = document.getElementById('so-msg');
       function show(t, ok) {
@@ -46,13 +121,15 @@
         if (window.soEnsureLines) window.soEnsureLines();
         var n = document.getElementById('so-note');
         if (n) n.value = '';
-        if (window.loadListSO) window.loadListSO(true);
+        setTimeout(loadFromSheet, 600);
       } catch (err) {
         show(String(err.message || err), false);
       }
     };
     window.soSubmit.__soFixed2 = true;
   }
-  hook();
-  setInterval(hook, 700);
+  hookLoad();
+  hookSave();
+  setInterval(function () { hookLoad(); hookSave(); }, 800);
+  setTimeout(loadFromSheet, 1200);
 })();
