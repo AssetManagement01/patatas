@@ -1,0 +1,60 @@
+@media (max-width: 768px) {
+  #lancar-panel-so {
+    font-size: 14px !important;
+  }
+  #lancar-panel-so > div {
+    padding: 0.7rem !important;
+    border-radius: 10px !important;
+    margin-bottom: 0.65rem !important;
+  }
+  #lancar-panel-so h3 {
+    font-size: 1.05rem !important;
+    margin: 0 0 0.2rem !important;
+    line-height: 1.25 !important;
+  }
+  #lancar-panel-so p {
+    font-size: 0.75rem !important;
+    margin: 0 0 0.55rem !important;
+    line-height: 1.35 !important;
+  }
+  #so-form {
+    gap: 0.45rem !important;
+  }
+  #so-form > div[style*="grid-template-columns"] {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.4rem !important;
+  }
+  #lancar-panel-so label {
+    font-size: 0.65rem !important;
+    display: block;
+    margin-bottom: 0.15rem;
+  }
+  #lancar-panel-so input,
+  #lancar-panel-so select,
+  #lancar-panel-so textarea {
+    font-size: 16px !important;
+    padding: 0.38rem 0.5rem !important;
+    min-height: 38px !important;
+    height: auto !important;
+    line-height: 1.2 !important;
+    border-radius: 8px !important;
+    box-sizing: border-box !important;
+  }
+  #so-lines {
+    gap: 0.35rem !important;
+  }
+  #so-lines > div {
+    padding: 0.4rem !important;
+  }
+  #lancar-panel-so .btn,
+  #so-form button {
+    font-size: 0.8rem !important;
+    padding: 0.4rem 0.65rem !important;
+    min-height: 36px;
+  }
+  #lancar-panel-so [id*="suggest"],
+  #lancar-panel-so [class*="suggest"],
+  #lancar-panel-so [hidden] + div {
+    font-size: 0.8rem !important;
+  }
+}
