@@ -1,6 +1,6 @@
 (function () {
-  if (window.__soFix6) return;
-  window.__soFix6 = true;
+  if (window.__soFix7) return;
+  window.__soFix7 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
@@ -9,11 +9,11 @@
   }
   function num(c) {
     var s = cell(c);
-    if (!s) return 0;
+    if (!s) return '';
     if (s.indexOf(',') >= 0 && s.indexOf('.') >= 0) s = s.replace(/\./g, '').replace(',', '.');
     else if (s.indexOf(',') >= 0) s = s.replace(',', '.');
     var n = Number(s);
-    return isNaN(n) ? 0 : n;
+    return isNaN(n) ? s : n;
   }
   function netFail(err) {
     var m = String((err && err.message) || err || '').toLowerCase();
@@ -45,24 +45,22 @@
       var iUM = ix('unit master');
       var iKon = ix('konversi');
       var iTf = ix('t/f', 'tf');
+      var iDummy = ix('dummy');
       var out = [];
       rows.forEach(function (row, i) {
         var c = row.c || [];
         var name = cell(c[iName]);
         var date = cell(c[iT]);
         if (!name && !date) return;
-        var qty = num(c[iQty]);
-        var konversi = iKon >= 0 ? num(c[iKon]) : 0;
-        var qtyMaster = iQtyM >= 0 ? num(c[iQtyM]) : 0;
-        if (!qtyMaster && konversi) qtyMaster = qty / konversi;
         out.push({
           id: 'SOROW' + (i + 2), date: date, productId: cell(c[iId]),
           category: cell(c[iCat]), subcategory: cell(c[iSub]), productCode: cell(c[iCode]),
-          productName: name, unit: cell(c[iUnit]), qty: qty,
+          productName: name, unit: cell(c[iUnit]), qty: num(c[iQty]),
           loc: cell(c[iLoc]), outlet: cell(c[iLoc]), note: cell(c[iNote]),
           oleh: cell(c[iOleh]), unitMaster: cell(c[iUM]),
-          qtyMaster: qtyMaster,
-          konversi: konversi, tf: cell(c[iTf])
+          qtyMaster: iQtyM >= 0 ? num(c[iQtyM]) : '',
+          konversi: iKon >= 0 ? num(c[iKon]) : '',
+          tf: cell(c[iTf]), dummy: cell(c[iDummy])
         });
       });
       out.sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
@@ -86,12 +84,6 @@
       if (!rows.length) { alert('Tidak ada data untuk diexport'); return; }
       if (typeof XLSX === 'undefined') { alert('Library Excel belum termuat'); return; }
       var data = rows.map(function (r) {
-        var qtyIn = Number(r.qty) || 0;
-        var konversi = Number(r.konversi) || 0;
-        var totalKonversi = Number(r.qtyMaster);
-        if (!isFinite(totalKonversi) || totalKonversi === 0) {
-          totalKonversi = konversi ? (qtyIn / konversi) : '';
-        }
         return {
           'Tanggal': (window.formatSODate ? window.formatSODate(r.date || '') : (r.date || '')),
           'Product ID': r.productId || '',
@@ -100,14 +92,15 @@
           'Product Code': r.productCode || '',
           'Product Name': r.productName || '',
           'Unit': r.unit || '',
-          'Qty': qtyIn,
+          'Qty': r.qty === '' || r.qty == null ? '' : r.qty,
           'Outlet': r.loc || r.outlet || '',
           'Catatan': r.note || r.catatan || '',
           'Oleh': r.oleh || '',
           'Unit Master': r.unitMaster || '',
-          'Konversi': konversi || '',
-          'Total Konversi': totalKonversi,
-          'T/F': r.tf || ''
+          'QTY': r.qtyMaster === '' || r.qtyMaster == null ? '' : r.qtyMaster,
+          'Konversi': r.konversi === '' || r.konversi == null ? '' : r.konversi,
+          'T/F': r.tf || '',
+          'DUMMY': r.dummy || ''
         };
       });
       var ws = XLSX.utils.json_to_sheet(data);
@@ -117,7 +110,7 @@
     };
   }
   function hookSave() {
-    if (window.soSubmit && window.soSubmit.__soFixed5) return;
+    if (window.soSubmit && window.soSubmit.__soFixed7) return;
     window.soSubmit = async function () {
       var msg = document.getElementById('so-msg');
       function show(t, ok) {
@@ -171,7 +164,7 @@
         else show(String(err.message || err), false);
       }
     };
-    window.soSubmit.__soFixed5 = true;
+    window.soSubmit.__soFixed7 = true;
   }
   hookLoad();
   hookSave();
