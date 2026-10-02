@@ -1,6 +1,6 @@
 (function () {
-  if (window.__soFix5) return;
-  window.__soFix5 = true;
+  if (window.__soFix6) return;
+  window.__soFix6 = true;
   var SID = '16Cx2OD5a5mG4ozQD_J5cmidesLqj-_74llTKtUxwGjk';
   function cell(c) {
     if (c == null) return '';
@@ -53,15 +53,15 @@
         if (!name && !date) return;
         var qty = num(c[iQty]);
         var konversi = iKon >= 0 ? num(c[iKon]) : 0;
-        var qtyMaster = iQtyM >= 0 ? cell(c[iQtyM]) : '';
-        if (qtyMaster === '' && konversi) qtyMaster = qty / konversi;
+        var qtyMaster = iQtyM >= 0 ? num(c[iQtyM]) : 0;
+        if (!qtyMaster && konversi) qtyMaster = qty / konversi;
         out.push({
           id: 'SOROW' + (i + 2), date: date, productId: cell(c[iId]),
           category: cell(c[iCat]), subcategory: cell(c[iSub]), productCode: cell(c[iCode]),
           productName: name, unit: cell(c[iUnit]), qty: qty,
           loc: cell(c[iLoc]), outlet: cell(c[iLoc]), note: cell(c[iNote]),
           oleh: cell(c[iOleh]), unitMaster: cell(c[iUM]),
-          qtyMaster: qtyMaster === '' ? '' : Number(qtyMaster),
+          qtyMaster: qtyMaster,
           konversi: konversi, tf: cell(c[iTf])
         });
       });
@@ -88,8 +88,8 @@
       var data = rows.map(function (r) {
         var qtyIn = Number(r.qty) || 0;
         var konversi = Number(r.konversi) || 0;
-        var totalKonversi = r.qtyMaster;
-        if (totalKonversi === '' || totalKonversi == null) {
+        var totalKonversi = Number(r.qtyMaster);
+        if (!isFinite(totalKonversi) || totalKonversi === 0) {
           totalKonversi = konversi ? (qtyIn / konversi) : '';
         }
         return {
