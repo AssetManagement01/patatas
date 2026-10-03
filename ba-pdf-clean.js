@@ -13,29 +13,39 @@
     var bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     return Number(p[2]) + ' ' + (bulan[Number(p[1]) - 1] || p[1]) + ' ' + p[0];
   }
-  function realBody() {
-    return document.querySelector('#ba-rp-tbody') || document.querySelector('[data-ba-real]');
-  }
-  function hold() {
-    var tb = document.getElementById('ba-rp-tbody');
-    if (!tb || tb.getAttribute('data-ba-real')) return;
-    tb.setAttribute('data-ba-real', '1');
-    tb.id = 'ba-rp-tbody-real';
-    var dummy = document.createElement('tbody');
-    dummy.id = 'ba-rp-tbody';
-    dummy.style.display = 'none';
-    tb.parentNode.appendChild(dummy);
-    var head = tb.closest('table') && tb.closest('table').querySelector('thead tr');
-    if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-  }
-  function copyOnce() {
-    var dummy = document.getElementById('ba-rp-tbody');
-    var real = document.getElementById('ba-rp-tbody-real');
-    if (!dummy || !real) return;
-    if (dummy.innerHTML && dummy.innerHTML !== real.innerHTML) real.innerHTML = dummy.innerHTML;
+  function rowsNow() {
+    var list = jenis() === 'masuk' ? (window.__ba2LastList || []) : (window.__baRepList || window.__baLastList || []);
+    var from = ((document.getElementById('ba-rp-from') || {}).value || '').substring(0, 10);
+    var to = ((document.getElementById('ba-rp-to') || {}).value || '').substring(0, 10);
+    var loc = locFilter().toLowerCase();
+    list = (list || []).filter(function (t) {
+      var d = String(t.date || t.Tanggal || '').substring(0, 10);
+      if (from && d && d < from) return false;
+      if (to && d && d > to) return false;
+      var L = String(t.loc || t.Loc || '').toLowerCase();
+      if (loc && L.indexOf(loc) < 0) return false;
+      return true;
+    });
+    if (window.baFilterOutlet) {
+      try { list = window.baFilterOutlet(list); } catch (e) {}
+    }
+    return list.map(function (t) {
+      return {
+        Tanggal: t.date || t.Tanggal || '',
+        Nama: t.name || t.Nama || '',
+        Uom: t.uom || t.Uom || '',
+        Qty: t.qty != null ? t.qty : t.Qty,
+        Price: Number(t.price != null ? t.price : t.Price) || 0,
+        Total: Number(t.total != null ? t.total : t.Total) || 0,
+        Keterangan: t.keterangan || t.Keterangan || '',
+        Loc: t.loc || t.Loc || '',
+        Status: t.status || t.Status || '',
+        Foto: t.foto || t.Foto || ''
+      };
+    });
   }
   function exportPdf() {
-    var rows = window.baCollectReportRows ? window.baCollectReportRows() : [];
+    var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>'); }
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
@@ -58,22 +68,24 @@
     var loc = locFilter();
     var title = jenis() === 'masuk' ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
     var head = '<th>Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode) + (loc ? ' | Lokasi: ' + esc(loc) : '') + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:top}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode) + (loc ? ' | Lokasi: ' + esc(loc) : '') + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
   }
-  function arm() {
-    hold();
-    copyOnce();
-    window.baExportPdf = exportPdf;
-    var btn = document.querySelector('button[onclick*="baRenderReport"]');
-    if (btn && !btn.__still) {
-      btn.__still = 1;
-      btn.addEventListener('click', function () { setTimeout(copyOnce, 700); setTimeout(copyOnce, 1600); });
-    }
+  function fixHead() {
+    document.querySelectorAll('table').forEach(function (table) {
+      if (!table.querySelector('#ba-rp-tbody, #ba-rp-tbody-real')) return;
+      var head = table.querySelector('thead tr');
+      if (!head) return;
+      var html = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+      if (head.innerHTML.indexOf('SKU') >= 0 || head.innerHTML.indexOf('Catatan') >= 0) head.innerHTML = html;
+    });
   }
-  arm();
-  setTimeout(arm, 1800);
-  setTimeout(copyOnce, 2600);
+  function lock() {
+    window.baExportPdf = exportPdf;
+    fixHead();
+  }
+  lock();
+  setInterval(lock, 400);
 })();
