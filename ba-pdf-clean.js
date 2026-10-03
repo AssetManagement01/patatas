@@ -1,4 +1,19 @@
 (function () {
+  var desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
+  function freeze(el) {
+    if (!el || el.__baFreeze) return;
+    el.__baFreeze = true;
+    var last = desc.get.call(el);
+    Object.defineProperty(el, 'innerHTML', {
+      configurable: true,
+      get: function () { return desc.get.call(el); },
+      set: function (v) {
+        if (v === last) return;
+        last = v;
+        desc.set.call(el, v);
+      }
+    });
+  }
   function jenis() {
     var el = document.getElementById('ba-rp-jenis');
     return el && el.value === 'masuk' ? 'masuk' : 'keluar';
@@ -16,11 +31,14 @@
   function paint() {
     var tb = document.getElementById('ba-rp-tbody');
     if (!tb) return;
+    freeze(tb);
     var table = tb.closest('table');
-    if (table) {
-      var head = table.querySelector('thead tr');
-      if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-    }
+    if (!table) return;
+    var head = table.querySelector('thead tr');
+    if (!head) return;
+    freeze(head);
+    var html = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+    if (head.innerHTML !== html) head.innerHTML = html;
   }
   function exportPdf() {
     var rows = window.baCollectReportRows ? window.baCollectReportRows() : [];
@@ -58,5 +76,5 @@
     window.baExportPdf = exportPdf;
   }
   lock();
-  setInterval(lock, 400);
+  setInterval(lock, 1000);
 })();
