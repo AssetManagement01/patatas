@@ -1,19 +1,4 @@
 (function () {
-  var desc = Object.getOwnPropertyDescriptor(Element.prototype, 'innerHTML');
-  function freeze(el) {
-    if (!el || el.__baFreeze) return;
-    el.__baFreeze = true;
-    var last = desc.get.call(el);
-    Object.defineProperty(el, 'innerHTML', {
-      configurable: true,
-      get: function () { return desc.get.call(el); },
-      set: function (v) {
-        if (v === last) return;
-        last = v;
-        desc.set.call(el, v);
-      }
-    });
-  }
   function jenis() {
     var el = document.getElementById('ba-rp-jenis');
     return el && el.value === 'masuk' ? 'masuk' : 'keluar';
@@ -28,17 +13,21 @@
     var bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     return Number(p[2]) + ' ' + (bulan[Number(p[1]) - 1] || p[1]) + ' ' + p[0];
   }
-  function paint() {
+  function stable() {
+    if (document.getElementById('ba-still-css')) return;
+    var s = document.createElement('style');
+    s.id = 'ba-still-css';
+    s.textContent = '#ba-rp-tbody img{width:42px;height:42px;object-fit:cover;display:block} #page-report table{table-layout:auto}';
+    document.head.appendChild(s);
     var tb = document.getElementById('ba-rp-tbody');
     if (!tb) return;
-    freeze(tb);
     var table = tb.closest('table');
-    if (!table) return;
-    var head = table.querySelector('thead tr');
-    if (!head) return;
-    freeze(head);
-    var html = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-    if (head.innerHTML !== html) head.innerHTML = html;
+    var head = table && table.querySelector('thead tr');
+    if (head && head.__set) return;
+    if (head) {
+      head.__set = 1;
+      head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+    }
   }
   function exportPdf() {
     var rows = window.baCollectReportRows ? window.baCollectReportRows() : [];
@@ -55,8 +44,7 @@
     }
     var sum = 0;
     var body = rows.map(function (r) {
-      var tot = Number(r.Total) || 0;
-      sum += tot;
+      var tot = Number(r.Total) || 0; sum += tot;
       return '<tr><td>' + esc(r.Tanggal) + '</td><td>' + esc(r.Nama) + '</td><td>' + esc(r.Uom) + '</td><td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td>' + esc(r.Status) + '</td><td>' + fotoCell(r.Foto) + '</td></tr>';
     }).join('');
     var from = ((document.getElementById('ba-rp-from') || {}).value || '');
@@ -68,13 +56,12 @@
     var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode) + (loc ? ' | Lokasi: ' + esc(loc) : '') + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
-    w.document.write(doc);
-    w.document.close();
+    w.document.write(doc); w.document.close();
   }
   function lock() {
-    paint();
+    stable();
     window.baExportPdf = exportPdf;
   }
   lock();
-  setInterval(lock, 1000);
+  setTimeout(lock, 1500);
 })();
