@@ -13,6 +13,15 @@
     var bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     return Number(p[2]) + ' ' + (bulan[Number(p[1]) - 1] || p[1]) + ' ' + p[0];
   }
+  function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>').replace(/"/g, '"'); }
+  function num(v) { var n = Number(v); return isNaN(n) ? 0 : n; }
+  function thumb(u) {
+    u = String(u || '').trim();
+    if (!u) return '';
+    var m = u.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+    if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w200';
+    return /^https?:|^data:image/i.test(u) ? u : '';
+  }
   function rowsNow() {
     var list = jenis() === 'masuk' ? (window.__ba2LastList || []) : (window.__baRepList || window.__baLastList || []);
     var from = ((document.getElementById('ba-rp-from') || {}).value || '').substring(0, 10);
@@ -26,36 +35,41 @@
       if (loc && L.indexOf(loc) < 0) return false;
       return true;
     });
-    if (window.baFilterOutlet) {
-      try { list = window.baFilterOutlet(list); } catch (e) {}
-    }
+    if (window.baFilterOutlet) { try { list = window.baFilterOutlet(list); } catch (e) {} }
+    list.sort(function (a, b) { return String(b.date || b.Tanggal || '').localeCompare(String(a.date || a.Tanggal || '')); });
     return list.map(function (t) {
+      var qty = num(t.qty != null ? t.qty : t.Qty);
+      var price = num(t.price != null ? t.price : t.Price);
+      var total = num(t.total != null ? t.total : t.Total) || qty * price;
       return {
-        Tanggal: t.date || t.Tanggal || '',
-        Nama: t.name || t.Nama || '',
-        Uom: t.uom || t.Uom || '',
-        Qty: t.qty != null ? t.qty : t.Qty,
-        Price: Number(t.price != null ? t.price : t.Price) || 0,
-        Total: Number(t.total != null ? t.total : t.Total) || 0,
-        Keterangan: t.keterangan || t.Keterangan || '',
-        Loc: t.loc || t.Loc || '',
-        Status: t.status || t.Status || '',
-        Foto: t.foto || t.Foto || ''
+        Tanggal: t.date || t.Tanggal || '', Nama: t.name || t.Nama || '', Uom: t.uom || t.Uom || '',
+        Qty: qty, Price: price, Total: total, Keterangan: t.keterangan || t.Keterangan || '',
+        Loc: t.loc || t.Loc || '', Status: t.status || t.Status || '', Foto: t.foto || t.Foto || ''
       };
     });
+  }
+  function paint() {
+    var tb = document.getElementById('ba-rp-tbody-real') || document.getElementById('ba-rp-tbody');
+    if (!tb || !document.getElementById('ba-rp-jenis')) return;
+    var table = tb.closest('table');
+    var head = table && table.querySelector('thead tr');
+    var headHtml = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+    if (head) head.innerHTML = headHtml;
+    var rows = rowsNow();
+    var html = rows.length ? rows.map(function (r) {
+      var f = thumb(r.Foto);
+      var foto = f ? '<img src="' + esc(f) + '" style="width:42px;height:42px;object-fit:cover;border-radius:4px">' : '';
+      return '<tr><td style="padding:0.4rem">' + esc(r.Tanggal) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
+    }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+    if (tb.innerHTML !== html) tb.innerHTML = html;
   }
   function exportPdf() {
     var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
-    function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>'); }
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function fotoCell(u) {
-      u = String(u || '').trim();
-      if (!u) return '-';
-      var m = u.match(/\/file\/d\/([^/]+)/) || u.match(/[?&]id=([^&]+)/);
-      var src = m ? 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w240' : u;
-      if (src.indexOf('http') === 0 || src.indexOf('data:image') === 0) return '<img src="' + esc(src) + '" style="max-width:90px;max-height:70px;object-fit:cover">';
-      return '-';
+      var src = thumb(u);
+      return src ? '<img src="' + esc(src) + '" style="max-width:90px;max-height:70px;object-fit:cover">' : '-';
     }
     var sum = 0;
     var body = rows.map(function (r) {
@@ -73,19 +87,11 @@
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
   }
-  function fixHead() {
-    document.querySelectorAll('table').forEach(function (table) {
-      if (!table.querySelector('#ba-rp-tbody, #ba-rp-tbody-real')) return;
-      var head = table.querySelector('thead tr');
-      if (!head) return;
-      var html = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-      if (head.innerHTML.indexOf('SKU') >= 0 || head.innerHTML.indexOf('Catatan') >= 0) head.innerHTML = html;
-    });
-  }
   function lock() {
     window.baExportPdf = exportPdf;
-    fixHead();
+    window.baRenderReport = function () { paint(); };
+    paint();
   }
   lock();
-  setInterval(lock, 400);
+  setInterval(lock, 700);
 })();
