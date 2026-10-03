@@ -13,21 +13,26 @@
     var bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
     return Number(p[2]) + ' ' + (bulan[Number(p[1]) - 1] || p[1]) + ' ' + p[0];
   }
-  function stable() {
-    if (document.getElementById('ba-still-css')) return;
-    var s = document.createElement('style');
-    s.id = 'ba-still-css';
-    s.textContent = '#ba-rp-tbody img{width:42px;height:42px;object-fit:cover;display:block} #page-report table{table-layout:auto}';
-    document.head.appendChild(s);
+  function realBody() {
+    return document.querySelector('#ba-rp-tbody') || document.querySelector('[data-ba-real]');
+  }
+  function hold() {
     var tb = document.getElementById('ba-rp-tbody');
-    if (!tb) return;
-    var table = tb.closest('table');
-    var head = table && table.querySelector('thead tr');
-    if (head && head.__set) return;
-    if (head) {
-      head.__set = 1;
-      head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-    }
+    if (!tb || tb.getAttribute('data-ba-real')) return;
+    tb.setAttribute('data-ba-real', '1');
+    tb.id = 'ba-rp-tbody-real';
+    var dummy = document.createElement('tbody');
+    dummy.id = 'ba-rp-tbody';
+    dummy.style.display = 'none';
+    tb.parentNode.appendChild(dummy);
+    var head = tb.closest('table') && tb.closest('table').querySelector('thead tr');
+    if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+  }
+  function copyOnce() {
+    var dummy = document.getElementById('ba-rp-tbody');
+    var real = document.getElementById('ba-rp-tbody-real');
+    if (!dummy || !real) return;
+    if (dummy.innerHTML && dummy.innerHTML !== real.innerHTML) real.innerHTML = dummy.innerHTML;
   }
   function exportPdf() {
     var rows = window.baCollectReportRows ? window.baCollectReportRows() : [];
@@ -58,10 +63,17 @@
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
   }
-  function lock() {
-    stable();
+  function arm() {
+    hold();
+    copyOnce();
     window.baExportPdf = exportPdf;
+    var btn = document.querySelector('button[onclick*="baRenderReport"]');
+    if (btn && !btn.__still) {
+      btn.__still = 1;
+      btn.addEventListener('click', function () { setTimeout(copyOnce, 700); setTimeout(copyOnce, 1600); });
+    }
   }
-  lock();
-  setTimeout(lock, 1500);
+  arm();
+  setTimeout(arm, 1800);
+  setTimeout(copyOnce, 2600);
 })();
