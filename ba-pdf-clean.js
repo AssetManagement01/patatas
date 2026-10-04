@@ -52,50 +52,6 @@
       };
     });
   }
-  function fillStatus() {
-    var sel = document.getElementById('ba-rp-status');
-    if (!sel) return;
-    var cur = sel.value;
-    var set = {};
-    (rawList() || []).forEach(function (t) {
-      var s = String(t.status || t.Status || '').trim();
-      if (s) set[s] = 1;
-    });
-    sel.innerHTML = '<option value="">Semua status</option>';
-    Object.keys(set).sort().forEach(function (s) {
-      var o = document.createElement('option');
-      o.value = s; o.textContent = s;
-      sel.appendChild(o);
-    });
-    if (cur) sel.value = cur;
-  }
-  function tools() {
-    var loc = document.getElementById('ba-rp-loc');
-    if (!loc || document.getElementById('ba-rp-status')) return;
-    var box = loc.parentNode;
-    if (!box || !box.parentNode) return;
-    var d = document.createElement('div');
-    d.style.minWidth = '150px';
-    d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Status</label><select id="ba-rp-status" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua status</option></select>';
-    box.parentNode.insertBefore(d, box.nextSibling);
-    d.querySelector('select').onchange = paint;
-  }
-  function paint() {
-    tools();
-    fillStatus();
-    var tb = document.getElementById('ba-rp-tbody-real') || document.getElementById('ba-rp-tbody');
-    if (!tb || !document.getElementById('ba-rp-jenis')) return;
-    var table = tb.closest('table');
-    var head = table && table.querySelector('thead tr');
-    if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-    var rows = rowsNow();
-    var html = rows.length ? rows.map(function (r) {
-      var f = thumb(r.Foto);
-      var foto = f ? '<img src="' + esc(f) + '" style="width:42px;height:42px;object-fit:cover;border-radius:4px">' : '';
-      return '<tr><td style="padding:0.4rem">' + esc(r.Tanggal) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
-    }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
-    if (tb.innerHTML !== html) tb.innerHTML = html;
-  }
   function exportPdf() {
     var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
@@ -117,11 +73,46 @@
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
   }
-  function lock() {
-    window.baExportPdf = exportPdf;
-    window.baRenderReport = function () { paint(); };
-    paint();
+  try {
+    Object.defineProperty(window, 'baExportPdf', { configurable: true, get: function () { return exportPdf; }, set: function () {} });
+  } catch (e) { window.baExportPdf = exportPdf; }
+  function fillStatus() {
+    var sel = document.getElementById('ba-rp-status');
+    if (!sel) return;
+    var cur = sel.value;
+    var set = {};
+    (rawList() || []).forEach(function (t) { var s = String(t.status || t.Status || '').trim(); if (s) set[s] = 1; });
+    sel.innerHTML = '<option value="">Semua status</option>';
+    Object.keys(set).sort().forEach(function (s) { var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
+    if (cur) sel.value = cur;
   }
+  function tools() {
+    var loc = document.getElementById('ba-rp-loc');
+    if (!loc || document.getElementById('ba-rp-status')) return;
+    var box = loc.parentNode;
+    if (!box || !box.parentNode) return;
+    var d = document.createElement('div');
+    d.style.minWidth = '150px';
+    d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Status</label><select id="ba-rp-status" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua status</option></select>';
+    box.parentNode.insertBefore(d, box.nextSibling);
+    d.querySelector('select').onchange = paint;
+  }
+  function paint() {
+    tools();
+    fillStatus();
+    var tb = document.getElementById('ba-rp-tbody-real') || document.getElementById('ba-rp-tbody');
+    if (!tb || !document.getElementById('ba-rp-jenis')) return;
+    var head = tb.closest('table') && tb.closest('table').querySelector('thead tr');
+    if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
+    var rows = rowsNow();
+    var html = rows.length ? rows.map(function (r) {
+      var f = thumb(r.Foto);
+      var foto = f ? '<img src="' + esc(f) + '" style="width:42px;height:42px;object-fit:cover;border-radius:4px">' : '';
+      return '<tr><td style="padding:0.4rem">' + esc(r.Tanggal) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
+    }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
+    if (tb.innerHTML !== html) tb.innerHTML = html;
+  }
+  function lock() { window.baRenderReport = paint; paint(); }
   lock();
   setInterval(lock, 800);
 })();
