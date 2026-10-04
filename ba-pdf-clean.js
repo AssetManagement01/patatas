@@ -34,8 +34,8 @@
       var d = String(t.date || t.Tanggal || '').substring(0, 10);
       if (from && d && d < from) return false;
       if (to && d && d > to) return false;
-      var L = String(t.loc || t.Loc || '').toLowerCase();
-      if (loc && L.indexOf(loc) < 0) return false;
+      var L = String(t.loc || t.Loc || '');
+      if (loc && L.toLowerCase() !== loc) return false;
       var S = String(t.status || t.Status || '').toLowerCase();
       if (st && S !== st) return false;
       return true;
@@ -53,19 +53,54 @@
       };
     });
   }
+  function fillSelect(id, label, values) {
+    var sel = document.getElementById(id);
+    if (!sel) return;
+    var cur = sel.value;
+    sel.innerHTML = '<option value="">' + label + '</option>';
+    values.sort().forEach(function (s) {
+      var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  }
+  function tools() {
+    var jenisEl = document.getElementById('ba-rp-jenis');
+    if (!jenisEl) return;
+    var wrap = jenisEl.parentNode && jenisEl.parentNode.parentNode;
+    if (!wrap) return;
+    if (!document.getElementById('ba-rp-loc')) {
+      var d = document.createElement('div');
+      d.style.minWidth = '180px';
+      d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Lokasi</label><select id="ba-rp-loc" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua lokasi</option></select>';
+      wrap.insertBefore(d, jenisEl.parentNode.nextSibling);
+      d.querySelector('select').onchange = paint;
+    }
+    if (!document.getElementById('ba-rp-status')) {
+      var s = document.createElement('div');
+      s.style.minWidth = '150px';
+      s.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Status</label><select id="ba-rp-status" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua status</option></select>';
+      var locBox = document.getElementById('ba-rp-loc').parentNode;
+      wrap.insertBefore(s, locBox.nextSibling);
+      s.querySelector('select').onchange = paint;
+    }
+    var locs = {}, stats = {};
+    (rawList() || []).forEach(function (t) {
+      var L = String(t.loc || t.Loc || '').trim(); if (L) locs[L] = 1;
+      var S = String(t.status || t.Status || '').trim(); if (S) stats[S] = 1;
+    });
+    fillSelect('ba-rp-loc', 'Semua lokasi', Object.keys(locs));
+    fillSelect('ba-rp-status', 'Semua status', Object.keys(stats));
+  }
   function exportPdf() {
     var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
     function fotoCell(u) { var src = thumb(u); return src ? '<img src="' + esc(src) + '" style="width:72px;height:54px;object-fit:cover;border-radius:3px">' : '-'; }
-    var sum = 0;
-    var byLoc = {};
+    var sum = 0, byLoc = {};
     var body = rows.map(function (r, i) {
       var tot = Number(r.Total) || 0; sum += tot;
-      var key = r.Loc || '-';
-      byLoc[key] = (byLoc[key] || 0) + tot;
-      var bg = i % 2 ? ' style="background:#f8fafc"' : '';
-      return '<tr' + bg + '><td class="dt">' + esc(dmy(r.Tanggal)) + '</td><td>' + esc(r.Nama) + '</td><td class="c">' + esc(r.Uom) + '</td><td class="c">' + esc(r.Qty) + '</td><td class="r">' + fmtRp(r.Price) + '</td><td class="r">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td class="c">' + esc(r.Status) + '</td><td class="c">' + fotoCell(r.Foto) + '</td></tr>';
+      var key = r.Loc || '-'; byLoc[key] = (byLoc[key] || 0) + tot;
+      return '<tr' + (i % 2 ? ' style="background:#f8fafc"' : '') + '><td class="dt">' + esc(dmy(r.Tanggal)) + '</td><td>' + esc(r.Nama) + '</td><td class="c">' + esc(r.Uom) + '</td><td class="c">' + esc(r.Qty) + '</td><td class="r">' + fmtRp(r.Price) + '</td><td class="r">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td class="c">' + esc(r.Status) + '</td><td class="c">' + fotoCell(r.Foto) + '</td></tr>';
     }).join('');
     var locRows = Object.keys(byLoc).sort().map(function (k, i) {
       return '<tr><td class="c">' + (i + 1) + '</td><td>' + esc(k) + '</td><td class="r">Rp ' + fmtRp(byLoc[k]) + '</td></tr>';
@@ -75,10 +110,8 @@
     var periode = (from || to) ? ('Periode: ' + dmy(from) + ' \u2013 ' + dmy(to)) : 'Periode: semua tanggal';
     var extra = (locFilter() ? ' | Lokasi: ' + locFilter() : '') + (statusFilter() ? ' | Status: ' + statusFilter() : '');
     var title = jenis() === 'masuk' ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
-    var head = '<th class="dt">Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
-    var css = '@page{size:A4 landscape;margin:10mm}body{font-family:Segoe UI,Arial,sans-serif;padding:8px;font-size:11px;color:#0f172a}h2{margin:0 0 4px;color:#0b4f37;font-size:16px}h3{margin:14px 0 6px;color:#0b4f37;font-size:13px}.sub{color:#475569;margin-bottom:8px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #334155;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff;font-size:11px}.dt{white-space:nowrap}.c{text-align:center}.r{text-align:right;white-space:nowrap}.sum{width:420px;margin-top:4px;margin-left:auto}.sum td{background:#fff}.sum tfoot td{background:#e8f5ef;font-weight:700}';
-    var sumTable = '<h3>Total per lokasi</h3><table class="sum"><thead><tr><th style="width:42px">No</th><th>Lokasi</th><th>Total</th></tr></thead><tbody>' + locRows + '</tbody><tfoot><tr><td colspan="2" class="r">Total nominal</td><td class="r">Rp ' + fmtRp(sum) + '</td></tr></tfoot></table>';
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div class="sub">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>' + sumTable + '<p style="margin-top:14px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
+    var css = '@page{size:A4 landscape;margin:10mm}body{font-family:Segoe UI,Arial,sans-serif;padding:8px;font-size:11px;color:#0f172a}h2{margin:0 0 4px;color:#0b4f37;font-size:16px}h3{margin:14px 0 6px;color:#0b4f37;font-size:13px}.sub{color:#475569;margin-bottom:8px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #334155;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff}.dt{white-space:nowrap}.c{text-align:center}.r{text-align:right;white-space:nowrap}.sum{width:420px;margin-left:auto}.sum tfoot td{background:#e8f5ef;font-weight:700}';
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div class="sub">' + esc(periode + extra) + '</div><table><thead><tr><th>Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th></tr></thead><tbody>' + body + '</tbody></table><h3>Total per lokasi</h3><table class="sum"><thead><tr><th>No</th><th>Lokasi</th><th>Total</th></tr></thead><tbody>' + locRows + '</tbody><tfoot><tr><td colspan="2" class="r">Total nominal</td><td class="r">Rp ' + fmtRp(sum) + '</td></tr></tfoot></table><p style="margin-top:14px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
@@ -86,30 +119,8 @@
   try {
     Object.defineProperty(window, 'baExportPdf', { configurable: true, get: function () { return exportPdf; }, set: function () {} });
   } catch (e) { window.baExportPdf = exportPdf; }
-  function fillStatus() {
-    var sel = document.getElementById('ba-rp-status');
-    if (!sel) return;
-    var cur = sel.value;
-    var set = {};
-    (rawList() || []).forEach(function (t) { var s = String(t.status || t.Status || '').trim(); if (s) set[s] = 1; });
-    sel.innerHTML = '<option value="">Semua status</option>';
-    Object.keys(set).sort().forEach(function (s) { var o = document.createElement('option'); o.value = s; o.textContent = s; sel.appendChild(o); });
-    if (cur) sel.value = cur;
-  }
-  function tools() {
-    var loc = document.getElementById('ba-rp-loc');
-    if (!loc || document.getElementById('ba-rp-status')) return;
-    var box = loc.parentNode;
-    if (!box || !box.parentNode) return;
-    var d = document.createElement('div');
-    d.style.minWidth = '150px';
-    d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Status</label><select id="ba-rp-status" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua status</option></select>';
-    box.parentNode.insertBefore(d, box.nextSibling);
-    d.querySelector('select').onchange = paint;
-  }
   function paint() {
     tools();
-    fillStatus();
     var tb = document.getElementById('ba-rp-tbody-real') || document.getElementById('ba-rp-tbody');
     if (!tb || !document.getElementById('ba-rp-jenis')) return;
     var head = tb.closest('table') && tb.closest('table').querySelector('thead tr');
