@@ -67,8 +67,8 @@
       var bg = i % 2 ? ' style="background:#f8fafc"' : '';
       return '<tr' + bg + '><td class="dt">' + esc(dmy(r.Tanggal)) + '</td><td>' + esc(r.Nama) + '</td><td class="c">' + esc(r.Uom) + '</td><td class="c">' + esc(r.Qty) + '</td><td class="r">' + fmtRp(r.Price) + '</td><td class="r">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td class="c">' + esc(r.Status) + '</td><td class="c">' + fotoCell(r.Foto) + '</td></tr>';
     }).join('');
-    var locLines = Object.keys(byLoc).sort().map(function (k, i) {
-      return '<div>' + (i + 1) + '. ' + esc(k) + ' Total = Rp ' + fmtRp(byLoc[k]) + '</div>';
+    var locRows = Object.keys(byLoc).sort().map(function (k, i) {
+      return '<tr><td class="c">' + (i + 1) + '</td><td>' + esc(k) + '</td><td class="r">Rp ' + fmtRp(byLoc[k]) + '</td></tr>';
     }).join('');
     var from = ((document.getElementById('ba-rp-from') || {}).value || '');
     var to = ((document.getElementById('ba-rp-to') || {}).value || '');
@@ -76,8 +76,9 @@
     var extra = (locFilter() ? ' | Lokasi: ' + locFilter() : '') + (statusFilter() ? ' | Status: ' + statusFilter() : '');
     var title = jenis() === 'masuk' ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
     var head = '<th class="dt">Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
-    var css = '@page{size:A4 landscape;margin:10mm}body{font-family:Segoe UI,Arial,sans-serif;padding:8px;font-size:11px;color:#0f172a}h2{margin:0 0 4px;color:#0b4f37;font-size:16px}.sub{color:#475569;margin-bottom:8px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #334155;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff;font-size:11px}.dt{white-space:nowrap}.c{text-align:center}.r{text-align:right;white-space:nowrap}.totbox{margin-top:12px;text-align:right;font-size:12px;line-height:1.6}.totbox b{font-size:13px}';
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div class="sub">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="totbox">' + locLines + '<div><b>Total nominal: Rp ' + fmtRp(sum) + '</b></div></div><p style="margin-top:14px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
+    var css = '@page{size:A4 landscape;margin:10mm}body{font-family:Segoe UI,Arial,sans-serif;padding:8px;font-size:11px;color:#0f172a}h2{margin:0 0 4px;color:#0b4f37;font-size:16px}h3{margin:14px 0 6px;color:#0b4f37;font-size:13px}.sub{color:#475569;margin-bottom:8px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #334155;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff;font-size:11px}.dt{white-space:nowrap}.c{text-align:center}.r{text-align:right;white-space:nowrap}.sum{width:420px;margin-top:4px;margin-left:auto}.sum td{background:#fff}.sum tfoot td{background:#e8f5ef;font-weight:700}';
+    var sumTable = '<h3>Total per lokasi</h3><table class="sum"><thead><tr><th style="width:42px">No</th><th>Lokasi</th><th>Total</th></tr></thead><tbody>' + locRows + '</tbody><tfoot><tr><td colspan="2" class="r">Total nominal</td><td class="r">Rp ' + fmtRp(sum) + '</td></tr></tfoot></table>';
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div class="sub">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table>' + sumTable + '<p style="margin-top:14px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
