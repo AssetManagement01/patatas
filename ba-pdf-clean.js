@@ -3,9 +3,8 @@
     var el = document.getElementById('ba-rp-jenis');
     return el && el.value === 'masuk' ? 'masuk' : 'keluar';
   }
-  function locFilter() {
-    return ((document.getElementById('ba-rp-loc') || {}).value || '').trim();
-  }
+  function locFilter() { return ((document.getElementById('ba-rp-loc') || {}).value || '').trim(); }
+  function statusFilter() { return ((document.getElementById('ba-rp-status') || {}).value || '').trim(); }
   function fmtDate(iso) {
     if (!iso) return '';
     var p = String(iso).substring(0, 10).split('-');
@@ -22,17 +21,22 @@
     if (m) return 'https://drive.google.com/thumbnail?id=' + m[1] + '&sz=w200';
     return /^https?:|^data:image/i.test(u) ? u : '';
   }
+  function rawList() {
+    return jenis() === 'masuk' ? (window.__ba2LastList || []) : (window.__baRepList || window.__baLastList || []);
+  }
   function rowsNow() {
-    var list = jenis() === 'masuk' ? (window.__ba2LastList || []) : (window.__baRepList || window.__baLastList || []);
     var from = ((document.getElementById('ba-rp-from') || {}).value || '').substring(0, 10);
     var to = ((document.getElementById('ba-rp-to') || {}).value || '').substring(0, 10);
     var loc = locFilter().toLowerCase();
-    list = (list || []).filter(function (t) {
+    var st = statusFilter().toLowerCase();
+    var list = (rawList() || []).filter(function (t) {
       var d = String(t.date || t.Tanggal || '').substring(0, 10);
       if (from && d && d < from) return false;
       if (to && d && d > to) return false;
       var L = String(t.loc || t.Loc || '').toLowerCase();
       if (loc && L.indexOf(loc) < 0) return false;
+      var S = String(t.status || t.Status || '').toLowerCase();
+      if (st && S !== st) return false;
       return true;
     });
     if (window.baFilterOutlet) { try { list = window.baFilterOutlet(list); } catch (e) {} }
@@ -48,13 +52,42 @@
       };
     });
   }
+  function fillStatus() {
+    var sel = document.getElementById('ba-rp-status');
+    if (!sel) return;
+    var cur = sel.value;
+    var set = {};
+    (rawList() || []).forEach(function (t) {
+      var s = String(t.status || t.Status || '').trim();
+      if (s) set[s] = 1;
+    });
+    sel.innerHTML = '<option value="">Semua status</option>';
+    Object.keys(set).sort().forEach(function (s) {
+      var o = document.createElement('option');
+      o.value = s; o.textContent = s;
+      sel.appendChild(o);
+    });
+    if (cur) sel.value = cur;
+  }
+  function tools() {
+    var loc = document.getElementById('ba-rp-loc');
+    if (!loc || document.getElementById('ba-rp-status')) return;
+    var box = loc.parentNode;
+    if (!box || !box.parentNode) return;
+    var d = document.createElement('div');
+    d.style.minWidth = '150px';
+    d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Status</label><select id="ba-rp-status" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="">Semua status</option></select>';
+    box.parentNode.insertBefore(d, box.nextSibling);
+    d.querySelector('select').onchange = paint;
+  }
   function paint() {
+    tools();
+    fillStatus();
     var tb = document.getElementById('ba-rp-tbody-real') || document.getElementById('ba-rp-tbody');
     if (!tb || !document.getElementById('ba-rp-jenis')) return;
     var table = tb.closest('table');
     var head = table && table.querySelector('thead tr');
-    var headHtml = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
-    if (head) head.innerHTML = headHtml;
+    if (head) head.innerHTML = '<th style="padding:0.4rem">Tanggal</th><th style="padding:0.4rem">Nama</th><th style="padding:0.4rem">Uom</th><th style="padding:0.4rem">Qty</th><th style="padding:0.4rem">Price</th><th style="padding:0.4rem">Total</th><th style="padding:0.4rem">Keterangan</th><th style="padding:0.4rem">Loc</th><th style="padding:0.4rem">Status</th><th style="padding:0.4rem">Foto</th>';
     var rows = rowsNow();
     var html = rows.length ? rows.map(function (r) {
       var f = thumb(r.Foto);
@@ -67,10 +100,7 @@
     var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-    function fotoCell(u) {
-      var src = thumb(u);
-      return src ? '<img src="' + esc(src) + '" style="max-width:90px;max-height:70px;object-fit:cover">' : '-';
-    }
+    function fotoCell(u) { var src = thumb(u); return src ? '<img src="' + esc(src) + '" style="max-width:90px;max-height:70px;object-fit:cover">' : '-'; }
     var sum = 0;
     var body = rows.map(function (r) {
       var tot = Number(r.Total) || 0; sum += tot;
@@ -79,10 +109,10 @@
     var from = ((document.getElementById('ba-rp-from') || {}).value || '');
     var to = ((document.getElementById('ba-rp-to') || {}).value || '');
     var periode = (from || to) ? ('Periode: ' + (fmtDate(from) || '-') + ' \u2013 ' + (fmtDate(to) || '-')) : 'Periode: semua tanggal';
-    var loc = locFilter();
+    var extra = (locFilter() ? ' | Lokasi: ' + locFilter() : '') + (statusFilter() ? ' | Status: ' + statusFilter() : '');
     var title = jenis() === 'masuk' ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
     var head = '<th>Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:top}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode) + (loc ? ' | Lokasi: ' + esc(loc) : '') + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:top}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
@@ -93,5 +123,5 @@
     paint();
   }
   lock();
-  setInterval(lock, 700);
+  setInterval(lock, 800);
 })();
