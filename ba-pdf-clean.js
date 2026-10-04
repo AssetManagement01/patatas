@@ -5,6 +5,14 @@
   }
   function locFilter() { return ((document.getElementById('ba-rp-loc') || {}).value || '').trim(); }
   function statusFilter() { return ((document.getElementById('ba-rp-status') || {}).value || '').trim(); }
+  function dmy(v) {
+    var s = String(v || '').trim();
+    var m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return m[3] + '/' + m[2] + '/' + m[1].slice(-2);
+    var n = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/);
+    if (n) return ('0' + n[1]).slice(-2) + '/' + ('0' + n[2]).slice(-2) + '/' + n[3].slice(-2);
+    return s;
+  }
   function fmtDate(iso) {
     if (!iso) return '';
     var p = String(iso).substring(0, 10).split('-');
@@ -56,19 +64,21 @@
     var rows = rowsNow();
     if (!rows.length) { alert('Tidak ada data BA'); return; }
     function fmtRp(n) { n = Number(n) || 0; return n.toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-    function fotoCell(u) { var src = thumb(u); return src ? '<img src="' + esc(src) + '" style="max-width:90px;max-height:70px;object-fit:cover">' : '-'; }
+    function fotoCell(u) { var src = thumb(u); return src ? '<img src="' + esc(src) + '" style="width:72px;height:54px;object-fit:cover;border-radius:3px">' : '-'; }
     var sum = 0;
-    var body = rows.map(function (r) {
+    var body = rows.map(function (r, i) {
       var tot = Number(r.Total) || 0; sum += tot;
-      return '<tr><td>' + esc(r.Tanggal) + '</td><td>' + esc(r.Nama) + '</td><td>' + esc(r.Uom) + '</td><td style="text-align:center">' + esc(r.Qty) + '</td><td style="text-align:right">' + fmtRp(r.Price) + '</td><td style="text-align:right">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td>' + esc(r.Status) + '</td><td>' + fotoCell(r.Foto) + '</td></tr>';
+      var bg = i % 2 ? ' style="background:#f8fafc"' : '';
+      return '<tr' + bg + '><td class="dt">' + esc(dmy(r.Tanggal)) + '</td><td>' + esc(r.Nama) + '</td><td class="c">' + esc(r.Uom) + '</td><td class="c">' + esc(r.Qty) + '</td><td class="r">' + fmtRp(r.Price) + '</td><td class="r">' + fmtRp(tot) + '</td><td>' + esc(r.Keterangan) + '</td><td>' + esc(r.Loc) + '</td><td class="c">' + esc(r.Status) + '</td><td class="c">' + fotoCell(r.Foto) + '</td></tr>';
     }).join('');
     var from = ((document.getElementById('ba-rp-from') || {}).value || '');
     var to = ((document.getElementById('ba-rp-to') || {}).value || '');
-    var periode = (from || to) ? ('Periode: ' + (fmtDate(from) || '-') + ' \u2013 ' + (fmtDate(to) || '-')) : 'Periode: semua tanggal';
+    var periode = (from || to) ? ('Periode: ' + dmy(from) + ' \u2013 ' + dmy(to)) : 'Periode: semua tanggal';
     var extra = (locFilter() ? ' | Lokasi: ' + locFilter() : '') + (statusFilter() ? ' | Status: ' + statusFilter() : '');
     var title = jenis() === 'masuk' ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
-    var head = '<th>Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
-    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:top}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
+    var head = '<th class="dt">Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';
+    var css = '@page{size:A4 landscape;margin:10mm}body{font-family:Segoe UI,Arial,sans-serif;padding:8px;font-size:11px;color:#0f172a}h2{margin:0 0 4px;color:#0b4f37;font-size:16px}.sub{color:#475569;margin-bottom:8px;font-size:11px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #334155;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff;font-size:11px}td{font-size:11px}.dt{white-space:nowrap;width:72px}.c{text-align:center}.r{text-align:right;white-space:nowrap}.tot{margin-top:10px;font-size:13px;font-weight:700;text-align:right}';
+    var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>' + css + '</style></head><body><h2>' + title + ' \u2014 PATATAS GROUP</h2><div class="sub">' + esc(periode + extra) + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:14px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
     if (!w) { alert('Izinkan popup'); return; }
     w.document.write(doc); w.document.close();
@@ -108,7 +118,7 @@
     var html = rows.length ? rows.map(function (r) {
       var f = thumb(r.Foto);
       var foto = f ? '<img src="' + esc(f) + '" style="width:42px;height:42px;object-fit:cover;border-radius:4px">' : '';
-      return '<tr><td style="padding:0.4rem">' + esc(r.Tanggal) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
+      return '<tr><td style="padding:0.4rem;white-space:nowrap">' + esc(dmy(r.Tanggal)) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
     }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
     if (tb.innerHTML !== html) tb.innerHTML = html;
   }
