@@ -16,65 +16,52 @@
     l.href = href + (href.indexOf('?')>=0 ? '&' : '?') + 't=' + v;
     document.head.appendChild(l);
   }
-  function apply(src, srcW) {
+  var LOGO = 'logo-b.png?v=13', LOGO_W = 'logo-b-white.png?v=13';
+  // Logo statis (PNG transparan di repo): tidak ada canvas/threshold, tidak ada race.
+  function apply() {
     document.querySelectorAll('.login-card .brand, #login-screen .brand, .sidebar .logo').forEach(function (box) {
       box.style.overflow = 'visible';
       box.style.height = 'auto';
     });
     document.querySelectorAll('.login-card .brand img, #login-screen .brand img, .brand img, .sidebar .logo img').forEach(function (img) {
       var side = !!(img.closest && img.closest('.sidebar'));
-      img.src = side ? (srcW || src) : src;
+      var want = side ? LOGO_W : LOGO;
+      if (img.getAttribute('src') !== want) img.src = want;
       img.style.cssText = 'background:transparent;display:block;margin:8px auto;width:auto;height:auto;max-width:' + (side ? '210px' : '280px') + ';max-height:' + (side ? '88px' : '130px') + ';object-fit:contain;object-position:center;filter:none;transform:none;overflow:visible';
     });
   }
-  function loadLogo() {
-    Promise.all(['logo_p0.txt','logo_p1.txt','logo_p2.txt','logo_p3.txt','logo_p4.txt','logo_p5.txt'].map(function (f) {
-      return fetch(f + '?v=12').then(function (r) { return r.text(); });
-    })).then(function (chunks) {
-      var raw = 'data:image/jpeg;base64,' + chunks.join('').replace(/\s/g, '');
-      var im = new Image();
-      im.onload = function () {
-        var c = document.createElement('canvas');
-        c.width = im.width; c.height = im.height;
-        var ctx = c.getContext('2d');
-        ctx.drawImage(im, 0, 0);
-        var imgd = ctx.getImageData(0, 0, c.width, c.height), d = imgd.data;
-        var br = d[0], bg = d[1], bb = d[2];
-        for (var i = 0; i < d.length; i += 4) {
-          var r = d[i], g = d[i+1], b = d[i+2];
-          var dist = Math.sqrt((r-br)*(r-br)+(g-bg)*(g-bg)+(b-bb)*(b-bb));
-          if (dist < 26 || (0.299*r+0.587*g+0.114*b) > 232) d[i+3] = 0;
-        }
-        ctx.putImageData(imgd, 0, 0);
-        var src = c.toDataURL('image/png');
-        var c2 = document.createElement('canvas');
-        c2.width = c.width; c2.height = c.height;
-        var x = c2.getContext('2d');
-        x.drawImage(c, 0, 0);
-        var id2 = x.getImageData(0, 0, c2.width, c2.height), d2 = id2.data;
-        for (var j = 0; j < d2.length; j += 4) if (d2[j+3] > 0) { d2[j]=255; d2[j+1]=255; d2[j+2]=255; }
-        x.putImageData(id2, 0, 0);
-        apply(src, c2.toDataURL('image/png'));
-      };
-      im.src = raw;
-    }).catch(function () {});
+  // Tunggu sampai halaman hasil document.write selesai di-parse (CDN script di <head> memblokir parser,
+  // jadi document.body bisa masih null tepat setelah document.close()).
+  function whenReady(fn) {
+    if (document.body && document.readyState !== 'loading') fn();
+    else setTimeout(function () { whenReady(fn); }, 25);
   }
   fetch('https://raw.githubusercontent.com/AssetManagement01/patatas/4ce2a5ef26a1cfbf568e13749c2bc4a497c0ec3c/index.html?t=' + v)
     .then(function (r) { return r.text(); })
     .then(function (html) {
       html = html.replace(/Empowering/g, 'Elevating');
+      // Ganti 2 logo base64 bawaan (login lalu sidebar) langsung di HTML sebelum ditulis -> tidak ada kedip logo lama.
+      var n = 0;
+      html = html.replace(/(<img src=['"])data:image\/png;base64,[A-Za-z0-9+\/=]+/g, function (m, p) {
+        n++;
+        return n === 1 ? p + LOGO : n === 2 ? p + LOGO_W : m;
+      });
       document.open(); document.write(html); document.close();
-      addCss('so-mobile.css');
-      add('ba-scope.js');
-      add('ba2.js?v=25');
-      add('ba-report-v5.js');
-      add('ba-fill.js');
-      add('ba-masuk.js');
-      add('so-fix.js');
-      add('ba-pdf.js');
-      add('ba-pdf-clean.js');
-      add('ba-pdf-sum.js');
-      loadLogo();
+      whenReady(function () {
+        addCss('so-mobile.css');
+        add('ba-scope.js');
+        add('ba2.js?v=25');
+        add('ba-report-v5.js');
+        add('ba-fill.js');
+        add('ba-masuk.js');
+        add('so-fix.js');
+        add('ba-pdf.js');
+        add('ba-pdf-clean.js');
+        add('ba-pdf-sum.js');
+        apply();
+        window.addEventListener('load', apply);
+        setTimeout(apply, 1500);
+      });
     });
 })();
 </script>
