@@ -79,7 +79,7 @@ window.switchBaKas = function (which) {
     var h2 = masuk.querySelector('h3');
     if (h2) h2.textContent = 'Form Kas Masuk';
     var p2 = masuk.querySelector('p');
-    if (p2) p2.innerHTML = 'Penjualan barang bekas (minyak goreng bekas, galon bekas, dll). Nama dari Aset Tetap atau ketik manual. Status awal: <b>Permintaan</b>.';
+    if (p2) p2.innerHTML = 'Penjualan barang bekas (minyak goreng bekas, galon bekas, dll). Nama dari Aset Tetap atau ketik manual. Status langsung: <b>Done</b>.';
 
     var form = masuk.querySelector('form');
     if (form) { form.id = 'ba2-form'; form.removeAttribute('onsubmit'); }
@@ -218,20 +218,58 @@ window.switchBaKas = function (which) {
         date: date, nama: name, name: name,
         uom: ((ln.querySelector('.ba2-line-uom') || {}).value || 'PCS'),
         qty: qty, price: price, total: price * qty,
-        keterangan: note, foto: foto, loc: loc, status: 'Permintaan',
-        tglPermintaan: date, tglPenawaran: '', tglProses: '', tglSelesai: '', tglTolak: '',
+        keterangan: note, foto: foto, loc: loc, status: 'Done',
+        tglPermintaan: date, tglPenawaran: '', tglProses: '', tglSelesai: date, tglTolak: '',
         revisi: 1, diubahOleh: window.USER_EMAIL || '', catatanStatus: '', by: window.USER_EMAIL || ''
       });
     });
     if (!rows.length) { alert('Isi minimal 1 nama barang'); return false; }
     var list = localLoad();
-    rows.forEach(function (r) { list.unshift(r); pushSheet(r); });
+    var maxRow = maxRowNo(window.__ba2MasukList || window.__ba2LastList || []);
+    var jobs = [];
+    rows.forEach(function (r) { list.unshift(r); jobs.push(pushSheet(r)); });
+    // Kas Masuk langsung Done. Jika server lama mengabaikan field status, baris baru di-set Done
+    // lewat updateBA2Status (hanya baris baru yang cocok persis & nomor barisnya > baris terakhir sebelum simpan).
+    Promise.all(jobs).then(function () { return ensureDone(rows, maxRow); })
+      .catch(function () {})
+      .then(function () { if (window.baMasukReload) window.baMasukReload(); });
     localSave(list);
     window.ba2Render(list);
     var box = document.getElementById('ba2-lines');
     if (box) { box.innerHTML = ''; addLine(); }
     var n = document.getElementById('ba2-note'); if (n) n.value = '';
     return false;
+  }
+
+  function maxRowNo(list) {
+    var m = 0;
+    (list || []).forEach(function (x) { var n = Number(String(x.id || '').replace(/^BA2ROW/, '')); if (/^BA2ROW\d+$/.test(String(x.id || '')) && n > m) m = n; });
+    return m;
+  }
+  function same(a, b) { return String(a == null ? '' : a).trim().toLowerCase() === String(b == null ? '' : b).trim().toLowerCase(); }
+  async function ensureDone(rows, maxRow) {
+    var url = apiUrl(); if (!url || !maxRow) return;
+    await new Promise(function (r) { setTimeout(r, 1200); });
+    var res = await fetch(url + '?action=listBA2&_=' + Date.now());
+    var data = await res.json();
+    if (!data || !data.ok || !Array.isArray(data.items)) return;
+    var used = {};
+    for (var i = 0; i < rows.length; i++) {
+      var r = rows[i];
+      var hit = data.items.filter(function (it) {
+        var n = Number(String(it.id || '').replace(/^BA2ROW/, ''));
+        return /^BA2ROW\d+$/.test(String(it.id || '')) && n > maxRow && !used[it.id] &&
+          same(it.date, r.date) && same(it.name, r.name) && same(it.loc, r.loc) && same(it.keterangan, r.keterangan) &&
+          Number(it.qty) === Number(r.qty) && Number(it.price) === Number(r.price);
+      })[0];
+      if (!hit) continue;
+      used[hit.id] = 1;
+      if (String(hit.status || '') === 'Done') continue;
+      try {
+        await fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'updateBA2Status', id: hit.id, status: 'Done', catatanStatus: '', by: window.USER_EMAIL || '' }) });
+      } catch (e) {}
+    }
   }
 
   async function pushSheet(row) {
@@ -244,7 +282,7 @@ window.switchBaKas = function (which) {
           action: 'saveBA2', date: row.date, name: row.name, nama: row.nama,
           uom: row.uom, qty: row.qty, price: row.price, total: row.total,
           keterangan: row.keterangan, foto: row.foto, loc: row.loc,
-          status: row.status, by: row.by, sheet: 'BA2'
+          status: row.status, tglSelesai: row.tglSelesai, by: row.by, sheet: 'BA2'
         })
       });
     } catch (err) {}
@@ -295,6 +333,7 @@ window.switchBaKas = function (which) {
       } catch (e) {}
     }
     window.ba2Render(local);
+    if (window.baMasukReload) window.baMasukReload();
   };
 
   async function ba2UpdateStatus(id, status) {
