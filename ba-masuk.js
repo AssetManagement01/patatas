@@ -146,6 +146,46 @@
       var url = apiUrl();
       if (!url) { msg.textContent = 'API belum terhubung'; return false; }
       var btn = g('ba2e-save'); btn.disabled = true; btn.textContent = 'Menyimpan...'; msg.textContent = '';
+      function txt(v) { return String(v == null ? '' : v).trim(); }
+      function num(v) { return Number(v) || 0; }
+      var oldSt = txt(r.status) || 'Done';
+      var statusChanged = txt(nr.status) !== oldSt;
+      var otherChanged = txt(nr.date) !== txt(r.date) || txt(nr.name) !== txt(r.name) || txt(nr.loc) !== txt(r.loc) ||
+        num(nr.qty) !== num(r.qty) || txt(nr.uom) !== (txt(r.uom) || 'PCS') || num(nr.price) !== num(r.price) ||
+        txt(nr.keterangan) !== txt(r.keterangan) || txt(nr.foto) !== txt(r.foto || r.photo);
+      function post(obj) {
+        return fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(obj) })
+          .then(function (res) { return res.text(); })
+          .then(function (t) { var d = null; try { d = JSON.parse(t); } catch (x) {} return d; });
+      }
+      function errOf(d) {
+        if (!d) return '';
+        if (d.ok === false || d.success === false || String(d.status || '').toLowerCase() === 'error' || (d.error && !d.ok)) return String(d.error || d.message || 'Gagal');
+        return '';
+      }
+      function applyLocal(fields) {
+        var list = window.__ba2MasukList || [];
+        for (var i = 0; i < list.length; i++) if (list[i].id === r.id) { for (var k in fields) list[i][k] = fields[k]; }
+        try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(list)); } catch (x) {}
+        paint();
+      }
+      function fail(em) {
+        msg.style.color = '#b91c1c';
+        msg.textContent = 'Gagal simpan: ' + em;
+        btn.disabled = false; btn.textContent = 'Simpan Perubahan';
+      }
+      // Status saja -> action lama updateBA2Status (sudah ada di server, tanpa deploy)
+      function saveStatus() {
+        return post({ action: 'updateBA2Status', id: r.id, status: nr.status, catatanStatus: '', by: window.USER_EMAIL || '' })
+          .then(function (d) { var e = errOf(d); if (e) throw new Error(e); });
+      }
+      if (!statusChanged && !otherChanged) { tutup(); return false; }
+      if (statusChanged && !otherChanged) {
+        saveStatus().then(function () {
+          applyLocal({ status: nr.status }); tutup(); setTimeout(load, 1500);
+        }).catch(function (err) { fail(err && err.message || err); });
+        return false;
+      }
       var body = {
         action: 'updateBA2', id: r.id, sheet: 'BA2', by: window.USER_EMAIL || '',
         date: nr.date, name: nr.name, nama: nr.name, loc: nr.loc, qty: nr.qty, uom: nr.uom, price: nr.price, total: nr.total,
@@ -153,28 +193,20 @@
         // data lama: server memastikan baris yang diubah memang baris ini
         orig: { date: r.date, name: r.name, loc: r.loc, qty: r.qty, price: r.price, keterangan: r.keterangan }
       };
-      fetch(url, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify(body) })
-        .then(function (res) { return res.text(); })
-        .then(function (txt) {
-          var d = null; try { d = JSON.parse(txt); } catch (x) {}
-          if (d && d.ok) {
-            var list = window.__ba2MasukList || [];
-            for (var i = 0; i < list.length; i++) if (list[i].id === r.id) { for (var k in nr) list[i][k] = nr[k]; }
-            try { localStorage.setItem('patatas_ba2_v1', JSON.stringify(list)); } catch (x) {}
-            paint();
-            tutup();
-            setTimeout(load, 1500);
-            return;
-          }
-          var em = (d && (d.error || d.message)) || 'Respon server tidak valid';
-          if (/tidak dikenali|unknown action/i.test(em)) em = 'Server (Apps Script) belum mendukung edit Kas Masuk (action updateBA2). Deploy versi baru Code.gs dulu.';
-          msg.textContent = 'Gagal simpan: ' + em;
+      post(body).then(function (d) {
+        if (d && d.ok) { applyLocal(nr); tutup(); setTimeout(load, 1500); return; }
+        var em = (d && (d.error || d.message)) || 'Respon server tidak valid';
+        if (!/tidak dikenali|unknown action|tidak dikenal/i.test(em)) { fail(em); return; }
+        var need = 'Perubahan selain Status (tanggal/nama/lokasi/qty/uom/price/keterangan/foto) BELUM tersimpan: server Apps Script belum mendukung edit (action updateBA2). Deploy versi baru Code.gs dulu.';
+        if (!statusChanged) { fail(need); return; }
+        saveStatus().then(function () {
+          applyLocal({ status: nr.status });
+          msg.style.color = '#92400e';
+          msg.textContent = 'Status tersimpan (' + nr.status + '). ' + need;
           btn.disabled = false; btn.textContent = 'Simpan Perubahan';
-        })
-        .catch(function (err) {
-          msg.textContent = 'Gagal simpan: ' + (err && err.message || err);
-          btn.disabled = false; btn.textContent = 'Simpan Perubahan';
-        });
+          setTimeout(load, 1500);
+        }).catch(function (err) { fail('status juga gagal: ' + (err && err.message || err) + '. ' + need); });
+      }).catch(function (err) { fail(err && err.message || err); });
       return false;
     };
   }
