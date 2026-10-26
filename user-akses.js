@@ -174,7 +174,7 @@
       $("ua-root").scrollIntoView({ behavior: "smooth" });
     } else if (kind === "reset") {
       uaModal({ title: "Reset password — " + u.username, okText: "Simpan",
-        body: '<p style="margin:0 0 .6rem;color:#64748b">Ketik password sementara baru (min 6 karakter), atau <b>kosongkan</b> untuk dibuat acak. User wajib menggantinya saat login berikutnya.</p>' +
+        body: '<p style="margin:0 0 .6rem;color:#64748b">Ketik password baru (min 6 karakter) — langsung berlaku, user <b>tidak</b> wajib ganti. Atau <b>kosongkan</b> untuk dibuat acak (sementara; user wajib ganti saat login berikutnya).</p>' +
           '<div style="display:flex;gap:.4rem"><input type="password" data-pw autocomplete="new-password" placeholder="Kosongkan = acak" style="flex:1;padding:.55rem .7rem;border:1px solid #cbd5e1;border-radius:10px;font-size:.9rem"/>' +
           '<button type="button" class="btn btn-outline" data-eye title="Tampilkan/sembunyikan" style="border-radius:10px">👁</button></div>',
         onOk: function (d) {
@@ -185,7 +185,7 @@
             if (!r || !r.ok) { d.err((r && r.error) || "Gagal reset"); return true; }
             d.close();
             if (r.tempPassword) showOnce(u.username, r.tempPassword);
-            else uaInfo("Password di-reset", "Password <b>" + esc(u.username) + "</b> sudah di-reset. User wajib ganti saat login berikutnya.");
+            else uaInfo("Password di-reset", "Password <b>" + esc(u.username) + "</b> sudah diganti dan langsung berlaku (tidak wajib ganti).");
             load(); return false;
           }).catch(function (e) { d.err("Gagal: " + (e && e.message || e)); return true; });
         } }).querySelector("[data-eye]").onclick = function () { var i = this.parentNode.querySelector("[data-pw]"); i.type = i.type === "password" ? "text" : "password"; };
