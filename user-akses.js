@@ -87,7 +87,7 @@
     var role = $("ua-role").value;
     var p = perms || (custom ? (renderMatrix._last || META.defaults[role]) : META.defaults[role]);
     if (!custom) p = META.defaults[role];
-    var dis = custom ? "" : " disabled";
+    var dis = "";
     var h = '<tr style="text-align:left;border-bottom:1px solid var(--border,#e2e8f0)"><th style="padding:.4rem">Menu</th><th style="padding:.4rem;text-align:center">Tidak ada</th><th style="padding:.4rem;text-align:center">Lihat</th><th style="padding:.4rem;text-align:center">Lihat + Edit</th></tr>';
     Object.keys(MENU_LABEL).forEach(function (k) {
       h += '<tr style="border-bottom:1px solid var(--border,#f1f5f9)"><td style="padding:.35rem .4rem">' + MENU_LABEL[k] + "</td>";
@@ -97,8 +97,12 @@
     $("ua-matrix").innerHTML = h;
     $("ua-specials").innerHTML = '<b style="width:100%;font-size:.78rem;color:#64748b">Aksi khusus</b>' + Object.keys(SPECIAL_LABEL).map(function (k) {
       return '<label style="display:inline-flex;gap:.35rem;align-items:center"><input type="checkbox" id="ua-s-' + k + '"' + (p.s[k] ? " checked" : "") + dis + "/>" + SPECIAL_LABEL[k] + "</label>";
-    }).join("") + (custom ? "" : '<span style="width:100%;font-size:.75rem;color:#94a3b8">Default mengikuti role. Pilih “Custom” untuk mengubah.</span>');
-    if (custom) $("ua-matrix").onchange = $("ua-specials").onchange = function () { renderMatrix._last = currentPerms(); };
+    }).join("") + '<span id="ua-tools-hint" style="width:100%;font-size:.75rem;color:' + (custom ? "#0f766e" : "#94a3b8") + '">' +
+      (custom ? "Mode Custom: hak akses di atas bisa diubah bebas lalu klik Simpan." : "Mode Default: mengikuti role. Klik pilihan mana pun untuk otomatis pindah ke Custom.") + "</span>";
+    $("ua-matrix").onchange = $("ua-specials").onchange = function () {
+      if ($("ua-tools").value !== "Custom") { var cur = currentPerms(); $("ua-tools").value = "Custom"; renderMatrix._last = cur; renderMatrix(cur); return; }
+      renderMatrix._last = currentPerms();
+    };
   }
   function fmtDate(s) { if (!s) return "—"; var d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }); }
   function renderTable() {
@@ -129,6 +133,33 @@
     });
   }
   function find(n) { for (var i = 0; i < USERS.length; i++) if (USERS[i].username === n) return USERS[i]; return null; }
+  function uaModal(opt) {
+    var d = document.createElement("div");
+    d.className = "ua-modal";
+    d.style.cssText = "position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:2147483646;display:flex;align-items:center;justify-content:center;padding:1rem";
+    d.innerHTML = '<div role="dialog" style="background:var(--card,#fff);color:var(--text,#0f172a);border-radius:16px;max-width:400px;width:100%;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.3)">' +
+      '<div style="background:linear-gradient(135deg,#0f766e,#14b8a6);color:#fff;padding:.85rem 1.1rem;font-weight:700">' + esc(opt.title) + "</div>" +
+      '<div data-b style="padding:1rem 1.1rem;font-size:.86rem">' + opt.body + '</div><div data-err style="display:none;color:#dc2626;font-size:.8rem;padding:0 1.1rem .5rem"></div>' +
+      '<div data-f style="display:flex;gap:.5rem;justify-content:flex-end;padding:0 1.1rem 1rem">' +
+      (opt.cancel === false ? "" : '<button type="button" class="btn btn-outline" data-no style="border-radius:10px">' + esc(opt.cancelText || "Batal") + "</button>") +
+      '<button type="button" class="btn btn-primary" data-ok style="border-radius:10px;' + (opt.danger ? "background:#dc2626;border-color:#dc2626" : "background:#0f766e;border-color:#0f766e") + ';color:#fff">' + esc(opt.okText || "Simpan") + "</button></div></div>";
+    document.body.appendChild(d);
+    var close = function () { d.remove(); };
+    d.err = function (m) { var e = d.querySelector("[data-err]"); e.textContent = m; e.style.display = m ? "" : "none"; };
+    d.close = close;
+    if (d.querySelector("[data-no]")) d.querySelector("[data-no]").onclick = close;
+    d.addEventListener("click", function (ev) { if (ev.target === d && opt.cancel !== false) close(); });
+    d.addEventListener("keydown", function (ev) { if (ev.key === "Escape" && opt.cancel !== false) close(); if (ev.key === "Enter" && ev.target.tagName === "INPUT") d.querySelector("[data-ok]").click(); });
+    d.querySelector("[data-ok]").onclick = function () {
+      var b = this; if (b.disabled) return;
+      var r = opt.onOk ? opt.onOk(d) : true;
+      if (r && typeof r.then === "function") { b.disabled = true; b.textContent = "Memproses…"; r.then(function (keep) { if (!keep) close(); else { b.disabled = false; b.textContent = opt.okText || "Simpan"; } }); }
+      else if (r !== false) close();
+    };
+    var f = d.querySelector("input:not([readonly])"); setTimeout(function () { (f || d.querySelector("[data-ok]")).focus(); }, 30);
+    return d;
+  }
+  function uaInfo(title, html) { return uaModal({ title: title, body: html, okText: "OK", cancel: false }); }
   function act(kind, name) {
     var u = find(name); if (!u) return;
     if (kind === "edit") {
@@ -142,33 +173,42 @@
       $("ua-cancel").style.display = "";
       $("ua-root").scrollIntoView({ behavior: "smooth" });
     } else if (kind === "reset") {
-      var pw = prompt("Reset password untuk " + u.username + ".\nKetik password sementara baru (min 6), atau kosongkan untuk dibuat acak.\nUser wajib menggantinya saat login berikutnya.", "");
-      if (pw === null) return;
-      if (pw && pw.length < 6) { alert("Password minimal 6 karakter"); return; }
-      post({ action: "userResetPassword", username: u.username, newPassword: pw || "" }).then(function (r) {
-        if (!r || !r.ok) { alert((r && r.error) || "Gagal reset"); return; }
-        if (r.tempPassword) showOnce(u.username, r.tempPassword); else alert("Password " + u.username + " sudah di-reset. User wajib ganti saat login.");
-        load();
-      });
+      uaModal({ title: "Reset password — " + u.username, okText: "Simpan",
+        body: '<p style="margin:0 0 .6rem;color:#64748b">Ketik password sementara baru (min 6 karakter), atau <b>kosongkan</b> untuk dibuat acak. User wajib menggantinya saat login berikutnya.</p>' +
+          '<div style="display:flex;gap:.4rem"><input type="password" data-pw autocomplete="new-password" placeholder="Kosongkan = acak" style="flex:1;padding:.55rem .7rem;border:1px solid #cbd5e1;border-radius:10px;font-size:.9rem"/>' +
+          '<button type="button" class="btn btn-outline" data-eye title="Tampilkan/sembunyikan" style="border-radius:10px">👁</button></div>',
+        onOk: function (d) {
+          var pw = d.querySelector("[data-pw]").value;
+          if (pw && pw.length < 6) { d.err("Password minimal 6 karakter"); return false; }
+          d.err("");
+          return post({ action: "userResetPassword", username: u.username, newPassword: pw || "" }).then(function (r) {
+            if (!r || !r.ok) { d.err((r && r.error) || "Gagal reset"); return true; }
+            d.close();
+            if (r.tempPassword) showOnce(u.username, r.tempPassword);
+            else uaInfo("Password di-reset", "Password <b>" + esc(u.username) + "</b> sudah di-reset. User wajib ganti saat login berikutnya.");
+            load(); return false;
+          }).catch(function (e) { d.err("Gagal: " + (e && e.message || e)); return true; });
+        } }).querySelector("[data-eye]").onclick = function () { var i = this.parentNode.querySelector("[data-pw]"); i.type = i.type === "password" ? "text" : "password"; };
     } else if (kind === "status") {
-      var to = u.status === "Aktif" ? "Nonaktif" : "Aktif";
-      if (!confirm((to === "Nonaktif" ? "Nonaktifkan " : "Aktifkan kembali ") + u.username + "?" + (to === "Nonaktif" ? "\nUser langsung ter-logout dan tidak bisa login." : ""))) return;
-      post({ action: "userSetStatus", username: u.username, status: to }).then(function (r) {
-        if (!r || !r.ok) { alert((r && r.error) || "Gagal"); return; }
-        load();
-      });
+      var to = u.status === "Aktif" ? "Nonaktif" : "Aktif", off = to === "Nonaktif";
+      uaModal({ title: (off ? "Nonaktifkan " : "Aktifkan kembali ") + u.username, okText: off ? "Nonaktifkan" : "Aktifkan", danger: off,
+        body: off ? "User <b>" + esc(u.username) + "</b> akan langsung ter-logout dan tidak bisa login sampai diaktifkan kembali." : "User <b>" + esc(u.username) + "</b> bisa login lagi dengan password yang ada.",
+        onOk: function (d) {
+          return post({ action: "userSetStatus", username: u.username, status: to }).then(function (r) {
+            if (!r || !r.ok) { d.err((r && r.error) || "Gagal"); return true; }
+            load(); return false;
+          }).catch(function (e) { d.err("Gagal: " + (e && e.message || e)); return true; });
+        } });
     }
   }
   function showOnce(user, pw) {
-    var d = document.createElement("div");
-    d.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2147483646;display:flex;align-items:center;justify-content:center";
-    d.innerHTML = '<div style="background:#fff;color:#0f172a;border-radius:14px;padding:1.2rem;max-width:360px;width:92%">' +
-      "<h3 style=\"margin:0 0 .4rem\">Password sementara</h3><p style=\"font-size:.82rem;color:#64748b;margin:0 0 .6rem\">Untuk <b>" + esc(user) + "</b>. Hanya ditampilkan sekali — berikan langsung ke user.</p>" +
-      '<input readonly value="' + esc(pw) + '" style="width:100%;box-sizing:border-box;font-family:monospace;font-size:1.05rem;padding:.5rem;border:1px solid #cbd5e1;border-radius:8px"/>' +
-      '<div style="display:flex;gap:.5rem;margin-top:.8rem"><button type="button" class="btn btn-outline" data-c>Salin</button><button type="button" class="btn btn-primary" data-x style="flex:1">Tutup</button></div></div>';
-    document.body.appendChild(d);
-    d.querySelector("[data-c]").onclick = function () { var i = d.querySelector("input"); i.select(); try { navigator.clipboard.writeText(pw); } catch (e) { document.execCommand("copy"); } };
-    d.querySelector("[data-x]").onclick = function () { d.remove(); };
+    var d = uaModal({ title: "Password sementara — " + user, okText: "Tutup", cancel: false,
+      body: '<p style="margin:0 0 .6rem;color:#64748b">Hanya ditampilkan <b>sekali</b>. Berikan langsung ke user; user wajib ganti saat login.</p>' +
+        '<div style="display:flex;gap:.4rem"><input readonly data-show value="' + esc(pw) + '" style="flex:1;font-family:monospace;font-size:1.05rem;padding:.55rem .7rem;border:1px solid #cbd5e1;border-radius:10px"/>' +
+        '<button type="button" class="btn btn-outline" data-c style="border-radius:10px">📋 Salin</button></div>' });
+    d.querySelector("[data-c]").onclick = function () { var b = this, i = d.querySelector("[data-show]"); i.select();
+      var ok = function () { b.textContent = "✓ Tersalin"; };
+      try { navigator.clipboard.writeText(pw).then(ok, function () { document.execCommand("copy"); ok(); }); } catch (e) { document.execCommand("copy"); ok(); } };
   }
   function resetForm() {
     EDITING = null; renderMatrix._last = null;
