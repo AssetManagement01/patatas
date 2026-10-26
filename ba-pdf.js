@@ -112,6 +112,7 @@
       };
     });
   }
+  function idr(n) { n = Math.round(Number(n) || 0); try { return n.toLocaleString('id-ID', { maximumFractionDigits: 0 }); } catch (e) { return String(n); } }
   function draw() {
     var tb = document.getElementById('ba-rp-tbody');
     if (!tb) return;
@@ -132,7 +133,7 @@
       var sku = masuk ? '' : '<td style="padding:0.4rem">' + (r.sku || '') + '</td>';
       return '<tr>' + sku + '<td style="padding:0.4rem">' + (r.date || '') + '</td><td style="padding:0.4rem">' + (r.name || '') + '</td>' +
         '<td style="padding:0.4rem">' + (r.uom || '') + '</td><td style="padding:0.4rem">' + (r.qty || 0) + '</td>' +
-        '<td style="padding:0.4rem">' + (r.price || 0) + '</td><td style="padding:0.4rem">' + (r.total || 0) + '</td>' +
+        '<td style="padding:0.4rem;text-align:right;white-space:nowrap">' + idr(r.price) + '</td><td style="padding:0.4rem;text-align:right;white-space:nowrap">' + idr(r.total) + '</td>' +
         '<td style="padding:0.4rem">' + (r.keterangan || '') + '</td><td style="padding:0.4rem">' + (r.loc || '') + '</td>' +
         '<td style="padding:0.4rem">' + (r.status || '') + '</td><td style="padding:0.4rem">' + (r.catatanStatus || '') + '</td>' +
         '<td style="padding:0.4rem">' + foto + '</td></tr>';

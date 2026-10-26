@@ -38,6 +38,8 @@
   function rawList() {
     return jenis() === 'masuk' ? (window.__ba2LastList || []) : (window.__baRepList || window.__baLastList || []);
   }
+  // Tampilan angka format Indonesia tanpa desimal: 550000 -> 550.000
+  function idr(n) { n = Math.round(Number(n) || 0); try { return n.toLocaleString('id-ID', { maximumFractionDigits: 0 }); } catch (e) { return String(n); } }
   function rowsNow() {
     var from = ((document.getElementById('ba-rp-from') || {}).value || '').substring(0, 10);
     var to = ((document.getElementById('ba-rp-to') || {}).value || '').substring(0, 10);
@@ -149,7 +151,7 @@
     var html = rows.length ? rows.map(function (r) {
       var f = thumb(r.Foto);
       var foto = f ? '<img src="' + esc(f) + '" style="width:42px;height:42px;object-fit:cover;border-radius:4px">' : '';
-      return '<tr><td style="padding:0.4rem;white-space:nowrap">' + esc(dmy(r.Tanggal)) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem">' + esc(r.Price) + '</td><td style="padding:0.4rem">' + esc(r.Total) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
+      return '<tr><td style="padding:0.4rem;white-space:nowrap">' + esc(dmy(r.Tanggal)) + '</td><td style="padding:0.4rem">' + esc(r.Nama) + '</td><td style="padding:0.4rem">' + esc(r.Uom) + '</td><td style="padding:0.4rem">' + esc(r.Qty) + '</td><td style="padding:0.4rem;text-align:right;white-space:nowrap">' + esc(idr(r.Price)) + '</td><td style="padding:0.4rem;text-align:right;white-space:nowrap">' + esc(idr(r.Total)) + '</td><td style="padding:0.4rem">' + esc(r.Keterangan) + '</td><td style="padding:0.4rem">' + esc(r.Loc) + '</td><td style="padding:0.4rem">' + esc(r.Status) + '</td><td style="padding:0.4rem">' + foto + '</td></tr>';
     }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Tidak ada data</td></tr>';
     if (tb.innerHTML !== html) tb.innerHTML = html;
   }
