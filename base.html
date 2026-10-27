@@ -146,20 +146,33 @@
   A.session = sess;
 
   var busy = false;
+  function loginMsg(t, ok) {
+    var btn = document.getElementById("btn-login"); if (!btn) return;
+    var m = document.getElementById("pa-login-msg");
+    if (!m) { m = document.createElement("div"); m.id = "pa-login-msg"; m.setAttribute("role", "alert");
+      m.style.cssText = "margin-top:.6rem;font-size:.85rem;font-weight:600;padding:.55rem .75rem;border-radius:10px";
+      btn.parentNode.insertBefore(m, btn.nextSibling); }
+    m.style.display = t ? "" : "none"; m.textContent = t || "";
+    m.style.background = ok ? "#ecfdf5" : "#fef2f2"; m.style.color = ok ? "#065f46" : "#b91c1c"; m.style.border = "1px solid " + (ok ? "#a7f3d0" : "#fecaca");
+  }
   A.login = function () {
     if (busy) return;
     var name = ((document.getElementById("login-email") || {}).value || "").trim();
     var pw = ((document.getElementById("login-password") || {}).value || "");
-    if (!name) { alert("Isi username"); return; }
-    if (!pw) { alert("Isi password"); return; }
-    var btn = document.getElementById("btn-login"), txt = btn ? btn.textContent : "";
+    if (!name) { loginMsg("Isi username"); return; }
+    if (!pw) { loginMsg("Isi password"); return; }
+    var btn = document.getElementById("btn-login");
     busy = true; if (btn) { btn.disabled = true; btn.textContent = "Memeriksa…"; }
+    loginMsg("Memeriksa…", true);
+    var done = false, finish = function () { busy = false; if (btn) { btn.disabled = false; btn.textContent = "Masuk ke Sistem"; } };
+    var to = setTimeout(function () { if (!done) { done = true; finish(); loginMsg("Server tidak merespons. Periksa koneksi lalu coba lagi."); } }, 25000);
     post({ action: "login", username: name, password: pw }).then(function (r) {
-      if (!r || !r.ok) { alert((r && r.error) || "Login gagal"); return; }
+      if (done) return; done = true; clearTimeout(to);
+      if (!r || !r.ok) { finish(); loginMsg((r && r.error) || "Login gagal"); return; }
+      loginMsg("Berhasil, membuka aplikasi…", true);
       var pe = document.getElementById("login-password"); if (pe) pe.value = "";
-      var s = toSession(r); save(s); enter(s);
-    }).catch(function (e) { alert("Gagal menghubungi server: " + (e && e.message || e)); })
-      .then(function () { busy = false; if (btn) { btn.disabled = false; btn.textContent = txt || "Masuk ke Sistem"; } });
+      var s = toSession(r); save(s); finish(); loginMsg(""); enter(s);
+    }).catch(function (e) { if (done) return; done = true; clearTimeout(to); finish(); loginMsg("Gagal menghubungi server: " + (e && e.message || e)); });
   };
   A.logout = function () {
     try { localStorage.removeItem(SKEY); } catch (e) {}
