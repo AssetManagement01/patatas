@@ -131,12 +131,26 @@
     try { document.dispatchEvent(new CustomEvent("patatas-auth", { detail: s })); } catch (e) {}
   };
 
+  function guardLogin() {
+    var st = document.getElementById("pa-login-guard");
+    if (!st) { st = document.createElement("style"); st.id = "pa-login-guard";
+      st.textContent = "body.pa-login #login-screen{display:flex!important;z-index:2147483647!important;pointer-events:auto!important;visibility:visible!important;opacity:1!important}" +
+        "body.pa-login #login-screen input,body.pa-login #login-screen button,body.pa-login #login-screen .login-card{pointer-events:auto!important;position:relative;z-index:2}" +
+        "body.pa-login #patatas-loading,body.pa-login .ua-modal,body.pa-login #btn-toggle-sidebar,body.pa-login #app{display:none!important}";
+      (document.head || document.documentElement).appendChild(st); }
+    document.body.classList.add("pa-login");
+    ["login-email", "login-password", "btn-login"].forEach(function (id) { var e = document.getElementById(id); if (e) { e.disabled = false; e.readOnly = false; e.removeAttribute("tabindex"); } });
+  }
+  A.guardLogin = guardLogin;
   function showLogin() {
     var login = document.getElementById("login-screen"), app = document.getElementById("app");
     if (login) { login.style.display = "flex"; login.classList.remove("hidden"); }
     if (app) { app.classList.remove("show"); app.style.display = "none"; }
+    guardLogin();
+    var le = document.getElementById("login-email"); if (le && !le.value) try { le.focus(); } catch (e) {}
   }
   function enter(s) {
+    document.body.classList.remove("pa-login");
     if (typeof window.__patatasApplySession === "function") window.__patatasApplySession(s);
     A.applyPerms(s);
     if (s.mustChange) { A.forceChange(); return; }
