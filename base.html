@@ -2268,19 +2268,7 @@ function applyOutletScopeToUI() {
 
   // Outlet login: kunci filter Location hanya ke outlet sendiri
   var scope = getSessionOutletScope();
-  var msLoc = document.getElementById("ms-location");
-  if (msLoc) {
-    if (scope.active) {
-      msLoc.style.opacity = "0.65";
-      msLoc.style.pointerEvents = "none";
-      var lab = msLoc.querySelector(".ms-label");
-      if (lab) lab.textContent = scope.name || scope.keyword || "Outlet locked";
-    } else {
-      msLoc.style.opacity = "";
-      msLoc.style.pointerEvents = "";
-    }
-  }
-
+  window.__msLocLock = scope.active ? (scope.name || scope.keyword || "Outlet") : null;
   if (typeof populateFilters === "function") populateFilters();
   if (typeof applyFilter === "function") applyFilter();
   else {
@@ -2483,6 +2471,7 @@ function populateFilters(){
     fillMs("ms-location", uniqueData.map(function(i){ return i.location; }), "- Select Location -");
     fillMs("ms-kondisi", uniqueData.map(function(i){ return i.kondisi; }), "- Show All -");
   }
+  if (typeof msApplyLocationLock === "function") msApplyLocationLock();
 }
 
 function getMsSelected(wrapId){
@@ -2497,6 +2486,7 @@ function getMsSelected(wrapId){
 function updateMsLabel(wrapId, placeholder){
   var wrap=document.getElementById(wrapId);
   if(!wrap) return;
+  if(wrapId==="ms-location" && window.__msLocLock){ msApplyLocationLock(); return; }
   var sel=getMsSelected(wrapId);
   var lab=wrap.querySelector(".ms-label");
   if(!lab) return;
@@ -2511,9 +2501,28 @@ function updateMsLabel(wrapId, placeholder){
     sa.indeterminate=sel.length>0 && sel.length<all.length;
   }
 }
+function msApplyLocationLock(){
+  var w=document.getElementById("ms-location"); if(!w) return;
+  var lock=window.__msLocLock, btn=w.querySelector(".ms-btn"), lab=w.querySelector(".ms-label");
+  w.style.pointerEvents=""; w.style.opacity="";
+  if(btn){ btn.disabled=false; btn.style.pointerEvents=""; }
+  if(lock){
+    w.classList.add("ms-locked"); w.title="Lokasi dikunci ke outlet Anda";
+    if(btn){ btn.style.cursor="not-allowed"; btn.style.background="#f1f5f9"; }
+    if(lab) lab.textContent="\uD83D\uDD12 "+lock;
+  } else {
+    w.classList.remove("ms-locked"); w.removeAttribute("title");
+    if(btn){ btn.style.cursor=""; btn.style.background=""; }
+  }
+}
+window.msApplyLocationLock=msApplyLocationLock;
 function toggleMs(wrapId){
   var wrap=document.getElementById(wrapId);
   if(!wrap) return;
+  if(wrap.classList.contains("ms-locked")){
+    if(window.PATATAS_AUTH&&PATATAS_AUTH.toast) PATATAS_AUTH.toast("Lokasi dikunci ke outlet Anda: "+(window.__msLocLock||""));
+    return;
+  }
   var panel=wrap.querySelector(".ms-panel");
   if(!panel) return;
   var open=panel.hasAttribute("hidden");
