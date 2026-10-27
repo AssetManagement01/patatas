@@ -7829,10 +7829,7 @@ window.getSOOutletValue = function() {
       "<th>Tanggal</th><th>SKU</th><th>Nama</th><th>Dari</th><th>Ke</th><th>Qty</th><th>Status</th><th>Foto</th>"+
       "</tr></thead><tbody>"+body+"</tbody></table>"+
       "<p style='margin-top:16px'><button onclick='window.print()'>Cetak / Save as PDF</button></p>"+
-      "<script>/* matikan riwayat isian Chrome di kolom pencarian/filter (popup autofill Chrome di Windows bisa nyangkut & menutupi klik) */
-(function(){function f(){document.querySelectorAll('input[type=text],input[type=search],input:not([type])').forEach(function(i){if(i.closest('#login-screen')||i.closest('#pa-force')||i.hasAttribute('data-ac'))return;i.setAttribute('autocomplete','off');i.setAttribute('data-ac','1');});}
-f();document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&!t.hasAttribute('data-ac'))f();},true);})();</script>
-</body></html>";
+      "</body></html>";
 
     var w = window.open("", "_blank");
     if (!w) { alert("Izinkan popup browser untuk Export PDF"); return; }
@@ -9878,6 +9875,9 @@ body.dark-mode #filter-subcategory {
   color: #e2e8f0 !important;
 }
 </style>
+<script>/* matikan riwayat isian Chrome di kolom pencarian/filter (popup autofill Chrome di Windows bisa nyangkut & menutupi klik) */
+(function(){function f(){document.querySelectorAll('input[type=text],input[type=search],input:not([type])').forEach(function(i){if(i.closest('#login-screen')||i.closest('#pa-force')||i.hasAttribute('data-ac'))return;i.setAttribute('autocomplete','off');i.setAttribute('data-ac','1');});}
+f();document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagName==='INPUT'&&!t.hasAttribute('data-ac'))f();},true);})();</script>
 </html>
 
 
