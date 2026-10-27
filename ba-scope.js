@@ -51,9 +51,19 @@
     return false;
   }
   function outletCode() {
+    try {
+      var s0 = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
+      var c0 = String(s0.outletCode || '').toLowerCase().replace(/\s+/g, ' ').trim();
+      if (c0 && (CODE_MAP[c0] || CODE_MAP[c0.replace(/ /g, '')])) return CODE_MAP[c0] ? c0 : c0.replace(/ /g, '');
+    } catch (e) {}
     var t = pageText();
-    var m = t.match(/OUTLET:\s*([A-Z0-9 ]{2,12})/i);
-    if (m) return m[1].toLowerCase().replace(/\s+/g, ' ').trim();
+    var m = t.match(/OUTLET:\s*([A-Za-z0-9 ]{2,12})/);
+    if (m) {
+      var cand = m[1].toLowerCase().replace(/\s+/g, ' ').trim();
+      var best = '';
+      for (var k0 in CODE_MAP) if ((cand === k0 || cand.indexOf(k0 + ' ') === 0) && k0.length > best.length) best = k0;
+      if (best) return best;
+    }
     try {
       var s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {};
       var o = String(s.outlet || s.outletKeyword || window.USER_OUTLET || '').toLowerCase().trim();
@@ -84,7 +94,9 @@
     var L = String(loc || '').toLowerCase();
     if (!L) return false;
     var name = String(scope.name || '').toLowerCase();
-    if (name && (L.indexOf(name) >= 0 || name.indexOf(L) >= 0)) return true;
+    L = L.trim();
+    for (var c in CODE_MAP) { if (CODE_MAP[c].toLowerCase() === L) return L === name; }
+    if (name && L.indexOf(name) >= 0) return true;
     var keys = scope.keys || [];
     for (var i = 0; i < keys.length; i++) {
       if (keys[i].length >= 3 && L.indexOf(keys[i]) >= 0) return true;
