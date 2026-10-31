@@ -46,6 +46,7 @@
         n++;
         return n === 1 ? p + LOGO : n === 2 ? p + LOGO_W : m;
       });
+      html = html.replace(/<head[^>]*>/i, function (h) { return h + '<script src="secure-read.js?v=1"><\/script>'; });
       document.open(); document.write(html); document.close();
       whenReady(function () {
         addCss('so-mobile.css');
