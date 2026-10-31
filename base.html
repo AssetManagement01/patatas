@@ -2263,7 +2263,10 @@ function locationMatchesOutlet(loc, scope) {
   var kw = String(scope.keyword || "").toLowerCase().trim();
   if (name) {
     if (L === name) return true;
-    if (L.indexOf(name) >= 0 || name.indexOf(L) >= 0) return true;
+    // lokasi yg persis nama outlet lain -> bukan milik outlet ini (mis. NR SP vs NR KJK)
+    var KN = ["CK - WH JAKARTA (HO)","Boemi - Blok M","Chop Buntut AKD","Chop Buntut Semarang","HEAD OFFICE KEJAKSAAN MEDAN","Kota Hainan - Central Park","Nanyang Roastery - Kejaksaan Medan","Nanyang Roastery - Sun Plaza Medan","Thirty Bumbu - Taman Anggrek","XO Suki - Sun Plaza Medan","HIJO - Taman Anggrek","HIJO - Gading Serpong","HIJO - Karmaja","HIJO - AKD","HIJO - Event","Bao Darling - AKD","HIJO - HQ"];
+    for (var q = 0; q < KN.length; q++) if (String(KN[q]).toLowerCase().trim() === L) return false;
+    if (L.indexOf(name) >= 0) return true;
   }
   if (kw) {
     // keyword minimal 3 char agar tidak salah cocok
@@ -10026,11 +10029,11 @@ f();document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagNa
     var target = info.name || info.kw;
     if (!target) return;
     var found = false;
-    for (var i=0;i<el.options.length;i++){
-      if (String(el.options[i].value).toLowerCase().indexOf(String(target).toLowerCase().split(" - ")[0])>=0) {
-        el.value = el.options[i].value;
-        found = true;
-        break;
+    var tl = String(target).toLowerCase().trim();
+    for (var pass=0; pass<2 && !found; pass++){
+      for (var i=0;i<el.options.length;i++){
+        var ov = String(el.options[i].value).toLowerCase().trim();
+        if (pass===0 ? ov===tl : (ov && ov.indexOf(tl)>=0)) { el.value = el.options[i].value; found = true; break; }
       }
     }
     if (!found) {

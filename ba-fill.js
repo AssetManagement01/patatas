@@ -51,6 +51,7 @@
   }
   function filt(list) {
     list = list || [];
+    if (window.baGetScope && window.baFilterOutlet && window.baFilterOutlet !== filt) return window.baFilterOutlet(list.slice());
     var t = ((document.body && document.body.innerText) || '');
     if (/Dapat melihat semua outlet|EDITOR|HO JKT/i.test(t) && !/OUTLET:\s*[A-Z]/i.test(t)) return list.slice();
     var h = hint();

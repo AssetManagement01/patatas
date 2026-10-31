@@ -14,8 +14,7 @@
       if (!/OUTLET:\s*[A-Z]/i.test(document.body.innerText || '')) return list;
     }
     if (window.baFilterOutlet) {
-      var a = window.baFilterOutlet(list);
-      if (a && a.length) return a;
+      return window.baFilterOutlet(list) || [];
     }
     if (!name) return list;
     var keys = name.toLowerCase().split(/[-]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length >= 4; });
