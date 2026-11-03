@@ -51,6 +51,36 @@
     var byLabel = {}; data().forEach(function (i) { if (i && i.sku) byLabel[norm(label(i))] = i; });
     document.querySelectorAll('.ba2-line-name').forEach(function (el) { var it = byLabel[norm(el.value)]; if (it && it.name) el.value = String(it.name).trim(); });
   }, true);
+  // Kas Masuk: pilih item Aset Tetap -> isi otomatis Bukti foto & Uom baris itu (seperti Kas Keluar)
+  function findPicked(v) {
+    var q = norm(v); if (!q) return null;
+    var d = data(), i;
+    for (i = 0; i < d.length; i++) if (d[i] && d[i].sku && norm(label(d[i])) === q) return d[i];
+    for (i = 0; i < d.length; i++) if (d[i] && d[i].sku && norm(d[i].sku) === q) return d[i];
+    return null;
+  }
+  function autoSet(el, val) {
+    if (!el || !val) return;
+    var cur = String(el.value || '').trim();
+    if (el.dataset.manual === '1' || /^data:/.test(cur)) return; // isian / upload manual jangan ditimpa
+    el.value = val; el.dataset.auto = val;
+  }
+  function onPick(ev) {
+    var t = ev.target; if (!t || !t.matches || !t.matches('.ba2-line-name')) return;
+    var row = t.closest('.ba2-line'); if (!row) return;
+    var it = findPicked(t.value); if (!it) return;
+    autoSet(row.querySelector('.ba2-line-foto'), String(it.foto || it.photo || it.Foto || '').trim());
+    autoSet(row.querySelector('.ba2-line-uom'), String(it.uom || it.UOM || '').trim());
+  }
+  document.addEventListener('input', function (ev) {
+    var t = ev.target;
+    if (t && t.matches && (t.matches('.ba2-line-foto') || t.matches('.ba2-line-uom'))) {
+      t.dataset.manual = (t.value && t.value !== t.dataset.auto) ? '1' : '';
+      return;
+    }
+    onPick(ev);
+  }, true);
+  document.addEventListener('change', onPick, true);
   setInterval(run, 1500);
   run();
   window.baItemsFor = itemsFor;
