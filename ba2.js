@@ -180,7 +180,11 @@ window.switchBaKas = function (which) {
     if (!dl) return;
     var arr = [];
     try {
-      (window.uniqueData || []).forEach(function (it) {
+      var src = [];
+      try { if (typeof uniqueData !== 'undefined' && uniqueData && uniqueData.length) src = uniqueData; } catch (e0) {}
+      if (!src.length) src = window.uniqueData || [];
+      dl.__n = src.length;
+      src.forEach(function (it) {
         var n = String(it.name || it.nama || '').trim();
         if (n && arr.indexOf(n) < 0) arr.push(n);
       });
@@ -382,6 +386,13 @@ window.switchBaKas = function (which) {
   }
 
   window.ba2Init = function () { inject(); fillNames(); };
+  // Aset Tetap dimuat setelah login (lewat server) -> isi ulang saran nama saat input difokus / data berubah
+  document.addEventListener('focusin', function (ev) { if (ev.target && ev.target.classList && ev.target.classList.contains('ba2-line-name')) fillNames(); }, true);
+  setInterval(function () {
+    var dl = document.getElementById('ba2-name-list'); if (!dl) return;
+    var n = 0; try { n = (typeof uniqueData !== 'undefined' && uniqueData && uniqueData.length) || (window.uniqueData || []).length; } catch (e) {}
+    if (n !== dl.__n) fillNames();
+  }, 2000);
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', inject);
   else inject();
   setTimeout(inject, 400);
