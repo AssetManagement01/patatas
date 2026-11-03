@@ -15,6 +15,7 @@ window.switchBaKas = function (which) {
 (function () {
   if (window.__ba2Ready) return;
   var KEY = 'patatas_ba2_v1';
+  function tokQ() { try { var t = (JSON.parse(localStorage.getItem('patatas_asset_session') || '{}') || {}).token; return t ? '&token=' + encodeURIComponent(t) : ''; } catch (e) { return ''; } }
   function apiUrl() { return (window.API_URL || '').replace(/\/$/, ''); }
   function localLoad() { try { return JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { return []; } }
   function localSave(list) { try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) {} }
@@ -250,7 +251,7 @@ window.switchBaKas = function (which) {
   async function ensureDone(rows, maxRow) {
     var url = apiUrl(); if (!url || !maxRow) return;
     await new Promise(function (r) { setTimeout(r, 1200); });
-    var res = await fetch(url + '?action=listBA2&_=' + Date.now());
+    var res = await fetch(url + '?action=listBA2&_=' + Date.now() + tokQ());
     var data = await res.json();
     if (!data || !data.ok || !Array.isArray(data.items)) return;
     var used = {};
@@ -323,7 +324,7 @@ window.switchBaKas = function (which) {
     var url = apiUrl(); var local = localLoad();
     if (url) {
       try {
-        var res = await fetch(url + '?action=listBA2&_=' + Date.now());
+        var res = await fetch(url + '?action=listBA2&_=' + Date.now() + tokQ());
         var data = await res.json();
         if (data && data.ok && Array.isArray(data.items) && data.items.length) {
           var map = {}; local.forEach(function (x) { map[x.id] = x; });

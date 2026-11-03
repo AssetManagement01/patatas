@@ -252,6 +252,8 @@
   }, true);
   function load() {
     window.patatasBA2 = function (resp) {
+      if (!resp || resp.status === 'error') { if ((window.__bmRetry = (window.__bmRetry || 0) + 1) <= 3) setTimeout(function () { if (tok()) load(); }, 4000); return; } // sesi belum siap: jangan timpa jadi kosong, coba lagi
+      lastTok = tok(); window.__bmRetry = 0;
       var cols = (resp.table && resp.table.cols) || [];
       var rows = (resp.table && resp.table.rows) || [];
       var h = cols.map(function (c) { return String(c.label || '').toLowerCase(); });
@@ -273,7 +275,13 @@
     s.src = 'https://docs.google.com/spreadsheets/d/' + SID + '/gviz/tq?sheet=BA2&tqx=out:json;responseHandler:patatasBA2&_=' + Date.now();
     document.body.appendChild(s);
   }
+  function tok() { try { return (JSON.parse(localStorage.getItem('patatas_asset_session') || '{}') || {}).token || ''; } catch (e) { return ''; } }
+  var lastTok = null;
   window.baMasukReload = load;
   load();
+  // muat ulang setelah login / ganti sesi (load pertama bisa terjadi sebelum login -> AUTH_REQUIRED)
+  setInterval(function () { var t = tok(); if (t && t !== lastTok) { lastTok = t; load(); } }, 2000);
+  var sw = window.switchBaKas;
+  if (typeof sw === 'function' && !sw._bm) { window.switchBaKas = function (w) { var r = sw.apply(this, arguments); if (w === 'masuk') load(); return r; }; window.switchBaKas._bm = true; }
   setInterval(function () { if (document.getElementById('ba2-table-body') && window.__ba2LastList) paint(); }, 1500);
 })();
