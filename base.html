@@ -4004,7 +4004,7 @@ function closeScanner(){
         acts+='<button type="button" onclick="tfApprove(\''+t.id+'\')" style="font-size:0.68rem;padding:0.2rem 0.4rem;margin:0 0.1rem 0.15rem 0;background:#0d9488;color:#fff;border:none;border-radius:6px;cursor:pointer">Approve</button>';
         acts+='<button type="button" onclick="tfReject(\''+t.id+'\')" style="font-size:0.68rem;padding:0.2rem 0.4rem;margin:0 0.1rem 0.15rem 0;border:1px solid #e2e8f0;background:#fff;border-radius:6px;cursor:pointer">Reject</button>';
       }
-      if(canDel()) acts+='<button type="button" onclick="tfDelete(\''+t.id+'\')" style="font-size:0.68rem;padding:0.2rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
+      if(canDel()) acts+='<button type="button" onclick="tfDelete(\''+t.id+'\')" style="font-size:0.68rem;padding:0.2rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;height:28px;margin:0;white-space:nowrap">Hapus</button>';
       var foto="-";
       if(t.photo){
         if(t.photo.indexOf("data:")===0) foto='<button type="button" onclick="window.open().document.write(\'<img src=\\\''+t.photo.replace(/'/g,"")+'\\\' style=max-width:100%>\')" style="border:none;background:none;color:#0d9488;cursor:pointer;text-decoration:underline;font-size:0.75rem">Foto</button>';
@@ -4941,7 +4941,7 @@ window.saveItemPhotoLink = function() {
     var st = String(r.status||"Permintaan");
     var id = String(r.id||"").replace(/"/g,"");
     function btn(label, next, extra){
-      return '<button type="button" class="ba-st-btn" data-ba-id="'+id+'" data-ba-next="'+next+'" style="font-size:0.68rem;padding:0.18rem 0.4rem;margin:0 0.15rem 0.15rem 0;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer">'+label+'</button>';
+      return '<button type="button" class="ba-st-btn" data-ba-id="'+id+'" data-ba-next="'+next+'" style="font-size:0.68rem;padding:0.18rem 0.4rem;margin:0;border:1px solid #cbd5e1;background:#fff;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;height:28px;white-space:nowrap">'+label+'</button>';
     }
     var html = "";
     if(st==="Permintaan") html += btn("Penawaran","Tahap Penawaran");
@@ -4951,8 +4951,8 @@ window.saveItemPhotoLink = function() {
       var n = (Number(r.revisi)||1)+1;
       html += btn("Penawaran "+n, "Tahap Penawaran "+n);
     }
-    if(window.USER_CAN_EDIT) html += '<button type="button" data-ba-id="'+id+'" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
-    return '<span class="ba-aksi">'+html+'</span>';
+    if(window.USER_CAN_EDIT) html += '<button type="button" data-ba-id="'+id+'" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;height:28px;margin:0;white-space:nowrap">Hapus</button>';
+    return '<span class="ba-aksi" style="display:inline-flex;flex-wrap:nowrap;align-items:center;gap:0.35rem;white-space:nowrap">'+html+'</span>';
   };
   window.baUpdateStatus = async function(id, status){
     if(!window.baIsAdmin()){ alert("Hanya admin yang mengubah status"); return; }

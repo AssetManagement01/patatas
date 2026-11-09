@@ -1,16 +1,52 @@
-/* Aksi Berita Acara: satu baris rapi (Kas Keluar & Kas Masuk) */
-.ba-aksi{display:inline-flex;flex-wrap:nowrap;align-items:center;gap:.35rem;white-space:nowrap;vertical-align:middle}
-.ba-aksi-cell{white-space:nowrap!important;min-width:11.5rem;vertical-align:middle!important}
+/* Aksi Berita Acara — satu baris, jangan wrap */
+#page-ba #ba-table-body td:last-child,
+#page-ba #ba2-table-body td:last-child,
+td.ba-aksi-cell{
+  white-space:nowrap!important;
+  vertical-align:middle!important;
+  min-width:220px!important;
+  width:220px!important;
+}
+#page-ba #ba-table-body td:last-child > *,
+#page-ba #ba2-table-body td:last-child > *,
+.ba-aksi{
+  display:inline-flex!important;
+  flex-wrap:nowrap!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  gap:.35rem!important;
+  white-space:nowrap!important;
+  vertical-align:middle!important;
+  max-width:none!important;
+}
+#page-ba #ba-table-body td:last-child br,
+#page-ba #ba2-table-body td:last-child br,
+.ba-aksi br{display:none!important}
+#page-ba #ba-table-body td:last-child .ba-st-btn,
+#page-ba #ba-table-body td:last-child .ba2-st-btn,
+#page-ba #ba-table-body td:last-child .ba-del-btn,
+#page-ba #ba-table-body td:last-child .ba2-del-btn,
+#page-ba #ba2-table-body td:last-child .ba-st-btn,
+#page-ba #ba2-table-body td:last-child .ba2-st-btn,
+#page-ba #ba2-table-body td:last-child .ba-del-btn,
+#page-ba #ba2-table-body td:last-child .ba2-del-btn,
 .ba-aksi .ba-st-btn,.ba-aksi .ba2-st-btn,.ba-aksi .ba-del-btn,.ba-aksi .ba2-del-btn{
-  display:inline-flex;align-items:center;justify-content:center;height:28px;padding:0 .55rem;margin:0!important;
-  font-size:.72rem;font-weight:600;line-height:1;border-radius:6px;white-space:nowrap;box-sizing:border-box;flex-shrink:0;cursor:pointer
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  height:28px!important;padding:0 .55rem!important;margin:0!important;
+  font-size:.72rem!important;font-weight:600!important;line-height:1!important;
+  border-radius:6px!important;white-space:nowrap!important;box-sizing:border-box!important;
+  flex:0 0 auto!important;float:none!important;width:auto!important
 }
+#page-ba #ba-table-body td:last-child .ba-edit-btn,
+#page-ba #ba-table-body td:last-child .ba2-edit,
+#page-ba #ba-table-body td:last-child .ba2-eye,
+#page-ba #ba2-table-body td:last-child .ba-edit-btn,
+#page-ba #ba2-table-body td:last-child .ba2-edit,
+#page-ba #ba2-table-body td:last-child .ba2-eye,
 .ba-aksi .ba-edit-btn,.ba-aksi .ba2-edit,.ba-aksi .ba2-eye{
-  width:28px;height:28px;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;
-  padding:0;line-height:1;box-sizing:border-box;border:none;background:transparent;cursor:pointer
+  width:28px!important;height:28px!important;flex:0 0 auto!important;display:inline-flex!important;
+  align-items:center!important;justify-content:center!important;padding:0!important;margin:0!important;
+  line-height:1!important;box-sizing:border-box!important;border:none!important;background:transparent!important;
+  float:none!important
 }
-
-#page-ba table{border-collapse:separate}
-#ba-table-body,#ba2-table-body{/* cells styled */}
-#page-ba .card, #page-ba [style*="overflow"]{/* keep */}
-#page-ba table{min-width:720px}
+#page-ba table{min-width:980px}
