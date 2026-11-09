@@ -4951,8 +4951,8 @@ window.saveItemPhotoLink = function() {
       var n = (Number(r.revisi)||1)+1;
       html += btn("Penawaran "+n, "Tahap Penawaran "+n);
     }
-    if(window.USER_CAN_EDIT) html += ' <button type="button" data-ba-id="'+id+'" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
-    return html;
+    if(window.USER_CAN_EDIT) html += '<button type="button" data-ba-id="'+id+'" class="ba-del-btn" style="font-size:0.68rem;padding:0.18rem 0.4rem;border:1px solid #fecaca;background:#fef2f2;color:#b91c1c;border-radius:6px;cursor:pointer">Hapus</button>';
+    return '<span class="ba-aksi">'+html+'</span>';
   };
   window.baUpdateStatus = async function(id, status){
     if(!window.baIsAdmin()){ alert("Hanya admin yang mengubah status"); return; }
@@ -5005,7 +5005,7 @@ window.saveItemPhotoLink = function() {
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;text-align:center'>"+(r.qty||0)+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.keterangan||"")+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+window.baStatusBadge(r.status)+"</td>" +
-        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;white-space:nowrap'>"+window.baAdminButtons(r)+"</td></tr>";
+        "<td class='ba-aksi-cell' style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(function(a){a=String(a||'');return a.indexOf('ba-aksi')>=0?a:('<span class=\"ba-aksi\">'+a+'</span>');})(window.baAdminButtons(r))+"</td></tr>";
     }).join("");
   };
 
@@ -9919,7 +9919,7 @@ f();document.addEventListener('focusin',function(e){var t=e.target;if(t&&t.tagNa
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;text-align:center'>"+(r.qty||0)+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+(r.keterangan||"")+"</td>" +
         "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+badge+"</td>" +
-        "<td style='padding:0.45rem;border-bottom:1px solid #f1f5f9;white-space:nowrap'>"+acts+"</td></tr>";
+        "<td class='ba-aksi-cell' style='padding:0.45rem;border-bottom:1px solid #f1f5f9'>"+acts+"</td></tr>";
     }).join("");
   };
 })();

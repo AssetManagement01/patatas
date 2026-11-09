@@ -1,5 +1,8 @@
 /* Edit baris Kas Keluar (BA) — tombol ✏️ per baris. Server: action updateBA (cek outlet di server). */
 (function () {
+  if (!document.getElementById('ba-aksi-css')) {
+    var l = document.createElement('link'); l.id = 'ba-aksi-css'; l.rel = 'stylesheet'; l.href = 'ba-aksi.css?v=1'; document.head.appendChild(l);
+  }
   function sess() { try { return JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) { return {}; } }
   function esc(v) { return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
   function fmt(n) { n = Number(n) || 0; try { return n.toLocaleString('id-ID'); } catch (e) { return String(n); } }
@@ -13,12 +16,16 @@
   window.baCanEditRow = canEditRow;
   function btn(r) {
     if (!canEditRow(r)) return '';
-    return '<button type="button" class="ba-edit-btn" data-ba-edit="' + esc(r.id) + '" title="Edit Kas Keluar" aria-label="Edit" style="width:32px;height:32px;border:none;background:transparent;font-size:1rem;cursor:pointer">✏️</button>';
+    return '<button type="button" class="ba-edit-btn" data-ba-edit="' + esc(r.id) + '" title="Edit Kas Keluar" aria-label="Edit">✏️</button>';
   }
   function hook() {
     var f = window.baAdminButtons;
     if (f && f._edit) return;
-    var w = function (r) { var a = ''; try { a = f ? f(r) : ''; } catch (e) {} return btn(r) + a; };
+    var w = function (r) {
+      var a = ''; try { a = f ? f(r) : ''; } catch (e) {}
+      a = String(a || '').replace(/^\s*<span class="ba-aksi">([\s\S]*)<\/span>\s*$/, '$1');
+      return '<span class="ba-aksi">' + btn(r) + a + '</span>';
+    };
     w._edit = true; window.baAdminButtons = w;
   }
   hook(); setInterval(hook, 700);

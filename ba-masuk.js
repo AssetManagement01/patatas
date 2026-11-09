@@ -224,13 +224,13 @@
       var badge = window.baStatusBadge ? window.baStatusBadge(st) : st;
       var has = !!(r.foto || r.photo);
       var eye = has
-        ? '<button type="button" class="ba2-eye" data-i="'+i+'" title="Lihat foto" style="width:32px;height:32px;border:none;background:transparent;color:#0b4f37;font-size:1.15rem;cursor:pointer;line-height:1;vertical-align:middle">◎</button>'
-        : '<span style="display:inline-block;width:32px"></span>';
-      var edit = (canEdit() && /^BA2ROW\d+$/.test(String(r.id || '')))
-        ? '<button type="button" class="ba2-edit" data-i="'+i+'" title="Edit Kas Masuk" aria-label="Edit" style="width:32px;height:32px;border:none;background:transparent;font-size:1rem;cursor:pointer;line-height:1;vertical-align:middle">✏️</button>'
+        ? '<button type="button" class="ba2-eye" data-i="'+i+'" title="Lihat foto" style="color:#0b4f37;font-size:1.15rem">◎</button>'
         : '';
-      var aksi = edit ? eye + edit : (has ? eye : '<span style="color:#94a3b8">-</span>');
-      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td style="'+td+';white-space:nowrap">'+aksi+'</td></tr>';
+      var edit = (canEdit() && /^BA2ROW\d+$/.test(String(r.id || '')))
+        ? '<button type="button" class="ba2-edit" data-i="'+i+'" title="Edit Kas Masuk" aria-label="Edit">✏️</button>'
+        : '';
+      var aksi = (eye || edit) ? ('<span class="ba-aksi">' + eye + edit + '</span>') : '<span style="color:#94a3b8">-</span>';
+      return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td class="ba-aksi-cell" style="'+td+'">'+aksi+'</td></tr>';
     }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
     window.__ba2Painted = list;
   }

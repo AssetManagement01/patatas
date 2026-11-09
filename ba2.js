@@ -130,7 +130,7 @@ window.switchBaKas = function (which) {
     if (tableEl) {
       var theadTr = tableEl.querySelector('thead tr');
       if (theadTr) {
-        theadTr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+        theadTr.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Status</th><th class="ba-aksi-cell" style="padding:0.5rem">Aksi</th>';
       }
     }
 
@@ -309,6 +309,7 @@ window.switchBaKas = function (which) {
       var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status || '');
       var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
       aksi = String(aksi).replace(/ba-st-btn/g, 'ba2-st-btn').replace(/ba-del-btn/g, 'ba2-del-btn');
+      if (aksi.indexOf('ba-aksi') < 0) aksi = '<span class="ba-aksi">' + aksi + '</span>';
       return '<tr>' +
         '<td style="'+td+'">'+(r.date||'')+'</td>' +
         '<td style="'+td+'">'+(r.name||r.nama||'')+'</td>' +
@@ -319,7 +320,7 @@ window.switchBaKas = function (which) {
         '<td style="'+td+';text-align:right;font-weight:600">'+fmt(tot)+'</td>' +
         '<td style="'+td+'">'+(r.keterangan||'')+'</td>' +
         '<td style="'+td+';white-space:nowrap">'+badge+'</td>' +
-        '<td style="'+td+';white-space:nowrap">'+aksi+'</td>' +
+        '<td class="ba-aksi-cell" style="'+td+'">'+aksi+'</td>' +
       '</tr>';
     }).join('');
   };

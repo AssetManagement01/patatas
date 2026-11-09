@@ -76,14 +76,14 @@
       var table = tb.closest('table');
       if (table) {
         var head = table.querySelector('thead tr');
-        if (head) head.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th style="padding:0.5rem">Aksi</th>';
+        if (head) head.innerHTML = '<th style="padding:0.5rem">Tanggal</th><th style="padding:0.5rem">Nama</th><th style="padding:0.5rem">Uom</th><th style="padding:0.5rem">Qty</th><th style="padding:0.5rem">Price</th><th style="padding:0.5rem">Total</th><th style="padding:0.5rem">Keterangan</th><th style="padding:0.5rem">Loc</th><th style="padding:0.5rem">Status</th><th class="ba-aksi-cell" style="padding:0.5rem">Aksi</th>';
       }
       var td = 'padding:0.45rem;border-bottom:1px solid #f1f5f9';
       tb.innerHTML = list.length ? list.map(function (r) {
         var tot = Number(r.total) || ((Number(r.price)||0)*(Number(r.qty)||0));
         var badge = window.baStatusBadge ? window.baStatusBadge(r.status) : (r.status||'');
-        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : '';
-        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+badge+'</td><td style="'+td+'">'+aksi+'</td></tr>';
+        var aksi = window.baAdminButtons ? window.baAdminButtons(r) : ''; // aksi tidy via ba-edit wrap
+        return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+badge+'</td><td class="ba-aksi-cell" style="'+td+'">'+(String(aksi).indexOf('ba-aksi')>=0?aksi:('<span class="ba-aksi">'+aksi+'</span>'))+'</td></tr>';
       }).join('') : '<tr><td colspan="10" style="padding:1rem;text-align:center;color:#94a3b8">Belum ada data</td></tr>';
     }
     var rp = document.getElementById('ba-rp-tbody');
