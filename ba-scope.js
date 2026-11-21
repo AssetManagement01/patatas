@@ -8,7 +8,8 @@
     tbm: 'Thirty Bumbu - Taman Anggrek',
     'xo sp': 'XO Suki - Sun Plaza Medan', xosp: 'XO Suki - Sun Plaza Medan',
     hta: 'HIJO - Taman Anggrek', hgs: 'HIJO - Gading Serpong', hk: 'HIJO - Karmaja',
-    hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD'
+    hakd: 'HIJO - AKD', hevent: 'HIJO - Event', hhq: 'HIJO - HQ', bda: 'Bao Darling - AKD',
+    'ho jkt': 'CK - WH JAKARTA (HO)', hojkt: 'CK - WH JAKARTA (HO)'
   };
   var KW = {
     bbm: ['boemi', 'blok m'],
@@ -31,7 +32,9 @@
     hakd: ['hijo - akd'],
     hevent: ['hijo - event'],
     hhq: ['hijo - hq'],
-    bda: ['bao darling']
+    bda: ['bao darling'],
+    'ho jkt': ['ck - wh jakarta'],
+    hojkt: ['ck - wh jakarta']
   };
   function pageText() {
     return ((document.body && document.body.innerText) || '').replace(/\s+/g, ' ');
@@ -104,15 +107,36 @@
     return false;
   }
   window.baGetScope = getScope;
+  /* Cakupan lihat dari User Akses (sesi.viewOutlets): null = semua outlet, atau daftar outlet yang boleh dilihat. */
+  function viewList(key) {
+    var s = {};
+    try { s = JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}; } catch (e) {}
+    if (s.viewOutlets && typeof s.viewOutlets === 'object' && key in s.viewOutlets) {
+      var l = s.viewOutlets[key];
+      if (l === null) return null;
+      return (l || []).map(function (o) {
+        var c = String(o.code || '').toLowerCase().replace(/\s+/g, ' ').trim(), cc = c.replace(/ /g, '');
+        return { name: String(o.name || CODE_MAP[c] || CODE_MAP[cc] || c), keys: KW[c] || KW[cc] || [String(o.keyword || c).toLowerCase()] };
+      });
+    }
+    if (key === 'keluar' && s.seeAllBA) return null; // sesi lama
+    return [];
+  }
+  window.baViewList = viewList;
   window.baFilterOutlet = function (list) {
     var scope = getScope();
     if (!scope || !list) return list || [];
-    var allKeluar = false;
-    try { allKeluar = !!(JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}).seeAllBA; } catch (e) {}
+    var lists = { keluar: viewList('keluar'), masuk: viewList('masuk') };
     return list.filter(function (r) {
-      // HO MDN: Kas Keluar (BAROW) semua outlet; Kas Masuk (BA2ROW) tetap outlet sendiri
-      if (allKeluar && /^BAROW\d+$/.test(String((r && r.id) || ''))) return true;
-      return locMatch(r.loc || r.location || r.outlet || '', scope);
+      var loc = r.loc || r.location || r.outlet || '';
+      if (locMatch(loc, scope)) return true; // outlet sendiri
+      var id = String((r && r.id) || '');
+      var key = /^BA2ROW\d+$/.test(id) ? 'masuk' : (/^BAROW\d+$/.test(id) ? 'keluar' : '');
+      if (!key) return false;
+      var l = lists[key];
+      if (l === null) return true; // semua outlet
+      for (var i = 0; i < l.length; i++) if (locMatch(loc, l[i])) return true;
+      return false;
     });
   };
 })();

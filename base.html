@@ -84,7 +84,8 @@
       role: clientRole(u), canEdit: p.m.aset_tetap === 2, canDelete: !!p.s.hapus, canTransfer: p.m.transfer === 2,
       label: u.scoped ? (u.outlet + " · " + u.outletName) : u.username,
       outletKeyword: u.scoped ? u.outletKeyword : null, outletName: u.scoped ? u.outletName : null, outletCode: u.scoped ? u.outlet : null,
-      seeAllBA: !!u.seeAllBA, seeAllAset: !!u.seeAllAset, loginKey: u.username, ts: Date.now()
+      seeAllBA: !!u.seeAllBA, seeAllAset: !!u.seeAllAset, viewScope: u.viewScope || null, viewOutlets: u.viewOutlets || null,
+      loginKey: u.username, ts: Date.now()
     };
   }
 
@@ -2275,9 +2276,30 @@ function locationMatchesOutlet(loc, scope) {
   return false;
 }
 
-function sessSeeAllAset() {
-  try { return !!(JSON.parse(localStorage.getItem("patatas_asset_session") || "null") || {}).seeAllAset; } catch (e) { return false; }
+/** Cakupan lihat dari User Akses. key: "aset" | "keluar" | "masuk".
+ *  return null = semua outlet; atau array scope {name, keyword} (outlet sendiri + outlet pilihan). */
+function sessViewOutlets(key) {
+  var s = null;
+  try { s = JSON.parse(localStorage.getItem("patatas_asset_session") || "null") || {}; } catch (e) { s = {}; }
+  if (s.viewOutlets && typeof s.viewOutlets === "object" && key in s.viewOutlets) {
+    var l = s.viewOutlets[key];
+    if (l === null) return null;
+    return (l || []).map(function (o) { return { active: true, name: String(o.name || o.code || ""), keyword: String(o.keyword || "") }; });
+  }
+  // sesi lama (sebelum ada viewOutlets)
+  if (key === "aset" && s.seeAllAset) return null;
+  if (key === "keluar" && s.seeAllBA) return null;
+  return [getSessionOutletScope()];
 }
+function locationInViewScope(loc, key) {
+  var l = sessViewOutlets(key);
+  if (l === null) return true;
+  for (var i = 0; i < l.length; i++) if (locationMatchesOutlet(loc, l[i])) return true;
+  return false;
+}
+function sessSeeAllAset() { return sessViewOutlets("aset") === null; }
+/** true bila user hanya boleh lihat aset outlet sendiri */
+function sessAsetOwnOnly() { var l = sessViewOutlets("aset"); return !!(l && l.length <= 1); }
 function getScopedData() {
   var all = (window.ALL_ASSET_DATA && window.ALL_ASSET_DATA.length)
     ? window.ALL_ASSET_DATA
@@ -2289,9 +2311,10 @@ function getScopedData() {
     return all.slice();
   }
   window.USER_OUTLET = scope.keyword || scope.name || null;
-  if (sessSeeAllAset()) return all.slice(); // HO MDN: lihat aset semua outlet
+  // cakupan lihat Aset dari User Akses: outlet sendiri / semua / outlet pilihan
+  if (sessSeeAllAset()) return all.slice();
   return all.filter(function (item) {
-    return locationMatchesOutlet(item.location || item.loc || "", scope);
+    return locationMatchesOutlet(item.location || item.loc || "", scope) || locationInViewScope(item.location || item.loc || "", "aset");
   });
 }
 
@@ -2302,7 +2325,7 @@ function applyOutletScopeToUI() {
 
   // Outlet login: kunci filter Location hanya ke outlet sendiri
   var scope = getSessionOutletScope();
-  window.__msLocLock = (scope.active && !sessSeeAllAset()) ? (scope.name || scope.keyword || "Outlet") : null;
+  window.__msLocLock = (scope.active && sessAsetOwnOnly()) ? (scope.name || scope.keyword || "Outlet") : null;
   if (typeof populateFilters === "function") populateFilters();
   if (typeof applyFilter === "function") applyFilter();
   else {

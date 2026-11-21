@@ -35,6 +35,7 @@
       '</div>' +
       '<div style="overflow-x:auto;margin-top:.9rem"><table style="width:100%;border-collapse:collapse;font-size:.83rem" id="ua-matrix"></table></div>' +
       '<div id="ua-specials" style="display:flex;flex-wrap:wrap;gap:.4rem 1.1rem;margin-top:.6rem;font-size:.83rem"></div>' +
+      '<div id="ua-vs" style="margin-top:.9rem;border-top:1px solid var(--border,#e2e8f0);padding-top:.75rem"></div>' +
       '<div style="display:flex;gap:.5rem;margin-top:1rem;align-items:center;flex-wrap:wrap">' +
       '<button type="button" id="ua-save" class="btn btn-primary">Simpan User</button>' +
       '<button type="button" id="ua-cancel" class="btn btn-outline" style="display:none">Batal Edit</button>' +
@@ -46,7 +47,8 @@
     var anchor = page.firstElementChild;
     if (anchor && anchor.nextSibling) page.insertBefore(box, anchor.nextSibling); else page.appendChild(box);
     $("ua-gen").onclick = function () { $("ua-password").value = genPw(); };
-    $("ua-role").onchange = function () { renderMatrix(); syncOutlet(); };
+    $("ua-role").onchange = function () { renderMatrix(); syncOutlet(); renderVS(currentVS()); };
+    $("ua-outlet").onchange = function () { renderVS(currentVS()); };
     $("ua-tools").onchange = function () { renderMatrix(); };
     $("ua-save").onclick = saveUser;
     $("ua-cancel").onclick = resetForm;
@@ -73,6 +75,7 @@
       o.value = cur;
       if (msg) msg.textContent = "";
       renderMatrix(); renderTable(); syncOutlet();
+      var ed = EDITING && find(EDITING); renderVS(ed ? ed.viewScope : (($("ua-vs-aset") && currentVS()) || vsDefault()));
     }).catch(function (e) { if (msg) { msg.style.color = "#dc2626"; msg.textContent = "Gagal: " + (e && e.message || e); } });
   }
   function currentPerms() {
@@ -104,12 +107,72 @@
       renderMatrix._last = currentPerms();
     };
   }
+  /* ---- Lihat data outlet lain (hanya lihat; ubah/hapus tetap outlet sendiri) ---- */
+  var VS_KEYS = [["aset", "Aset"], ["keluar", "Kas Keluar"], ["masuk", "Kas Masuk"]];
+  function vsDefault() { return { aset: "own", keluar: "own", masuk: "own" }; }
+  function vsScoped(role, outlet) { return !!outlet && role !== "ADMIN" && role !== "DEVELOPER"; }
+  function currentVS() {
+    var o = {};
+    VS_KEYS.forEach(function (k) {
+      var sel = $("ua-vs-" + k[0]);
+      if (!sel) { o[k[0]] = "own"; return; }
+      if (sel.value === "pick") {
+        var picked = [];
+        Array.prototype.forEach.call(document.querySelectorAll('input[name="ua-vs-' + k[0] + '-o"]:checked:not(:disabled)'), function (c) { picked.push(c.value); });
+        o[k[0]] = picked.length ? picked : "own";
+        o["_pick_" + k[0]] = true;
+      } else o[k[0]] = sel.value === "all" ? "all" : "own";
+    });
+    return o;
+  }
+  function cleanVS(v) { var o = {}; VS_KEYS.forEach(function (k) { o[k[0]] = v[k[0]]; }); return o; }
+  function renderVS(vs) {
+    var box = $("ua-vs"); if (!box || !META) return;
+    vs = vs || vsDefault();
+    var role = $("ua-role").value, own = $("ua-outlet").value, outs = META.outlets || {};
+    var scoped = vsScoped(role, own);
+    var h = '<b style="font-size:.78rem;color:#64748b">Lihat data outlet lain</b>' +
+      '<div style="font-size:.75rem;color:' + (scoped ? "#94a3b8" : "#0f766e") + ';margin:.15rem 0 .5rem">' +
+      (scoped ? "Hanya hak <b>lihat</b>. Input, edit, hapus, dan transfer tetap terkunci ke outlet sendiri (" + esc(own) + ")."
+        : "User ini tidak terikat outlet (ADMIN / tanpa outlet), jadi sudah bisa melihat semua outlet. Setelan di bawah baru berlaku kalau user punya outlet.") + "</div>";
+    VS_KEYS.forEach(function (k) {
+      var v = vs[k[0]], isArr = Object.prototype.toString.call(v) === "[object Array]";
+      var mode = (isArr || vs["_pick_" + k[0]]) ? "pick" : (v === "all" ? "all" : "own");
+      var picked = isArr ? v : [];
+      h += '<div style="display:grid;grid-template-columns:110px minmax(160px,220px) 1fr;gap:.5rem;align-items:start;margin-bottom:.45rem;font-size:.83rem">' +
+        '<div style="padding-top:.45rem;font-weight:600">' + k[1] + "</div>" +
+        '<select id="ua-vs-' + k[0] + '" style="' + IN + '"' + (scoped ? "" : " disabled") + ">" +
+        '<option value="own"' + (mode === "own" ? " selected" : "") + ">Outlet sendiri</option>" +
+        '<option value="all"' + (mode === "all" ? " selected" : "") + ">Semua outlet</option>" +
+        '<option value="pick"' + (mode === "pick" ? " selected" : "") + ">Pilih outlet</option></select>" +
+        '<div id="ua-vs-' + k[0] + '-list" style="display:' + (mode === "pick" && scoped ? "flex" : "none") + ';flex-wrap:wrap;gap:.25rem .9rem;padding-top:.3rem">' +
+        Object.keys(outs).map(function (c) {
+          var isOwn = c === own;
+          return '<label style="display:inline-flex;gap:.3rem;align-items:center;white-space:nowrap' + (isOwn ? ";color:#94a3b8" : "") + '" title="' + esc(outs[c].name) + '">' +
+            '<input type="checkbox" name="ua-vs-' + k[0] + '-o" value="' + esc(c) + '"' + ((isOwn || picked.indexOf(c) >= 0) ? " checked" : "") + (isOwn ? " disabled" : "") + "/>" +
+            esc(c) + (isOwn ? " (sendiri)" : "") + "</label>";
+        }).join("") + "</div></div>";
+    });
+    box.innerHTML = h;
+    VS_KEYS.forEach(function (k) {
+      $("ua-vs-" + k[0]).onchange = function () { $("ua-vs-" + k[0] + "-list").style.display = this.value === "pick" ? "flex" : "none"; };
+    });
+  }
+  function vsSummary(u) {
+    if (!vsScoped(u.role, u.outlet)) return '<span style="color:#94a3b8">Semua outlet</span>';
+    var vs = u.viewScope || vsDefault();
+    return VS_KEYS.map(function (k) {
+      var v = vs[k[0]], t = v === "all" ? "Semua" : (Object.prototype.toString.call(v) === "[object Array]" ? "+" + v.join(", ") : "Sendiri");
+      var c = v === "all" ? "#0f766e" : (t === "Sendiri" ? "#94a3b8" : "#92400e");
+      return '<div style="white-space:nowrap;font-size:.72rem"><span style="color:#64748b">' + k[1] + ':</span> <b style="color:' + c + '">' + esc(t) + "</b></div>";
+    }).join("");
+  }
   function fmtDate(s) { if (!s) return "—"; var d = new Date(s); return isNaN(d) ? esc(s) : d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" }); }
   function renderTable() {
     var q = (($("ua-search") || {}).value || "").toLowerCase();
     var rows = USERS.filter(function (u) { return !q || (u.username + " " + (u.aliases || []).join(" ") + " " + u.divisi + " " + u.role + " " + u.outlet).toLowerCase().indexOf(q) >= 0; });
     var th = "padding:.45rem .4rem;text-align:left;white-space:nowrap";
-    var h = '<tr style="border-bottom:1px solid var(--border,#e2e8f0);color:#64748b"><th style="' + th + '">Username</th><th style="' + th + '">Divisi</th><th style="' + th + '">Role</th><th style="' + th + '">Outlet</th><th style="' + th + '">Tools</th><th style="' + th + '">Status</th><th style="' + th + '">Dibuat</th><th style="' + th + '">Aksi</th></tr>';
+    var h = '<tr style="border-bottom:1px solid var(--border,#e2e8f0);color:#64748b"><th style="' + th + '">Username</th><th style="' + th + '">Divisi</th><th style="' + th + '">Role</th><th style="' + th + '">Outlet</th><th style="' + th + '">Tools</th><th style="' + th + '">Lihat outlet lain</th><th style="' + th + '">Status</th><th style="' + th + '">Dibuat</th><th style="' + th + '">Aksi</th></tr>';
     rows.forEach(function (u) {
       var dev = u.role === "DEVELOPER", aktif = u.status === "Aktif";
       var pill = function (t, bg, fg) { return '<span style="display:inline-block;padding:.1rem .5rem;border-radius:999px;font-size:.72rem;font-weight:600;background:' + bg + ";color:" + fg + '">' + esc(t) + "</span>"; };
@@ -119,6 +182,7 @@
         '<td style="padding:.4rem">' + pill(u.role, dev ? "#0b4f37" : "#e0f2fe", dev ? "#fff" : "#075985") + "</td>" +
         '<td style="padding:.4rem">' + esc(u.outlet || "Semua") + "</td>" +
         '<td style="padding:.4rem">' + pill(u.tools, u.tools === "Custom" ? "#fef3c7" : "#f1f5f9", u.tools === "Custom" ? "#92400e" : "#475569") + "</td>" +
+        '<td style="padding:.4rem">' + vsSummary(u) + "</td>" +
         '<td style="padding:.4rem">' + pill(u.status, aktif ? "#dcfce7" : "#fee2e2", aktif ? "#166534" : "#991b1b") + "</td>" +
         '<td style="padding:.4rem;white-space:nowrap">' + fmtDate(u.created) + "</td>" +
         '<td style="padding:.4rem;white-space:nowrap">' +
@@ -169,7 +233,7 @@
       $("ua-pw-wrap").style.display = "none";
       $("ua-divisi").value = u.divisi || ""; $("ua-role").value = u.role; $("ua-outlet").value = u.outlet || "";
       $("ua-tools").value = u.tools === "Custom" ? "Custom" : "Default";
-      renderMatrix._last = u.perms; renderMatrix(u.perms); syncOutlet();
+      renderMatrix._last = u.perms; renderMatrix(u.perms); syncOutlet(); renderVS(u.viewScope || vsDefault());
       $("ua-cancel").style.display = "";
       $("ua-root").scrollIntoView({ behavior: "smooth" });
     } else if (kind === "reset") {
@@ -215,13 +279,14 @@
     $("ua-form-title").textContent = "Tambah User";
     $("ua-username").disabled = false; $("ua-username").value = ""; $("ua-password").value = ""; $("ua-divisi").value = "";
     $("ua-pw-wrap").style.display = ""; $("ua-tools").value = "Default"; $("ua-role").value = "OUTLET"; $("ua-outlet").value = "";
-    $("ua-cancel").style.display = "none"; renderMatrix(); syncOutlet();
+    $("ua-cancel").style.display = "none"; renderMatrix(); syncOutlet(); renderVS(vsDefault());
   }
   function saveUser() {
     var msg = $("ua-msg");
     var body = { action: "userSave", mode: EDITING ? "update" : "create", username: EDITING || $("ua-username").value.trim(),
       divisi: $("ua-divisi").value.trim(), role: $("ua-role").value, outlet: $("ua-outlet").value, tools: $("ua-tools").value };
     if (body.tools === "Custom") body.perms = currentPerms();
+    body.viewScope = cleanVS(currentVS());
     if (!EDITING) {
       body.password = $("ua-password").value;
       if (!body.username) { msg.style.color = "#dc2626"; msg.textContent = "Isi username"; return; }
