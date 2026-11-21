@@ -1,7 +1,7 @@
 /* PATATAS — Settings > User Akses (hanya DEVELOPER). Semua aturan juga dicek di server. */
 (function () {
   var MENU_LABEL = { aset_tetap: "Aset Tetap", aset_lancar: "Aset Lancar", valuation: "Valuation Stock", dashboard: "Dashboard",
-    transfer: "Transfer Aset", ba: "BA Kas Keluar", ba2: "BA Kas Masuk", scan: "Scan QR", report: "Report", settings: "Settings" };
+    transfer: "Transfer Aset", ba: "BA Maintenance", ba2: "BA Disposal Aset", scan: "Scan QR", report: "Report", settings: "Settings" };
   var SPECIAL_LABEL = { approve_transfer: "Approve Transfer", hapus: "Hapus data", import_export: "Import/Export", ubah_status_ba: "Ubah status BA" };
   var META = null, USERS = [], EDITING = null;
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
@@ -108,7 +108,7 @@
     };
   }
   /* ---- Lihat data outlet lain (hanya lihat; ubah/hapus tetap outlet sendiri) ---- */
-  var VS_KEYS = [["aset", "Aset"], ["keluar", "Kas Keluar"], ["masuk", "Kas Masuk"]];
+  var VS_KEYS = [["aset", "Aset"], ["keluar", "Maintenance"], ["masuk", "Disposal Aset"]];
   function vsDefault() { return { aset: "own", keluar: "own", masuk: "own" }; }
   function vsScoped(role, outlet) { return !!outlet && role !== "ADMIN" && role !== "DEVELOPER"; }
   function currentVS() {

@@ -67,7 +67,7 @@
   window.baCanEditRow = canEditRow;
   function btn(r) {
     if (!canEditRow(r)) return '';
-    return '<button type="button" class="ba-edit-btn" data-ba-edit="' + esc(r.id) + '" title="Edit Kas Keluar" aria-label="Edit">✏️</button>';
+    return '<button type="button" class="ba-edit-btn" data-ba-edit="' + esc(r.id) + '" title="Edit Maintenance" aria-label="Edit">✏️</button>';
   }
   function hook() {
     var f = window.baAdminButtons;
@@ -105,7 +105,7 @@
     var wrap = document.createElement('div'); wrap.id = 'ba-edit-modal';
     wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
     wrap.innerHTML = '<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)">' +
-      '<div style="padding:0.85rem 1rem;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0b4f37">✏️ Edit Kas Keluar</div>' +
+      '<div style="padding:0.85rem 1rem;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0b4f37">✏️ Edit Maintenance</div>' +
       '<form id="ba-edit-form" style="padding:0.25rem 1rem 1rem;overflow:auto">' +
       f('Tanggal', 'bae-date', r.date, 'date') + f('Nama barang', 'bae-name', r.name) + locHtml +
       '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.4rem"><div>' + f('Qty', 'bae-qty', r.qty, 'number', 'min="0" step="any"') + '</div><div>' + f('Uom', 'bae-uom', r.uom) + '</div><div>' + f('Price', 'bae-price', r.price, 'number', 'min="0" step="any"') + '</div></div>' +
@@ -141,7 +141,7 @@
             for (var k in nr) r[k] = nr[k];
             try { localStorage.setItem('patatas_ba_v1', JSON.stringify(window.__baLastList || [])); } catch (x) {}
             if (window.baRenderTable) window.baRenderTable(window.__baLastList);
-            tutup(); if (window.PATATAS_AUTH && PATATAS_AUTH.toast) PATATAS_AUTH.toast('Kas Keluar tersimpan');
+            tutup(); if (window.PATATAS_AUTH && PATATAS_AUTH.toast) PATATAS_AUTH.toast('Maintenance tersimpan');
             return;
           }
           throw new Error((d && (d.error || d.message)) || 'Respon server tidak valid');

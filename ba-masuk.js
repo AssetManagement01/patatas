@@ -107,7 +107,7 @@
     wrap.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);z-index:9999;display:flex;align-items:center;justify-content:center;padding:1rem';
     wrap.innerHTML =
       '<div style="background:#fff;border-radius:14px;max-width:440px;width:100%;max-height:90vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)">' +
-      '<div style="padding:0.85rem 1rem;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0b4f37">✏️ Edit Kas Masuk</div>' +
+      '<div style="padding:0.85rem 1rem;border-bottom:1px solid #e2e8f0;font-weight:700;color:#0b4f37">✏️ Edit Disposal Aset</div>' +
       '<form id="ba2-edit-form" style="padding:0.25rem 1rem 1rem;overflow:auto">' +
       f('Tanggal', 'ba2e-date', r.date, 'date') +
       f('Nama barang', 'ba2e-name', r.name) +
@@ -227,7 +227,7 @@
         ? '<button type="button" class="ba2-eye" data-i="'+i+'" title="Lihat foto" style="color:#0b4f37;font-size:1.15rem">◎</button>'
         : '';
       var edit = (canEdit() && /^BA2ROW\d+$/.test(String(r.id || '')))
-        ? '<button type="button" class="ba2-edit" data-i="'+i+'" title="Edit Kas Masuk" aria-label="Edit">✏️</button>'
+        ? '<button type="button" class="ba2-edit" data-i="'+i+'" title="Edit Disposal Aset" aria-label="Edit">✏️</button>'
         : '';
       var aksi = (eye || edit) ? ('<span class="ba-aksi">' + eye + edit + '</span>') : '<span style="color:#94a3b8">-</span>';
       return '<tr><td style="'+td+'">'+(r.date||'')+'</td><td style="'+td+'">'+(r.name||'')+'</td><td style="'+td+'">'+(r.loc||'')+'</td><td style="'+td+'">'+(r.qty||0)+'</td><td style="'+td+'">'+(r.uom||'')+'</td><td style="'+td+'">'+fmt(r.price)+'</td><td style="'+td+'">'+fmt(tot)+'</td><td style="'+td+'">'+(r.keterangan||'')+'</td><td style="'+td+';white-space:nowrap">'+badge+'</td><td class="ba-aksi-cell" style="'+td+'">'+aksi+'</td></tr>';

@@ -82,7 +82,7 @@
     var r;
     if (shifted) {
       r = {
-        Jenis: 'Kas Masuk', Tanggal: t.date || '', Nama: t.sku,
+        Jenis: 'Disposal Aset', Tanggal: t.date || '', Nama: t.sku,
         Uom: nama, Qty: Number(t.uom) || 0, Price: Number(t.qty) || 0, Total: Number(t.price) || 0,
         Keterangan: /^https?:/i.test(t.keterangan || '') ? '' : (t.keterangan || ''),
         Loc: t.foto || '', Status: /done|permintaan/i.test(t.loc || '') ? t.loc : (t.status || 'Done'),
@@ -90,7 +90,7 @@
       };
     } else {
       r = {
-        Jenis: kind === 'masuk' ? 'Kas Masuk' : 'Kas Keluar',
+        Jenis: kind === 'masuk' ? 'Disposal Aset' : 'Maintenance',
         Tanggal: t.date || t.Tanggal || '', SKU: kind === 'masuk' ? '' : (t.sku || ''),
         Nama: nama || t.sku || '', Loc: t.loc || '', Qty: Number(t.qty) || 0, Uom: t.uom || '',
         Price: Number(t.price) || 0, Total: Number(t.total) || 0,
@@ -115,8 +115,8 @@
     box.innerHTML =
       '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label>' +
       '<select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px;box-sizing:border-box">' +
-      '<option value="keluar">Kas Keluar</option>' +
-      '<option value="masuk">Kas Masuk</option>' +
+      '<option value="keluar">Maintenance</option>' +
+      '<option value="masuk">Disposal Aset</option>' +
       '<option value="semua">Semua</option>' +
       '</select>';
     wrap.insertBefore(box, wrap.firstChild);
@@ -218,7 +218,7 @@
     function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>'); }
     function fmtRp(n) { return (Number(n) || 0).toLocaleString('id-ID'); }
     var j = jenis();
-    var title = j === 'masuk' ? 'Laporan Kas Masuk' : (j === 'keluar' ? 'Laporan Kas Keluar' : 'Laporan Berita Acara');
+    var title = j === 'masuk' ? 'Laporan Disposal Aset' : (j === 'keluar' ? 'Laporan Maintenance' : 'Laporan Berita Acara');
     var showSku = j !== 'masuk';
     var head = (j === 'semua' ? '<th>Jenis</th>' : '') + '<th>Tanggal</th>' + (showSku ? '<th>SKU</th>' : '') +
       '<th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Foto</th>';

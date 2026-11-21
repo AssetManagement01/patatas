@@ -61,14 +61,18 @@ window.switchBaKas = function (which) {
     tabs.id = 'ba-kas-tabs';
     tabs.style.cssText = 'display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem';
     tabs.innerHTML =
-      '<button type="button" id="tab-kas-keluar" class="btn btn-primary" style="font-size:0.85rem" onclick="window.switchBaKas(\'keluar\')">Kas Keluar</button>' +
-      '<button type="button" id="tab-kas-masuk" class="btn btn-outline" style="font-size:0.85rem" onclick="window.switchBaKas(\'masuk\')">Kas Masuk</button>';
+      '<button type="button" id="tab-kas-keluar" class="btn btn-primary" style="font-size:0.85rem" onclick="window.switchBaKas(\'keluar\')">Maintenance</button>' +
+      '<button type="button" id="tab-kas-masuk" class="btn btn-outline" style="font-size:0.85rem" onclick="window.switchBaKas(\'masuk\')">Disposal Aset</button>';
 
     var keluar = document.createElement('div');
     keluar.id = 'ba-panel-keluar';
     while (page.firstChild) keluar.appendChild(page.firstChild);
     var h = keluar.querySelector('h3');
-    if (h) h.textContent = 'Form Kas Keluar';
+    if (h) h.textContent = 'Form Maintenance';
+    var hk = keluar.querySelectorAll('h3')[1];
+    if (hk && /Riwayat Berita Acara/i.test(hk.textContent || '')) hk.textContent = 'Riwayat Maintenance';
+    var sk = keluar.querySelector('button[type="submit"]');
+    if (sk && /Simpan Berita Acara/i.test(sk.textContent || '')) sk.textContent = 'Simpan Maintenance';
     var p = keluar.querySelector('p');
     if (p) p.innerHTML = 'Pengeluaran untuk maintenance / perbaikan. Item dari Aset Tetap atau ketik manual. Status awal: <b>Permintaan</b>.';
 
@@ -78,7 +82,7 @@ window.switchBaKas = function (which) {
     masuk.querySelectorAll('[id]').forEach(function (el) { el.id = 'm-' + el.id; });
 
     var h2 = masuk.querySelector('h3');
-    if (h2) h2.textContent = 'Form Kas Masuk';
+    if (h2) h2.textContent = 'Form Disposal Aset';
     var p2 = masuk.querySelector('p');
     if (p2) p2.innerHTML = 'Penjualan barang bekas (minyak goreng bekas, galon bekas, dll). Nama dari Aset Tetap atau ketik manual. Status langsung: <b>Done</b>.';
 
@@ -88,7 +92,7 @@ window.switchBaKas = function (which) {
     if (grid) grid.style.gridTemplateColumns = '1fr';
 
     var btn = masuk.querySelector('button[type="submit"]');
-    if (btn) btn.textContent = 'Simpan Kas Masuk';
+    if (btn) btn.textContent = 'Simpan Disposal Aset';
 
     masuk.querySelectorAll('label').forEach(function (lb) {
       var t = lb.textContent || '';
@@ -122,7 +126,7 @@ window.switchBaKas = function (which) {
     var prev = masuk.querySelector('#m-ba-foto-preview'); if (prev) prev.id = 'ba2-foto-preview';
 
     var hist = masuk.querySelectorAll('h3')[1];
-    if (hist) hist.textContent = 'Riwayat Kas Masuk';
+    if (hist) hist.textContent = 'Riwayat Disposal Aset';
     var tb = masuk.querySelector('tbody'); if (tb) tb.id = 'ba2-table-body';
     
     // Perbarui header tabel Kas Masuk agar urutannya konsisten
@@ -219,7 +223,7 @@ window.switchBaKas = function (which) {
       var price = parseFloat((ln.querySelector('.ba2-line-price') || {}).value) || 0;
       var foto = ((ln.querySelector('.ba2-line-foto') || {}).value || '') || ((document.getElementById('ba2-foto') || {}).value || '');
       rows.push({
-        id: 'BA2' + Date.now() + '_' + i, sheet: 'BA2', jenis: 'Kas Masuk',
+        id: 'BA2' + Date.now() + '_' + i, sheet: 'BA2', jenis: 'Disposal Aset',
         date: date, nama: name, name: name,
         uom: ((ln.querySelector('.ba2-line-uom') || {}).value || 'PCS'),
         qty: qty, price: price, total: price * qty,
@@ -372,7 +376,7 @@ window.switchBaKas = function (which) {
 
   async function ba2Delete(id) {
     if (!window.USER_CAN_EDIT) { alert('Hanya Admin yang bisa hapus'); return; }
-    if (!confirm('Hapus Kas Masuk ini?')) return;
+    if (!confirm('Hapus Disposal Aset ini?')) return;
     localSave(localLoad().filter(function (x) { return String(x.id) !== String(id); }));
     window.ba2Render();
     var url = apiUrl();

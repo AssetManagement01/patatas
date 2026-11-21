@@ -147,7 +147,7 @@
     if (!document.getElementById('ba-rp-jenis')) {
       var d = document.createElement('div');
       d.style.minWidth = '150px';
-      d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label><select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="keluar">Kas Keluar</option><option value="masuk">Kas Masuk</option></select>';
+      d.innerHTML = '<label style="font-size:0.72rem;font-weight:600;color:#64748b">Jenis</label><select id="ba-rp-jenis" style="width:100%;padding:0.45rem;border:1px solid var(--border);border-radius:8px"><option value="keluar">Maintenance</option><option value="masuk">Disposal Aset</option></select>';
       wrap.insertBefore(d, box.parentNode);
       d.querySelector('select').onchange = function () { loadSheet(this.value === 'masuk' ? 'BA2' : 'BA', this.value === 'masuk'); };
     }
@@ -184,7 +184,7 @@
     var to = ((document.getElementById('ba-rp-to') || {}).value || '');
     var periode = (from || to) ? ('Periode: ' + (fmtDate(from) || '-') + ' – ' + (fmtDate(to) || '-')) : 'Periode: semua tanggal';
     var loc = locFilter();
-    var title = masuk ? 'Laporan BA Kas Masuk' : 'Laporan BA Kas Keluar';
+    var title = masuk ? 'Laporan BA Disposal Aset' : 'Laporan BA Maintenance';
     var head = (masuk ? '' : '<th>SKU</th>') + '<th>Tanggal</th><th>Nama</th><th>Uom</th><th>Qty</th><th>Price</th><th>Total</th><th>Keterangan</th><th>Loc</th><th>Status</th><th>Catatan Status</th><th>Foto</th>';
     var doc = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>' + title + '</title><style>body{font-family:Segoe UI,Arial,sans-serif;padding:16px;font-size:11px}h2{margin:0 0 6px;color:#0b4f37}table{border-collapse:collapse;width:100%}th,td{border:1px solid #94a3b8;padding:5px 6px;vertical-align:middle}th{background:#0b4f37;color:#fff}.tot{margin-top:12px;font-size:14px;font-weight:700;text-align:right}</style></head><body><h2>' + title + ' — PATATAS GROUP</h2><div style="color:#64748b;margin-bottom:12px">' + esc(periode) + (loc ? ' | Lokasi: ' + esc(loc) : '') + '</div><table><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table><div class="tot">Total nominal: Rp ' + fmtRp(sum) + '</div><p style="margin-top:16px"><button onclick="window.print()" style="padding:8px 14px;background:#0b4f37;color:#fff;border:none;border-radius:8px;font-weight:600">Cetak / Save as PDF</button></p></body></html>';
     var w = window.open('', '_blank');
