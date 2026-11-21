@@ -84,7 +84,7 @@
       role: clientRole(u), canEdit: p.m.aset_tetap === 2, canDelete: !!p.s.hapus, canTransfer: p.m.transfer === 2,
       label: u.scoped ? (u.outlet + " · " + u.outletName) : u.username,
       outletKeyword: u.scoped ? u.outletKeyword : null, outletName: u.scoped ? u.outletName : null, outletCode: u.scoped ? u.outlet : null,
-      loginKey: u.username, ts: Date.now()
+      seeAllBA: !!u.seeAllBA, loginKey: u.username, ts: Date.now()
     };
   }
 

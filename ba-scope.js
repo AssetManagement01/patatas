@@ -107,7 +107,11 @@
   window.baFilterOutlet = function (list) {
     var scope = getScope();
     if (!scope || !list) return list || [];
+    var allKeluar = false;
+    try { allKeluar = !!(JSON.parse(localStorage.getItem('patatas_asset_session') || 'null') || {}).seeAllBA; } catch (e) {}
     return list.filter(function (r) {
+      // HO MDN: Kas Keluar (BAROW) semua outlet; Kas Masuk (BA2ROW) tetap outlet sendiri
+      if (allKeluar && /^BAROW\d+$/.test(String((r && r.id) || ''))) return true;
       return locMatch(r.loc || r.location || r.outlet || '', scope);
     });
   };
