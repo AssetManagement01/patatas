@@ -1,3 +1,5 @@
+/* Aset Lancar disembunyikan dari menu (radial & klasik) atas permintaan user */
+(function(){try{var st=document.createElement('style');st.textContent='#nav-aset-lancar{display:none!important}';(document.head||document.documentElement).appendChild(st);}catch(e){}})();
 /* PATATAS — Menu radial seperempat lingkaran (R2) pengganti sidebar kiri.
    Item dibangun dari menu sidebar asli: hanya yang tampil (hak akses per user tetap berlaku),
    dan klik item = klik menu asli (navTo + logika lama tetap jalan).
@@ -91,7 +93,7 @@
   function collect() {
     var list = [];
     var subs = [
-      ['#nav-assets-list', '🧱', 'Aset Tetap'], ['#nav-aset-lancar', '📦', 'Aset Lancar'], ['#nav-valuation', '💰', 'Valuation Stock']
+      ['#nav-assets-list', '🧱', 'Aset Tetap'], ['#nav-valuation', '💰', 'Valuation Stock']
     ].map(function (d) { var el = navEl(d[0]); return { el: el, icon: d[1], label: labelOf(el, d[2]) }; })
       .filter(function (x) { return x.el && visible(x.el); });
     var parent = navEl('#nav-assets');
